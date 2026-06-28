@@ -17,7 +17,12 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 
 /* ÉCRAN DÉMARRAGE */
 #start-screen{position:fixed;inset:0;background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:20px}
-#start-screen .logo{font-size:clamp(48px,15vw,80px);margin-bottom:10px;animation:b 1.5s ease-in-out infinite}
+#start-screen .logo{width:clamp(90px,26vw,130px);height:clamp(90px,26vw,130px);margin-bottom:10px;animation:b 1.5s ease-in-out infinite;filter:drop-shadow(0 8px 20px rgba(231,76,60,.4))}
+#start-screen .logo svg{width:100%;height:100%;display:block}
+.pixou-eyes{animation:pixou-blink 4s infinite;transform-origin:center 52px}
+@keyframes pixou-blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(0.1)}}
+.pixou-feet{animation:pixou-step 1.5s ease-in-out infinite;transform-origin:center bottom}
+@keyframes pixou-step{0%,100%{transform:translateX(0)}25%{transform:translateX(-2px) rotate(-3deg)}75%{transform:translateX(2px) rotate(3deg)}}
 #start-screen h1{font-size:clamp(24px,8vw,40px);margin-bottom:8px;text-shadow:0 4px 20px rgba(0,0,0,.4);text-align:center}
 #start-screen .sub{font-size:clamp(12px,3.5vw,15px);opacity:.8;margin-bottom:25px;text-align:center}
 #btn-start{background:#fff;color:#764ba2;border:none;padding:16px 48px;font-size:clamp(18px,5vw,22px);font-weight:700;border-radius:50px;cursor:pointer;box-shadow:0 8px 30px rgba(0,0,0,.3);animation:p 2s ease-in-out infinite;transition:transform .1s}
@@ -272,7 +277,41 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 <!-- ÉCRAN DÉMARRAGE -->
 <div id="start-screen">
     <button id="btn-help" title="Comment jouer">❓</button>
-    <div class="logo">🟥</div>
+    <div class="logo">
+        <svg viewBox="0 0 100 100" width="100" height="100" xmlns="http://www.w3.org/2000/svg" aria-label="Pixou">
+            <defs>
+                <linearGradient id="pixou-body" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#FF6B5C"/>
+                    <stop offset="1" stop-color="#E74C3C"/>
+                </linearGradient>
+            </defs>
+            <!-- pieds qui se balancent -->
+            <g class="pixou-feet">
+                <rect x="30" y="84" width="14" height="8" rx="3" fill="#F1C40F"/>
+                <rect x="56" y="84" width="14" height="8" rx="3" fill="#F1C40F"/>
+            </g>
+            <!-- corps -->
+            <rect x="22" y="28" width="56" height="60" rx="14" fill="url(#pixou-body)" stroke="#C0392B" stroke-width="3"/>
+            <!-- casquette turquoise -->
+            <rect x="20" y="20" width="60" height="16" rx="7" fill="#16A085"/>
+            <rect x="72" y="27" width="16" height="7" rx="3" fill="#138D75"/>
+            <circle cx="50" cy="19" r="4.5" fill="#1ABC9C"/>
+            <!-- joues -->
+            <circle cx="33" cy="62" r="5" fill="#ff9696" opacity="0.55"/>
+            <circle cx="67" cy="62" r="5" fill="#ff9696" opacity="0.55"/>
+            <!-- yeux (avec clignement) -->
+            <g class="pixou-eyes">
+                <ellipse cx="40" cy="52" rx="6" ry="7.5" fill="#fff"/>
+                <ellipse cx="60" cy="52" rx="6" ry="7.5" fill="#fff"/>
+                <circle cx="41.5" cy="53.5" r="3.3" fill="#1a1a2e"/>
+                <circle cx="61.5" cy="53.5" r="3.3" fill="#1a1a2e"/>
+                <circle cx="43" cy="51.5" r="1.1" fill="#fff"/>
+                <circle cx="63" cy="51.5" r="1.1" fill="#fff"/>
+            </g>
+            <!-- grand sourire -->
+            <path d="M 38 68 Q 50 79 62 68" fill="none" stroke="#C0392B" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+    </div>
     <h1>Super Carré</h1>
     <p class="sub">24 niveaux — du tutoriel au chaos final, plus l'éditeur !</p>
     <button id="btn-continue" style="display:none">▶ CONTINUER</button>
@@ -282,7 +321,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v15</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v16</div>
 </div>
 
 <!-- HALL OF FAME -->
