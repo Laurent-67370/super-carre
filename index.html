@@ -378,7 +378,9 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
         <button class="ed-tool" data-tool="mobileH" title="Plateforme mobile horizontale">↔️</button>
         <button class="ed-tool" data-tool="mobileV" title="Plateforme mobile verticale">↕️</button>
         <button class="ed-tool" data-tool="coin" title="Pièce">🪙</button>
-        <button class="ed-tool" data-tool="ennemi" title="Ennemi">👾</button>
+        <button class="ed-tool" data-tool="ennemi" title="Ennemi patrouilleur">👾</button>
+        <button class="ed-tool" data-tool="ennemiVol" title="Ennemi volant (non écrasable)">🐝</button>
+        <button class="ed-tool" data-tool="ennemiSaut" title="Ennemi sauteur (écrasable)">🦘</button>
         <button class="ed-tool" data-tool="spike" title="Pics">🔺</button>
         <button class="ed-tool" data-tool="ressort" title="Ressort">🔴</button>
         <button class="ed-tool" data-tool="puDouble" title="Power-up double saut">🔵</button>
@@ -993,7 +995,8 @@ class Player {
         for (const e of ennemis) {
             if (e.mort) continue;
             if (this.collisionAABB(e)) {
-                if (this.vy > 2 && (this.y + this.hauteur - e.y) < 20) {
+                // Ennemis écrasables (normaux + sauteurs) : on peut les écraser en tombant dessus
+                if (e.ecrasable !== false && this.vy > 2 && (this.y + this.hauteur - e.y) < 20) {
                     e.mort = true; this.vy = this.forceSaut * 0.7; audio.ecrase();
                     this.ennemisEcrases = (this.ennemisEcrases || 0) + 1;
                     if (navigator.vibrate) navigator.vibrate(40);
@@ -1152,9 +1155,161 @@ class Spike {
     dessiner(ctx){const n=Math.floor(this.w/10);for(let i=0;i<n;i++){ctx.fillStyle='#C0392B';ctx.beginPath();ctx.moveTo(this.x+i*10,this.y+this.h);ctx.lineTo(this.x+i*10+5,this.y);ctx.lineTo(this.x+i*10+10,this.y+this.h);ctx.closePath();ctx.fill();ctx.strokeStyle='#E74C3C';ctx.lineWidth=1;ctx.stroke()}}
 }
 class Ennemi {
-    constructor(x,y,d=80,v=1){this.x=x;this.y=y;this.largeur=28;this.hauteur=28;this.baseX=x;this.distance=d;this.vitesse=v;this.direction=1;this.temps=0;this.mort=false;this.mortFrame=0}
+    constructor(x,y,d=80,v=1){this.x=x;this.y=y;this.largeur=28;this.hauteur=28;this.baseX=x;this.distance=d;this.vitesse=v;this.direction=1;this.temps=0;this.mort=false;this.mortFrame=0;this.ecrasable=true}
     update(){if(this.mort){this.mortFrame++;return}this.temps+=0.03;this.x=this.baseX+Math.sin(this.temps*this.vitesse)*this.distance;this.direction=Math.cos(this.temps*this.vitesse)>0?1:-1}
     dessiner(ctx){if(this.mort){if(this.mortFrame<15){const s=1-this.mortFrame/15;ctx.fillStyle='#8B4513';ctx.fillRect(this.x+(1-s)*14,this.y+this.hauteur-6*s,this.largeur*s,6*s)}return}ctx.fillStyle='#9B59B6';ctx.fillRect(this.x,this.y,this.largeur,this.hauteur);ctx.strokeStyle='#7D3C98';ctx.lineWidth=2;ctx.strokeRect(this.x,this.y,this.largeur,this.hauteur);const ox=this.direction>0?8:4;ctx.fillStyle='#FFF';ctx.fillRect(this.x+ox,this.y+5,7,7);ctx.fillRect(this.x+ox+10,this.y+5,7,7);ctx.fillStyle='#E74C3C';ctx.fillRect(this.x+ox+2,this.y+7,4,4);ctx.fillRect(this.x+ox+12,this.y+7,4,4);ctx.strokeStyle='#000';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(this.x+ox,this.y+4);ctx.lineTo(this.x+ox+7,this.y+6);ctx.moveTo(this.x+ox+17,this.y+4);ctx.lineTo(this.x+ox+10,this.y+6);ctx.stroke()}
+}
+
+// ============================================================
+//  ENNEMI VOLANT (abeille/guêpe) — NON écrasable, vole et poursuit
+// ============================================================
+class EnnemiVolant {
+    constructor(x, y, d = 120, v = 1) {
+        this.baseX = x; this.baseY = y;
+        this.x = x; this.y = y;
+        this.largeur = 26; this.hauteur = 22;
+        this.distance = d; this.vitesse = v;
+        this.temps = Math.random() * 6.28;
+        this.direction = 1;
+        this.mort = false; this.mortFrame = 0;
+        this.ecrasable = false;   // ← NE PEUT PAS être écrasé
+        this.ailePhase = 0;       // Animation des ailes
+    }
+    update(player) {
+        if (this.mort) { this.mortFrame++; return; }
+        this.temps += 0.025 * this.vitesse;
+        this.ailePhase += 0.4;
+        // Mouvement sinusoïdal horizontal + vertical
+        this.x = this.baseX + Math.sin(this.temps) * this.distance;
+        this.y = this.baseY + Math.sin(this.temps * 1.7) * 30;
+        this.direction = Math.cos(this.temps) > 0 ? 1 : -1;
+    }
+    dessiner(ctx) {
+        if (this.mort) {
+            if (this.mortFrame < 15) {
+                const s = 1 - this.mortFrame / 15;
+                ctx.globalAlpha = s;
+                ctx.fillStyle = '#F39C12';
+                ctx.fillRect(this.x + (1 - s) * 13, this.y, this.largeur * s, this.hauteur);
+                ctx.globalAlpha = 1;
+            }
+            return;
+        }
+        // Ailes (qui battent)
+        const aw = Math.abs(Math.sin(this.ailePhase)) * 10 + 6;
+        ctx.fillStyle = 'rgba(255,255,255,.6)';
+        ctx.beginPath();
+        ctx.ellipse(this.x + this.largeur / 2 - 5, this.y - 2, aw, 6, -0.3, 0, 6.28);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(this.x + this.largeur / 2 + 8, this.y - 2, aw, 6, 0.3, 0, 6.28);
+        ctx.fill();
+        // Corps (rayé jaune/noir)
+        ctx.fillStyle = '#F39C12';
+        ctx.beginPath();
+        ctx.ellipse(this.x + this.largeur / 2, this.y + this.hauteur / 2, this.largeur / 2, this.hauteur / 2, 0, 0, 6.28);
+        ctx.fill();
+        // Rayures noires
+        ctx.fillStyle = '#1a1a1e';
+        ctx.fillRect(this.x + this.largeur / 2 - 2, this.y + 3, 3, this.hauteur - 6);
+        ctx.fillRect(this.x + this.largeur / 2 + 4, this.y + 5, 3, this.hauteur - 10);
+        // Dard
+        const dx = this.direction > 0 ? this.x + this.largeur : this.x - 5;
+        ctx.fillStyle = '#E74C3C';
+        ctx.beginPath();
+        ctx.moveTo(dx, this.y + this.hauteur / 2);
+        ctx.lineTo(dx + (this.direction > 0 ? 6 : -6), this.y + this.hauteur / 2 - 3);
+        ctx.lineTo(dx + (this.direction > 0 ? 6 : -6), this.y + this.hauteur / 2 + 3);
+        ctx.fill();
+        // Yeux
+        const ox = this.direction > 0 ? 10 : 4;
+        ctx.fillStyle = '#FFF';
+        ctx.fillRect(this.x + ox, this.y + 5, 5, 5);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(this.x + ox + 1, this.y + 6, 2, 2);
+    }
+}
+
+// ============================================================
+//  ENNEMI SAUT (blob rebondissant) — écrasable, saute en boucle
+// ============================================================
+class EnnemiSaut {
+    constructor(x, y, d = 0, v = 1) {
+        this.x = x; this.y = y;
+        this.largeur = 28; this.hauteur = 28;
+        this.baseX = x; this.baseY = y;
+        this.vy = 0;
+        this.hauteurSaut = 110 + (v - 1) * 30;  // Hauteur du bond
+        this.temps = Math.random() * 120;        // Décale les sauts entre ennemis
+        this.delaiSaut = 80 - (v - 1) * 10;      // Frames entre chaque saut (plus v = plus rapide)
+        this.direction = 1;
+        this.mort = false; this.mortFrame = 0;
+        this.ecrasable = true;   // ← PEUT être écrasé
+        this.auSol = true;
+        this.compression = 0;    // Animation visuelle
+    }
+    update(player) {
+        if (this.mort) { this.mortFrame++; return; }
+        if (this.compression > 0) this.compression--;
+        if (this.auSol) {
+            this.temps++;
+            if (this.temps >= this.delaiSaut) {
+                this.vy = -Math.sqrt(2 * 0.6 * this.hauteurSaut);  // Impulsion calculée pour la hauteur
+                this.auSol = false;
+                this.temps = 0;
+                this.compression = 0;  // Se décompressera au décollage
+            } else if (this.temps >= this.delaiSaut - 8) {
+                this.compression = this.delaiSaut - this.temps;  // Se compresse avant de sauter
+            }
+        }
+        if (!this.auSol) {
+            this.vy += 0.6;
+            this.y += this.vy;
+            if (this.y >= this.baseY) {
+                this.y = this.baseY;
+                this.vy = 0;
+                this.auSol = true;
+                this.compression = 6;  // Petit écrasement à l'atterrissage
+            }
+        }
+    }
+    dessiner(ctx) {
+        if (this.mort) {
+            if (this.mortFrame < 15) {
+                const s = 1 - this.mortFrame / 15;
+                ctx.fillStyle = '#1ABC9C';
+                ctx.fillRect(this.x + (1 - s) * 14, this.y + this.hauteur - 6 * s, this.largeur * s, 6 * s);
+            }
+            return;
+        }
+        // Compression visuelle (avant saut + à l'atterrissage)
+        const comp = this.compression > 0 ? Math.sin((6 - this.compression) / 6 * Math.PI) * 4 : 0;
+        const dy = comp;
+        const dh = comp;
+        // Corps (blob vert/turquoise)
+        ctx.fillStyle = '#1ABC9C';
+        ctx.beginPath();
+        ctx.ellipse(this.x + this.largeur / 2, this.y + this.hauteur / 2 + dy, this.largeur / 2, this.hauteur / 2 + dh, 0, 0, 6.28);
+        ctx.fill();
+        ctx.strokeStyle = '#16A085'; ctx.lineWidth = 2;
+        ctx.stroke();
+        // Yeux
+        const ox = this.direction > 0 ? 8 : 4;
+        ctx.fillStyle = '#FFF';
+        ctx.fillRect(this.x + ox, this.y + 6 + dy, 7, 7);
+        ctx.fillRect(this.x + ox + 10, this.y + 6 + dy, 7, 7);
+        ctx.fillStyle = '#000';
+        ctx.fillRect(this.x + ox + 2, this.y + 8 + dy, 3, 3);
+        ctx.fillRect(this.x + ox + 12, this.y + 8 + dy, 3, 3);
+        // Ombre au sol
+        if (!this.auSol) {
+            const o = (this.baseY - this.y) / this.hauteurSaut;
+            ctx.fillStyle = `rgba(0,0,0,${0.3 * (1 - o)})`;
+            ctx.beginPath();
+            ctx.ellipse(this.x + this.largeur / 2, this.baseY + this.hauteur, this.largeur / 2 * (1 - o * 0.4), 4, 0, 0, 6.28);
+            ctx.fill();
+        }
+    }
 }
 class Coin {
     constructor(x,y){this.x=x;this.y=y;this.rayon=10;this.collectee=false;this.temps=Math.random()*6.28;this.offsetY=0;this.rotation=0;this.particles=[]}
@@ -1313,9 +1468,9 @@ const NIVEAUX=[
     {nom:"La Nuit des Pics",icon:"🌙",desc:"Traverse le gouffre mortel, plateforme après plateforme !",spawn:{x:50,y:480},
     creer:()=>({niveau:[new Platform(0,560,120,40,'#8B4513','sol'),new Platform(680,560,120,40,'#8B4513','sol'),new Platform(0,0,20,600,'#6B4226','mur'),new Platform(780,0,20,600,'#6B4226','mur'),new Platform(150,470,80,20,'#228B22','herbe'),new Platform(290,410,70,20,'#228B22','herbe'),new Platform(420,470,70,20,'#228B22','herbe'),new Platform(550,410,70,20,'#228B22','herbe'),new Platform(220,330,70,20,'#228B22','herbe'),new Platform(400,330,70,20,'#228B22','herbe'),new Platform(570,330,70,20,'#228B22','herbe'),new MovingPlatform(350,360,70,16,'h',50,0.03)],pieces:[new Coin(185,430),new Coin(325,370),new Coin(455,430),new Coin(585,370),new Coin(255,290),new Coin(605,290)],ennemis:[new Ennemi(160,442,30,0.8),new Ennemi(430,442,25,0.7)],pics:[new Spike(120,540,560)],ressorts:[],powerups:[new PowerUp(435,290,'shield')]})},
     {nom:"La Ruche",icon:"🐝",desc:"Les ennemis pullulent ! Écrase-les ou fuis à toute vitesse.",spawn:{x:50,y:480},
-    creer:()=>({niveau:[new Platform(0,560,800,40,'#8B4513','sol'),new Platform(0,0,20,600,'#6B4226','mur'),new Platform(780,0,20,600,'#6B4226','mur'),new Platform(100,460,90,20,'#228B22','herbe'),new Platform(260,400,90,20,'#228B22','herbe'),new Platform(420,460,90,20,'#228B22','herbe'),new Platform(580,400,90,20,'#228B22','herbe'),new Platform(680,460,80,20,'#228B22','herbe'),new Platform(180,300,80,20,'#228B22','herbe'),new Platform(380,300,80,20,'#228B22','herbe'),new Platform(560,300,80,20,'#228B22','herbe'),new MovingPlatform(120,360,70,16,'h',60,0.025),new MovingPlatform(480,360,70,16,'h',60,0.03),new MovingPlatform(300,230,70,16,'v',40,0.025)],pieces:[new Coin(145,420),new Coin(305,360),new Coin(465,420),new Coin(625,360),new Coin(720,420),new Coin(220,260),new Coin(600,260)],ennemis:[new Ennemi(140,532,90,1.2),new Ennemi(420,532,90,1),new Ennemi(640,532,80,1.3),new Ennemi(290,372,40,0.8),new Ennemi(610,372,40,0.9)],pics:[new Spike(330,540,60),new Spike(540,540,60)],ressorts:[new Ressort(740,546)],powerups:[new PowerUp(60,510,'speed'),new PowerUp(420,260,'shield')]})},
+    creer:()=>({niveau:[new Platform(0,560,800,40,'#8B4513','sol'),new Platform(0,0,20,600,'#6B4226','mur'),new Platform(780,0,20,600,'#6B4226','mur'),new Platform(100,460,90,20,'#228B22','herbe'),new Platform(260,400,90,20,'#228B22','herbe'),new Platform(420,460,90,20,'#228B22','herbe'),new Platform(580,400,90,20,'#228B22','herbe'),new Platform(680,460,80,20,'#228B22','herbe'),new Platform(180,300,80,20,'#228B22','herbe'),new Platform(380,300,80,20,'#228B22','herbe'),new Platform(560,300,80,20,'#228B22','herbe'),new MovingPlatform(120,360,70,16,'h',60,0.025),new MovingPlatform(480,360,70,16,'h',60,0.03),new MovingPlatform(300,230,70,16,'v',40,0.025)],pieces:[new Coin(145,420),new Coin(305,360),new Coin(465,420),new Coin(625,360),new Coin(720,420),new Coin(220,260),new Coin(600,260)],ennemis:[new Ennemi(140,532,90,1.2),new Ennemi(420,532,90,1),new Ennemi(640,532,80,1.3),new Ennemi(290,372,40,0.8),new Ennemi(610,372,40,0.9),new EnnemiVolant(200,200,100,1),new EnnemiVolant(500,150,80,1.2)],pics:[new Spike(330,540,60),new Spike(540,540,60)],ressorts:[new Ressort(740,546)],powerups:[new PowerUp(60,510,'speed'),new PowerUp(420,260,'shield')]})},
     {nom:"Le Cœur du Volcan",icon:"🌋",desc:"L'ascension ultime ! Ennemis, vide et plateformes mobiles.",spawn:{x:50,y:480},
-    creer:()=>({niveau:[new Platform(0,560,100,40,'#8B4513','sol'),new Platform(700,560,100,40,'#8B4513','sol'),new Platform(0,0,20,600,'#6B4226','mur'),new Platform(780,0,20,600,'#6B4226','mur'),new Platform(120,470,50,16,'#228B22','herbe'),new Platform(250,440,50,16,'#228B22','herbe'),new Platform(380,470,50,16,'#228B22','herbe'),new Platform(510,440,50,16,'#228B22','herbe'),new Platform(640,470,50,16,'#228B22','herbe'),new Platform(180,360,55,16,'#228B22','herbe'),new Platform(330,330,55,16,'#228B22','herbe'),new Platform(490,360,55,16,'#228B22','herbe'),new Platform(640,330,55,16,'#228B22','herbe'),new Platform(120,250,60,16,'#228B22','herbe'),new Platform(300,220,60,16,'#228B22','herbe'),new Platform(480,250,60,16,'#228B22','herbe'),new Platform(650,220,60,16,'#228B22','herbe'),new Platform(340,120,120,20,'#228B22','herbe'),new MovingPlatform(260,280,65,16,'h',55,0.03),new MovingPlatform(540,280,65,16,'h',55,0.03),new MovingPlatform(400,180,70,16,'v',35,0.025)],pieces:[new Coin(145,430),new Coin(405,430),new Coin(665,430),new Coin(360,290),new Coin(670,290),new Coin(330,180),new Coin(510,210),new Coin(400,80)],ennemis:[new Ennemi(50,532,30,1),new Ennemi(740,532,30,1),new Ennemi(395,442,20,0.7),new Ennemi(355,302,20,0.8),new Ennemi(400,92,15,0.5)],pics:[],ressorts:[new Ressort(60,546),new Ressort(745,546)],powerups:[new PowerUp(150,210,'doublejump'),new PowerUp(675,180,'shield')]})},
+    creer:()=>({niveau:[new Platform(0,560,100,40,'#8B4513','sol'),new Platform(700,560,100,40,'#8B4513','sol'),new Platform(0,0,20,600,'#6B4226','mur'),new Platform(780,0,20,600,'#6B4226','mur'),new Platform(120,470,50,16,'#228B22','herbe'),new Platform(250,440,50,16,'#228B22','herbe'),new Platform(380,470,50,16,'#228B22','herbe'),new Platform(510,440,50,16,'#228B22','herbe'),new Platform(640,470,50,16,'#228B22','herbe'),new Platform(180,360,55,16,'#228B22','herbe'),new Platform(330,330,55,16,'#228B22','herbe'),new Platform(490,360,55,16,'#228B22','herbe'),new Platform(640,330,55,16,'#228B22','herbe'),new Platform(120,250,60,16,'#228B22','herbe'),new Platform(300,220,60,16,'#228B22','herbe'),new Platform(480,250,60,16,'#228B22','herbe'),new Platform(650,220,60,16,'#228B22','herbe'),new Platform(340,120,120,20,'#228B22','herbe'),new MovingPlatform(260,280,65,16,'h',55,0.03),new MovingPlatform(540,280,65,16,'h',55,0.03),new MovingPlatform(400,180,70,16,'v',35,0.025)],pieces:[new Coin(145,430),new Coin(405,430),new Coin(665,430),new Coin(360,290),new Coin(670,290),new Coin(330,180),new Coin(510,210),new Coin(400,80)],ennemis:[new Ennemi(50,532,30,1),new Ennemi(740,532,30,1),new Ennemi(395,442,20,0.7),new Ennemi(355,302,20,0.8),new Ennemi(400,92,15,0.5),new EnnemiSaut(150,438,0,1),new EnnemiSaut(640,438,0,1.2),new EnnemiVolant(400,150,60,0.8)],pics:[],ressorts:[new Ressort(60,546),new Ressort(745,546)],powerups:[new PowerUp(150,210,'doublejump'),new PowerUp(675,180,'shield')]})},
     // ───── NIVEAU LARGE (démo scroll horizontal — monde 1600×600) ─────
     {nom:"La Grande Traversée",icon:"🏜️",desc:"Un monde deux fois plus large ! La caméra te suit dans ta course.",spawn:{x:60,y:480},largeurMonde:1600,hauteurMonde:600,
     creer:()=>({niveau:[
@@ -1465,7 +1620,7 @@ class Game {
         this.frameCount++;
         if (this.frameCount%6===0){this.tempsNiveau=Math.round((this.frameCount/60)*10)/10}
         for(const p of this.niveau){if(p.update&&p.axe)p.update()}
-        for(const e of this.ennemis) e.update();
+        for(const e of this.ennemis) e.update(this.player);
 
         // Mettre à jour les popups de score flottants
         for(let i=this.scorePopups.length-1;i>=0;i--){const p=this.scorePopups[i];p.y-=1.5;p.vie--;if(p.vie<=0)this.scorePopups.splice(i,1)}
@@ -2200,6 +2355,8 @@ class LevelEditor {
             case 'ressort': return { w: 36,  h: 14 };
             case 'coin':    return { w: 20,  h: 20 };
             case 'ennemi':  return { w: 28,  h: 28, dist: 80, vit: 1 };
+            case 'ennemiVol':  return { w: 26, h: 22, dist: 120, vit: 1 };
+            case 'ennemiSaut': return { w: 28, h: 28, dist: 0, vit: 1 };
             default:        return { w: 28,  h: 28 }; // power-ups
         }
     }
@@ -2207,6 +2364,8 @@ class LevelEditor {
     bbox(o) {
         if (o.type === 'coin' || o.type.startsWith('pu')) return { x: o.x - 14, y: o.y - 14, w: 28, h: 28 };
         if (o.type === 'ennemi') return { x: o.x - 16, y: o.y - 4, w: 32, h: 32 };
+        if (o.type === 'ennemiVol') return { x: o.x - 16, y: o.y - 6, w: 32, h: 32 };
+        if (o.type === 'ennemiSaut') return { x: o.x - 16, y: o.y - 4, w: 32, h: 32 };
         if (o.type === 'spike') return { x: o.x, y: o.y, w: o.w || 40, h: 20 };
         if (o.type === 'ressort') return { x: o.x - 4, y: o.y - 4, w: 36, h: 28 };
         return { x: o.x, y: o.y, w: o.w, h: o.h };
@@ -2359,6 +2518,7 @@ class LevelEditor {
             sol:'#8B4513', herbe:'#228B22', mur:'#6B4226',
             mobileH:'#8E44AD', mobileV:'#8E44AD', spike:'#C0392B',
             ressort:'#E74C3C', coin:'#FFD700', ennemi:'#9B59B6',
+            ennemiVol:'#F39C12', ennemiSaut:'#1ABC9C',
             puDouble:'#3498DB', puShield:'#F1C40F', puSpeed:'#E67E22'
         };
         ctx.fillStyle = couleurs[o.type] || '#fff';
@@ -2397,17 +2557,17 @@ class LevelEditor {
         this.selection = o;
         const panel = document.getElementById('ed-props');
         panel.classList.remove('hidden');
-        const nom = { sol:'Sol', herbe:'Plateforme', mur:'Mur', mobileH:'Plate. mobile ↔', mobileV:'Plate. mobile ↕', spike:'Pics', ressort:'Ressort', coin:'Pièce', ennemi:'Ennemi', puDouble:'Power-up saut', puShield:'Power-up bouclier', puSpeed:'Power-up vitesse' }[o.type] || o.type;
+        const nom = { sol:'Sol', herbe:'Plateforme', mur:'Mur', mobileH:'Plate. mobile ↔', mobileV:'Plate. mobile ↕', spike:'Pics', ressort:'Ressort', coin:'Pièce', ennemi:'Ennemi patrouilleur', ennemiVol:'Ennemi volant 🐝', ennemiSaut:'Ennemi sauteur 🦘', puDouble:'Power-up saut', puShield:'Power-up bouclier', puSpeed:'Power-up vitesse' }[o.type] || o.type;
         document.getElementById('ed-props-label').textContent = nom;
         const rowSize = document.getElementById('ed-props-size');
         const rowMove = document.getElementById('ed-props-move');
-        const redimensionnable = !(o.type === 'coin' || o.type.startsWith('pu') || o.type === 'ressort');
+        const redimensionnable = !(o.type === 'coin' || o.type.startsWith('pu') || o.type === 'ressort' || o.type.startsWith('ennemi'));
         rowSize.classList.toggle('hidden', !redimensionnable);
         if (redimensionnable) {
             document.getElementById('ed-prop-w').value = o.w;
             document.getElementById('ed-prop-h').value = o.h;
         }
-        const mobile = (o.type === 'mobileH' || o.type === 'mobileV' || o.type === 'ennemi');
+        const mobile = (o.type === 'mobileH' || o.type === 'mobileV' || o.type === 'ennemi' || o.type === 'ennemiVol' || o.type === 'ennemiSaut');
         rowMove.classList.toggle('hidden', !mobile);
         if (mobile) {
             document.getElementById('ed-prop-dist').value = o.dist;
@@ -2436,6 +2596,8 @@ class LevelEditor {
                 case 'mobileV': niveau.push(new MovingPlatform(o.x,o.y,Math.max(10,o.w||80),Math.max(10,o.h||16),'v',dist,vit/100)); break;
                 case 'coin':  pieces.push(new Coin(o.x,o.y)); break;
                 case 'ennemi':ennemis.push(new Ennemi(o.x,o.y,dist,vit)); break;
+                case 'ennemiVol':ennemis.push(new EnnemiVolant(o.x,o.y,dist,vit)); break;
+                case 'ennemiSaut':ennemis.push(new EnnemiSaut(o.x,o.y,dist,vit)); break;
                 case 'spike': pics.push(new Spike(o.x,o.y,Math.max(10,o.w||40))); break;
                 case 'ressort':ressorts.push(new Ressort(o.x,o.y)); break;
                 case 'puDouble':powerups.push(new PowerUp(o.x,o.y,'doublejump')); break;
@@ -2543,6 +2705,9 @@ class LevelEditor {
         }
         const coins = m.objets.filter(o=>o.type==='coin').map(o=>`new Coin(${q(o.x)},${q(o.y)})`).join(',');
         const enns = m.objets.filter(o=>o.type==='ennemi').map(o=>`new Ennemi(${q(o.x)},${q(o.y)},${q(o.dist)},${o.vit})`).join(',');
+        const ennVols = m.objets.filter(o=>o.type==='ennemiVol').map(o=>`new EnnemiVolant(${q(o.x)},${q(o.y)},${q(o.dist)},${o.vit})`).join(',');
+        const ennSauts = m.objets.filter(o=>o.type==='ennemiSaut').map(o=>`new EnnemiSaut(${q(o.x)},${q(o.y)},${q(o.dist)},${o.vit})`).join(',');
+        const allEnns = [enns, ennVols, ennSauts].filter(s=>s).join(',');
         const spk = m.objets.filter(o=>o.type==='spike').map(o=>`new Spike(${q(o.x)},${q(o.y)},${q(o.w)})`).join(',');
         const rss = m.objets.filter(o=>o.type==='ressort').map(o=>`new Ressort(${q(o.x)},${q(o.y)})`).join(',');
         const pus = m.objets.filter(o=>o.type.startsWith('pu')).map(o=>{
@@ -2550,7 +2715,7 @@ class LevelEditor {
             return `new PowerUp(${q(o.x)},${q(o.y)},'${t}')`;
         }).join(',');
         const dims = (m.largeurMonde !== 800 || m.hauteurMonde !== 600) ? `largeurMonde:${m.largeurMonde},hauteurMonde:${m.hauteurMonde},` : '';
-        return `    {nom:${JSON.stringify(m.nom)},icon:"⭐",desc:"Niveau personnalisé",spawn:{x:${q(m.spawn.x)},y:${q(m.spawn.y)}},${dims}\n    creer:()=>({niveau:[${parts.join(',')}],pieces:[${coins}],ennemis:[${enns}],pics:[${spk}],ressorts:[${rss}],powerups:[${pus}]})}`;
+        return `    {nom:${JSON.stringify(m.nom)},icon:"⭐",desc:"Niveau personnalisé",spawn:{x:${q(m.spawn.x)},y:${q(m.spawn.y)}},${dims}\n    creer:()=>({niveau:[${parts.join(',')}],pieces:[${coins}],ennemis:[${allEnns}],pics:[${spk}],ressorts:[${rss}],powerups:[${pus}]})}`;
     }
 
     // ---------- Import depuis un code exporté ----------
