@@ -53,6 +53,14 @@ Tu gagnes **+1 vie bonus** chaque fois que tu atteins un palier de 4 niveaux (ni
 
 > ⚠️ On ne peut **pas** écraser une abeille : contourne-la ou active un bouclier avant de passer.
 
+### 👑 Boss
+
+Tous les **6 niveaux** (niveaux **6, 12, 18 et 24**), un **boss** t'attend : un gros ennemi à couronne, avec une barre de vie au-dessus de lui. Il patrouille au-dessus d'une plateforme.
+
+Pour le vaincre, **saute-lui sur la tête 3 fois**. Après chaque coup il devient brièvement invincible (il clignote), puis **plus rapide et plus enragé** (il rougit). Le toucher sur le côté coûte une vie — vise bien la tête.
+
+La condition de victoire d'un niveau à boss : **battre le boss, puis ramasser toutes les pièces**. Un bandeau « 👑 Bats le boss ! » affiche ses vies restantes tant qu'il est en vie. Le vaincre rapporte **+1000 points**.
+
 ### Le héros : Pixou
 Tu incarnes **Pixou**, un petit personnage rouge à casquette turquoise, au design original. Il est animé : ses yeux suivent la direction du regard, il cligne des yeux, ses pieds se balancent à la course et il fait une petite tête de surprise en plein saut.
 
@@ -77,6 +85,7 @@ Chaque power-up dure environ 10 secondes (visible via l'aura autour du joueur).
 | Ramasser une pièce | +100 |
 | Écraser un ennemi | +150 |
 | Ramasser un power-up | +250 |
+| Vaincre un boss | +1000 |
 
 Le score final ajoute un bonus pour les vies restantes et les niveaux franchis, moins une légère pénalité de temps. Les meilleurs scores sont enregistrés dans le **Hall of Fame** (avec saisie d'un pseudo).
 
@@ -86,7 +95,7 @@ Le score final ajoute un bonus pour les vies restantes et les niveaux franchis, 
 
 ## 🗺️ Les 24 niveaux
 
-La difficulté monte progressivement. À partir du niveau 9, les mondes deviennent **plus grands que l'écran** : la caméra suit le joueur (scrolling horizontal et/ou vertical).
+La difficulté monte progressivement. À partir du niveau 9, les mondes deviennent **plus grands que l'écran** : la caméra suit le joueur (scrolling horizontal et/ou vertical). Tous les 6 niveaux (6, 12, 18, 24), un **combat de boss** 👑 t'attend.
 
 | # | Niveau | Taille du monde | Particularités |
 |---|---|---|---|
@@ -212,6 +221,7 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 - Pause (avec auto-pause quand l'onglet passe en arrière-plan).
 - Audio entièrement généré par la **Web Audio API** (bruitages et **4 ambiances musicales** au choix, aucun fichier son).
 - **Checkpoints** à mi-parcours dans les grands niveaux, et **système d'étoiles** (1 à 3 par niveau) avec progression sauvegardée.
+- **Combats de boss** tous les 6 niveaux (boss à 3 points de vie, écrasable sur la tête).
 - Contrôles tactiles multi-points et clavier.
 
 ---
