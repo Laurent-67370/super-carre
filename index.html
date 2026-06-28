@@ -189,7 +189,10 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 .ed-tb-btn.ed-accent{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0030;border:none}
 .ed-tb-btn.ed-del-btn{background:#E74C3C;border:none}
 .ed-more{padding:7px 11px}
-#ed-palette{display:flex;gap:5px;padding:7px 8px;background:#16213e;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
+#ed-palette{display:flex;gap:5px;padding:7px 8px 10px;background:#16213e;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#FFD700 #16213e}
+#ed-palette::-webkit-scrollbar{height:5px}
+#ed-palette::-webkit-scrollbar-thumb{background:#FFD700;border-radius:3px}
+#ed-palette::-webkit-scrollbar-track{background:#0f1e3a}
 .ed-tool{flex:0 0 auto;width:clamp(42px,11vw,52px);height:clamp(42px,11vw,52px);border-radius:10px;border:2px solid transparent;background:#0f1e3a;font-size:clamp(18px,5vw,22px);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .08s}
 .ed-tool:active{transform:scale(.88)}
 .ed-tool.active{border-color:#FFD700;background:#243a5e;box-shadow:0 0 10px rgba(255,215,0,.3)}
@@ -212,14 +215,14 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 #ed-dropdown button{background:none;border:none;color:#fff;padding:10px 16px;text-align:left;font-size:14px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0}
 #ed-dropdown button:active{background:#2c3e50}
 .ed-dd-sep{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#7a8aa0;padding:6px 16px 2px;flex-shrink:0;font-weight:700}
-#ed-export-overlay,#ed-load-overlay{position:absolute;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:20;padding:18px}
-#ed-export-overlay.hidden,#ed-load-overlay.hidden{display:none}
+#ed-export-overlay,#ed-load-overlay,#ed-import-overlay{position:absolute;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:20;padding:18px}
+#ed-export-overlay.hidden,#ed-load-overlay.hidden,#ed-import-overlay.hidden{display:none}
 .ed-overlay-card{background:#1a1a2e;border:1px solid #444;border-radius:16px;padding:18px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:10px;max-height:85vh}
 .ed-overlay-card h3{color:#FFD700;font-size:18px}
 .ed-hint{font-size:12px;color:#999}
 .ed-hint code{background:#0f0f1e;padding:1px 5px;border-radius:4px;color:#FFD700}
-#ed-export-text{width:100%;height:200px;background:#0f0f1e;border:1px solid #444;color:#9ee;border-radius:8px;padding:10px;font-family:monospace;font-size:11px;resize:none;-webkit-user-select:all;user-select:all}
-#ed-import-text{width:100%;height:200px;background:#0f0f1e;border:1px solid #444;color:#9ee;border-radius:8px;padding:10px;font-family:monospace;font-size:11px;resize:none;-webkit-user-select:text;user-select:text}
+#ed-export-text{width:100%;flex:1 1 auto;min-height:120px;max-height:50vh;background:#0f0f1e;border:1px solid #444;color:#9ee;border-radius:8px;padding:10px;font-family:monospace;font-size:11px;resize:none;-webkit-user-select:all;user-select:all}
+#ed-import-text{width:100%;flex:1 1 auto;min-height:120px;max-height:50vh;background:#0f0f1e;border:1px solid #444;color:#9ee;border-radius:8px;padding:10px;font-family:monospace;font-size:11px;resize:none;-webkit-user-select:text;user-select:text}
 .ed-overlay-btns{display:flex;gap:10px;justify-content:flex-end}
 #ed-load-list{display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:55vh}
 .ed-load-item{display:flex;align-items:center;gap:8px;background:#0f1e3a;border-radius:10px;padding:10px 12px}
