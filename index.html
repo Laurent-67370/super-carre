@@ -162,6 +162,8 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 @media(orientation:landscape) and (max-height:500px){.touch-btn{width:clamp(66px,18vw,86px);height:clamp(66px,18vw,86px)}.btn-jump{width:clamp(76px,21vw,96px);height:clamp(76px,21vw,96px)}}
 /* ===================== ÉDITEUR DE NIVEAUX ===================== */
 #btn-editor{margin-top:12px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:600;border-radius:50px;cursor:pointer;transition:transform .1s}
+#btn-install{margin-top:12px;background:rgba(26,188,156,.15);color:#1ABC9C;border:2px solid rgba(26,188,156,.5);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:700;border-radius:50px;cursor:pointer;transition:transform .1s}
+#btn-install:active{transform:scale(.93)}
 #btn-editor:active{transform:scale(.93)}
 #editor-screen{position:fixed;inset:0;background:#0f0f1e;display:none;flex-direction:column;z-index:90;overflow:hidden}
 #editor-screen.show{display:flex}
@@ -223,6 +225,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-start">▶ JOUER</button>
     <button id="btn-scores">🏆 HALL OF FAME</button>
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
+    <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
 </div>
 
@@ -415,6 +418,20 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(() => {});
     });
 }
+
+// --- Invite d'installation PWA (bouton « Installer » dans le menu) ---
+let _deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();          // empêche l'invite auto de Chrome
+    _deferredInstallPrompt = e;  // on la garde pour le bouton
+    const b = document.getElementById('btn-install');
+    if (b) b.style.display = 'inline-block';
+});
+window.addEventListener('appinstalled', () => {
+    _deferredInstallPrompt = null;
+    const b = document.getElementById('btn-install');
+    if (b) b.style.display = 'none';
+});
 
 // ============================================================
 //  HIGH SCORE MANAGER — Sauvegarde via localStorage
@@ -2364,6 +2381,15 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-editor').addEventListener('click', () => {
         game.audio.init();
         editor.ouvrir();
+    });
+
+    // Bouton « Installer » : déclenche l'invite native de Chrome
+    document.getElementById('btn-install').addEventListener('click', async () => {
+        if (!_deferredInstallPrompt) return;
+        _deferredInstallPrompt.prompt();
+        try { await _deferredInstallPrompt.userChoice; } catch (e) {}
+        _deferredInstallPrompt = null;
+        document.getElementById('btn-install').style.display = 'none';
     });
 
     const startScreen = document.getElementById('start-screen');
