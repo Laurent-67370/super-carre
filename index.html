@@ -51,6 +51,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 .level-tile{aspect-ratio:1;border-radius:14px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-weight:700;transition:transform .1s,background .2s;gap:2px}
 .level-tile .ico{font-size:clamp(18px,5vw,24px)}
 .level-tile .num{font-size:clamp(13px,3.5vw,16px)}
+.level-tile .tile-stars{font-size:clamp(9px,2.6vw,12px);color:#FFD700;letter-spacing:1px;line-height:1;margin-top:1px}
 .level-tile:active{transform:scale(.92)}
 .level-tile.unlocked{background:rgba(26,188,156,.18);border-color:rgba(26,188,156,.55)}
 .level-tile.locked{opacity:.4;cursor:not-allowed;background:rgba(0,0,0,.25)}
@@ -321,7 +322,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v16</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v17</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -340,7 +341,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 <!-- SÉLECTEUR DE NIVEAUX -->
 <div id="levels-screen">
     <h2>🎯 CHOISIR UN NIVEAU</h2>
-    <p class="sub-scores">Rejoue un niveau débloqué</p>
+    <p class="sub-scores" id="levels-stars-total">⭐ 0 / 0</p>
     <div id="levels-grid"></div>
     <button id="btn-levels-back">◀ RETOUR</button>
 </div>
@@ -717,8 +718,10 @@ class HighScoreManager {
 class ProgressManager {
     constructor(nbNiveaux) {
         this.key = 'supercarre_progress';
+        this.starsKey = 'supercarre_stars';
         this.nbNiveaux = nbNiveaux;
         this.niveauDebloque = this.charger(); // index 0-based du plus haut niveau atteint
+        this.etoiles = this.chargerEtoiles(); // {idxNiveau: nbEtoiles}
     }
     charger() {
         try {
@@ -727,6 +730,19 @@ class ProgressManager {
         } catch(e) {}
         return 0;
     }
+    chargerEtoiles() {
+        try { return JSON.parse(localStorage.getItem(this.starsKey)) || {}; } catch(e) { return {}; }
+    }
+    // Enregistre les étoiles d'un niveau (garde le meilleur score obtenu)
+    enregistrerEtoiles(idx, nb) {
+        const actuel = this.etoiles[idx] || 0;
+        if (nb > actuel) {
+            this.etoiles[idx] = nb;
+            try { localStorage.setItem(this.starsKey, JSON.stringify(this.etoiles)); } catch(e) {}
+        }
+    }
+    etoilesDe(idx) { return this.etoiles[idx] || 0; }
+    totalEtoiles() { return Object.values(this.etoiles).reduce((a, b) => a + b, 0); }
     // Débloque un niveau (ne régresse jamais)
     debloquer(idx) {
         const cible = Math.min(idx, this.nbNiveaux - 1);
@@ -740,7 +756,8 @@ class ProgressManager {
     // Repartir de zéro
     reinitialiser() {
         this.niveauDebloque = 0;
-        try { localStorage.removeItem(this.key); } catch(e) {}
+        this.etoiles = {};
+        try { localStorage.removeItem(this.key); localStorage.removeItem(this.starsKey); } catch(e) {}
     }
 }
 
@@ -1794,6 +1811,7 @@ class Game {
         this.ennemis = data.ennemis||[]; this.pics = data.pics||[];
         this.ressorts = data.ressorts||[]; this.powerups = data.powerups||[];
         this.scoreNiveau = 0; this.totalPiecesNiveau = this.pieces.length;
+        this.mortsNiveau = 0; // morts/dégâts subis dans ce niveau (pour les étoiles)
         this.tempsNiveau = 0; this.frameCount = 0;
         // Dimensions du monde (défaut = taille écran → niveaux classiques sans scroll)
         this.mondeW = largeurMonde || this.W;
@@ -1802,7 +1820,31 @@ class Game {
         this.player.checkpointX = spawn.x; this.player.checkpointY = spawn.y;
         this.player.mondeW = this.mondeW; this.player.mondeH = this.mondeH;
         const platSafe = this.niveau.filter(p=>p.type==='herbe');
-        if (platSafe.length>3){const cp=platSafe[Math.floor(platSafe.length/2)];this.player.checkpointMid={x:cp.x,y:cp.y-this.player.hauteur}}
+        // Checkpoint à mi-parcours, uniquement pour les grands niveaux (où une chute coûte cher).
+        // On choisit une plateforme proche du milieu géographique du parcours.
+        this.checkpoint = null;
+        const grand = this.mondeW > 1200 || this.mondeH > 800;
+        if (grand && platSafe.length > 3) {
+            // axe principal = horizontal si large, vertical si haut
+            const horizontal = this.mondeW >= this.mondeH;
+            const milieu = horizontal ? this.mondeW / 2 : this.mondeH / 2;
+            // plateforme dont le centre est le plus proche du milieu de l'axe
+            let best = null, bestD = Infinity;
+            for (const p of platSafe) {
+                const c = horizontal ? (p.x + p.largeur / 2) : p.y;
+                const d = Math.abs(c - milieu);
+                if (d < bestD) { bestD = d; best = p; }
+            }
+            if (best) {
+                this.checkpoint = {
+                    x: best.x + best.largeur / 2,
+                    y: best.y - 36,            // le drapeau repose sur la plateforme
+                    spawnX: best.x + 10,
+                    spawnY: best.y - this.player.hauteur,
+                    atteint: false
+                };
+            }
+        }
         this.nuages = [];
         const largeurNuages = Math.max(800, this.mondeW);
         for(let i=0;i<4;i++){this.nuages.push({x:Math.random()*largeurNuages,y:20+Math.random()*120,t:25+Math.random()*30,v:0.15+Math.random()*0.2})}
@@ -1880,6 +1922,19 @@ class Game {
         this._updateEffets();
 
         const result = this.player.update(this.touches,this.audio,this.niveau,this.ennemis,this.pics);
+        // --- CHECKPOINT : activé quand le joueur le franchit ---
+        if (this.checkpoint && !this.checkpoint.atteint) {
+            const pcx = this.player.x + 15, pcy = this.player.y + 15;
+            if (Math.abs(pcx - this.checkpoint.x) < 45 && Math.abs(pcy - this.checkpoint.y) < 60) {
+                this.checkpoint.atteint = true;
+                this.player.checkpointX = this.checkpoint.spawnX;
+                this.player.checkpointY = this.checkpoint.spawnY;
+                this.audio.transition();
+                if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+                this.scorePopups.push({ x: this.checkpoint.x - 15, y: this.checkpoint.y - 10, vie: 70, text: '🚩 Checkpoint !' });
+                this.player.setExpression('joy', 24);
+            }
+        }
         // Bonus pour chaque ennemi écrasé cette frame (+150)
         if (this.player.ennemisEcrases) {
             this.scoreCumul += 150 * this.player.ennemisEcrases;
@@ -1898,9 +1953,9 @@ class Game {
         }
         if(result==='degat'||result==='trou'){
             this.audio.degat(); if(navigator.vibrate)navigator.vibrate(200);
-            this.vies--; this.updateHearts(); this.shakeFrames=8;
+            this.vies--; this.updateHearts(); this.shakeFrames=8; this.mortsNiveau++;
             if(this.vies<=0){ this._spawnDebris(this.player.x+15, this.player.y+15); this.etat='mort'; this.mortFrame=0; return; }
-            if(this.player.checkpointMid&&result==='trou'){this.player.checkpointX=this.player.checkpointMid.x;this.player.checkpointY=this.player.checkpointMid.y}
+            if(this.checkpoint&&this.checkpoint.atteint){this.player.checkpointX=this.checkpoint.spawnX;this.player.checkpointY=this.checkpoint.spawnY}
             this.player.subirDegat();
             this.recalculerCamera(true); // recentrage immédiat après respawn
         }
@@ -1913,7 +1968,6 @@ class Game {
                 // Popup de score flottant sur le canvas
                 this.scorePopups.push({x:piece.x,y:piece.y,vie:45,text:'+100'});
                 this.player.setExpression('joy', 18);
-                if(this.scoreNiveau>=Math.ceil(this.totalPiecesNiveau/2)&&this.player.checkpointMid){this.player.checkpointX=this.player.checkpointMid.x;this.player.checkpointY=this.player.checkpointMid.y}
                 if(this.scoreNiveau>=this.totalPiecesNiveau){this.niveauTermine();return}
             }
         }
@@ -2039,6 +2093,26 @@ class Game {
         ctx.translate(-camX + sx, -camY + sy);
         for(const s of this.pics) s.dessiner(ctx);
         for(const p of this.niveau) p.dessiner(ctx);
+        // --- Drapeau de checkpoint (gris = inactif, vert lumineux = atteint) ---
+        if (this.checkpoint) {
+            const cp = this.checkpoint, fx = cp.x, fy = cp.y;
+            const actif = cp.atteint;
+            // mât
+            ctx.strokeStyle = '#7f8c9b'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(fx, fy - 4); ctx.lineTo(fx, fy + 36); ctx.stroke();
+            // drapeau (ondule légèrement si atteint)
+            const wave = actif ? Math.sin(this.frameCount / 8) * 3 : 0;
+            ctx.fillStyle = actif ? '#2ECC71' : '#566573';
+            ctx.beginPath();
+            ctx.moveTo(fx, fy - 2);
+            ctx.lineTo(fx + 22, fy + 4 + wave);
+            ctx.lineTo(fx, fy + 12);
+            ctx.closePath(); ctx.fill();
+            if (actif) {
+                ctx.fillStyle = 'rgba(46,204,113,.25)';
+                ctx.beginPath(); ctx.arc(fx, fy + 16, 16, 0, 6.28); ctx.fill();
+            }
+        }
         for(const e of this.ennemis) e.dessiner(ctx);
         for(const piece of this.pieces) piece.dessiner(ctx);
         for(const r of this.ressorts) r.dessiner(ctx);
@@ -2225,6 +2299,12 @@ class Game {
         this.scoreTotal+=this.scoreNiveau; this.tempsTotal+=this.tempsNiveau;
         // Débloquer le niveau suivant dès qu'on termine celui-ci
         this.progress.debloquer(this.niveauActuel + 1);
+        // --- ÉTOILES : 3 = sans une égratignure, 2 = une seule, 1 = terminé ---
+        let etoiles = 1;
+        if (this.mortsNiveau === 0) etoiles = 3;
+        else if (this.mortsNiveau <= 1) etoiles = 2;
+        this.progress.enregistrerEtoiles(this.niveauActuel, etoiles);
+        this._dernieresEtoiles = etoiles;
         // Bonus : +1 vie tous les 4 niveaux atteints (4, 8, 12, 16, 20, 24)
         const niveauAtteint = this.niveauActuel + 1;
         let bonusVie = false;
@@ -2233,7 +2313,8 @@ class Game {
         if(this.niveauActuel>=NIVEAUX.length-1){setTimeout(()=>this.victoireFinale(),800)}
         else{this.audio.transition();setTimeout(()=>{
             document.getElementById('trans-icon').textContent=NIVEAUX[this.niveauActuel].icon;
-            document.getElementById('trans-title').textContent=`Niveau ${this.niveauActuel+1} terminé !`;
+            const etoilesStr = '⭐'.repeat(this._dernieresEtoiles) + '☆'.repeat(3 - this._dernieresEtoiles);
+            document.getElementById('trans-title').textContent=`Niveau ${this.niveauActuel+1} terminé !  ${etoilesStr}`;
             document.getElementById('trans-desc').textContent = bonusVie
                 ? `❤️ +1 vie bonus ! • Prochain : ${NIVEAUX[this.niveauActuel+1].nom}`
                 : `Prochain : ${NIVEAUX[this.niveauActuel+1].nom}`;
@@ -3607,12 +3688,17 @@ window.addEventListener('DOMContentLoaded', () => {
         const grid = document.getElementById('levels-grid');
         grid.innerHTML = '';
         const maxDebloque = game.progress.niveauDebloque; // index du plus haut niveau atteint
+        document.getElementById('levels-stars-total').textContent = `⭐ ${game.progress.totalEtoiles()} / ${NIVEAUX.length * 3}`;
         NIVEAUX.forEach((niv, i) => {
             const debloque = i <= maxDebloque;
             const tile = document.createElement('button');
             tile.className = 'level-tile ' + (debloque ? 'unlocked' : 'locked');
+            const nbEtoiles = game.progress.etoilesDe(i);
+            const etoilesHTML = debloque
+                ? `<span class="tile-stars">${'★'.repeat(nbEtoiles)}${'☆'.repeat(3 - nbEtoiles)}</span>`
+                : '';
             tile.innerHTML = debloque
-                ? `<span class="ico">${niv.icon}</span><span class="num">${i + 1}</span>`
+                ? `<span class="ico">${niv.icon}</span><span class="num">${i + 1}</span>${etoilesHTML}`
                 : `<span class="ico">🔒</span><span class="num">${i + 1}</span>`;
             if (debloque) {
                 tile.addEventListener('click', () => {
