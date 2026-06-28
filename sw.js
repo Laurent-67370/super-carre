@@ -4,7 +4,7 @@
 //     récupérée quand il y a une connexion ; le cache ne sert qu'en secours hors-ligne.
 //     => les mises à jour sont vues automatiquement au prochain lancement (connecté).
 //   - icônes / manifest : CACHE D'ABORD → ressources stables, chargement instantané.
-const CACHE_VERSION = 'super-carre-v24';
+const CACHE_VERSION = 'super-carre-v25';
 const ASSETS = [
   './',
   './index.html',
