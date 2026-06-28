@@ -1,7 +1,10 @@
 // Service Worker — Super Carré PWA
-// Stratégie : cache-first pour les ressources du jeu, avec mise à jour propre.
-// Pour forcer une mise à jour après modification du jeu, incrémente CACHE_VERSION.
-const CACHE_VERSION = 'super-carre-v1';
+// Stratégie hybride :
+//   - index.html (le jeu) : RÉSEAU D'ABORD → la dernière version est toujours
+//     récupérée quand il y a une connexion ; le cache ne sert qu'en secours hors-ligne.
+//     => les mises à jour sont vues automatiquement au prochain lancement (connecté).
+//   - icônes / manifest : CACHE D'ABORD → ressources stables, chargement instantané.
+const CACHE_VERSION = 'super-carre-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -12,7 +15,7 @@ const ASSETS = [
   './icons/apple-touch-icon.png'
 ];
 
-// Installation : pré-cache des ressources
+// Installation : pré-cache + activation immédiate de la nouvelle version
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_VERSION)
@@ -32,25 +35,43 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Requêtes : cache d'abord, réseau en secours (puis mise en cache de la réponse)
+// Est-ce une requête vers le document principal du jeu ?
+function estDocumentJeu(request) {
+  if (request.mode === 'navigate') return true;
+  const url = new URL(request.url);
+  return url.pathname.endsWith('/') || url.pathname.endsWith('/index.html');
+}
+
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request)
+
+  if (estDocumentJeu(event.request)) {
+    // RÉSEAU D'ABORD : on tente le réseau, on met à jour le cache, secours = cache
+    event.respondWith(
+      fetch(event.request)
         .then((response) => {
-          // Ne mettre en cache que les réponses valides et de même origine
-          if (response && response.status === 200 && response.type === 'basic') {
+          if (response && response.status === 200) {
             const clone = response.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, clone));
+            caches.open(CACHE_VERSION).then((cache) => cache.put('./index.html', clone));
           }
           return response;
         })
-        .catch(() => {
-          // Hors-ligne et non caché : pour une navigation, renvoyer le jeu
-          if (event.request.mode === 'navigate') return caches.match('./index.html');
-        });
+        .catch(() => caches.match('./index.html').then((c) => c || caches.match('./')))
+    );
+    return;
+  }
+
+  // CACHE D'ABORD pour le reste (icônes, manifest…)
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      if (cached) return cached;
+      return fetch(event.request).then((response) => {
+        if (response && response.status === 200 && response.type === 'basic') {
+          const clone = response.clone();
+          caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, clone));
+        }
+        return response;
+      });
     })
   );
 });
