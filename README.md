@@ -1,8 +1,10 @@
 # 🟥 Super Carré
 
-Jeu de plateforme HTML5 autonome, jouable au clavier comme au tactile. Tout tient dans un seul fichier `jeuv2.html` (aucune dépendance, aucun serveur requis) : il suffit de l'ouvrir dans un navigateur ou de le déposer sur un hébergement statique.
+Jeu de plateforme HTML5 autonome, jouable au clavier comme au tactile. Tout le jeu tient dans un seul fichier `index.html` (aucune dépendance, aucun serveur requis) : il suffit de l'ouvrir dans un navigateur ou de le déposer sur un hébergement statique.
 
-**16 niveaux**, un éditeur de niveaux intégré, une sauvegarde de progression et un Hall of Fame.
+**16 niveaux**, un éditeur de niveaux intégré, une sauvegarde de progression, un Hall of Fame — et c'est une **PWA installable** (jouable hors-ligne, en plein écran sur mobile).
+
+🎮 **Jouer en ligne :** https://laurent-67370.github.io/super-carre/
 
 ---
 
@@ -24,6 +26,9 @@ Ramasse **toutes les pièces** 🪙 d'un niveau pour débloquer le suivant. Tu d
 - **Saute sur les ennemis** 👾 pour les écraser (et gagner des points).
 - Les **ressorts** 🔴 propulsent très haut.
 - Les **pics** 🔺 sont mortels au contact.
+
+### Le héros : Pixou
+Tu incarnes **Pixou**, un petit personnage rouge à casquette turquoise, au design original. Il est animé : ses yeux suivent la direction du regard, il cligne des yeux, ses pieds se balancent à la course et il fait une petite tête de surprise en plein saut.
 
 ---
 
@@ -122,12 +127,39 @@ Au lancement, si une progression existe, le menu propose **▶ CONTINUER** (repr
 
 ---
 
+## 📱 Installer l'application (PWA)
+
+Super Carré est une **Progressive Web App** : on peut l'installer sur son téléphone comme une vraie application, la lancer en plein écran (sans barre de navigateur) et y jouer **hors-ligne**.
+
+### Installation
+1. Ouvrir https://laurent-67370.github.io/super-carre/ dans le navigateur.
+2. **Android (Chrome)** : un bandeau « Installer » apparaît, ou menu ⋮ → « Ajouter à l'écran d'accueil ».
+3. **iOS (Safari)** : bouton Partager → « Sur l'écran d'accueil ».
+4. Lancer le jeu depuis l'icône ajoutée : il s'ouvre en plein écran.
+
+### Hors-ligne
+Après une première ouverture (qui met le jeu en cache), l'application reste jouable sans connexion. La progression et les scores sont conservés dans le navigateur.
+
+### Fichiers de la PWA
+| Fichier | Rôle |
+|---|---|
+| `index.html` | le jeu complet |
+| `manifest.json` | nom, icônes, plein écran, couleurs |
+| `sw.js` | Service Worker (cache hors-ligne) |
+| `icons/` | icônes (192, 512, maskable, apple-touch) |
+
+> Pour publier une nouvelle version du jeu, il suffit d'incrémenter `CACHE_VERSION` dans `sw.js` : les anciens fichiers en cache sont alors remplacés au prochain lancement.
+
+---
+
 ## 🛠️ Caractéristiques techniques
 
-- **Un seul fichier**, sans dépendance externe ni build.
+- **Jeu en un seul fichier**, sans dépendance externe ni build.
+- **PWA** installable et jouable hors-ligne (manifest + Service Worker).
 - Boucle de jeu à **pas de temps fixe (60 Hz)** : vitesse identique quel que soit le taux de rafraîchissement de l'écran.
 - Rendu adapté à la **densité de pixels** (`devicePixelRatio`) : net sur écrans Retina / haute résolution.
 - **Caméra avec scrolling** fluide et parallaxe, bornée aux limites du monde.
+- Personnage **animé** dessiné au canvas (yeux, casquette, animation de course et de saut).
 - Pause (avec auto-pause quand l'onglet passe en arrière-plan).
 - Audio généré par la **Web Audio API** (pas de fichiers son).
 - Contrôles tactiles multi-points et clavier.
@@ -136,12 +168,13 @@ Au lancement, si une progression existe, le menu propose **▶ CONTINUER** (repr
 
 ## 🚀 Déploiement
 
-Aucune installation. Pour mettre le jeu en ligne, déposer `jeuv2.html` sur n'importe quel hébergement de fichiers statiques (par exemple un dossier servi par Nginx). On peut le renommer `index.html` pour qu'il s'ouvre directement.
+Aucune compilation. Pour héberger le jeu, déposer les fichiers (`index.html`, `manifest.json`, `sw.js` et le dossier `icons/`) sur n'importe quel hébergement statique en **HTTPS** (le Service Worker exige HTTPS, sauf en `localhost`).
 
-Pour jouer en local, ouvrir le fichier dans un navigateur — de préférence via un petit serveur local plutôt qu'en `file://` pour que la sauvegarde fonctionne :
+Pour jouer ou tester en local, lancer un petit serveur plutôt que d'ouvrir le fichier en `file://` (nécessaire pour la PWA et la sauvegarde) :
 
 ```bash
-# depuis le dossier contenant le fichier
+# depuis le dossier contenant les fichiers
 python3 -m http.server 8000
-# puis ouvrir http://localhost:8000/jeuv2.html
+# puis ouvrir http://localhost:8000/
 ```
+
