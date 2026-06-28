@@ -2328,8 +2328,9 @@ class Game {
         const PAS = 1 / 60;
         let n = 0;
         // En pause / transition / menu : on ne simule pas, et on ne laisse pas
-        // l'accumulateur gonfler (sinon rattrapage brutal à la reprise)
-        if (this.etat !== 'playing') this._accumulateur = 0;
+        // l'accumulateur gonfler (sinon rattrapage brutal à la reprise).
+        // L'état 'mort' DOIT continuer à simuler (animation des débris avant game over).
+        if (this.etat !== 'playing' && this.etat !== 'mort') this._accumulateur = 0;
         try {
             while (this._accumulateur >= PAS && n < 5) {
                 this.update();
