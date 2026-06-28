@@ -236,6 +236,10 @@ Deux petits bugs visuels :
 
 2. **Mort par chute dans un trou invisible à la dernière vie.** Quand on tombe dans un trou en perdant sa dernière vie, le joueur est déjà sorti de l'écran par le bas (`y > hauteurMonde + 50`) : les débris de Pixou apparaissaient hors caméra et l'animation de mort jouait 45 frames sur une scène figée vide avant le game over. Désormais, sur une mort par chute (`'trou'`), les débris apparaissent en bas de la zone visible (caméra) — l'explosion de Pixou reste visible. Le comportement pour une mort par ennemi/pic (`'degat'`, joueur à l'écran) est inchangé.
 
+### 🔧 Correctif v27 — le boss semblait demander plus de 3 écrasements
+
+Le boss a bien **3 points de vie**, mais il donnait l'impression d'en demander plus : après chaque coup sur la tête, il restait invincible **45 frames** (0,75 s), alors que le rebond du joueur (`vy = forceSaut × 0,8 ≈ -8,4`) le ramenait sur lui en **~28 frames**. Le joueur atterrissait donc souvent sur le boss *pendant* son invincibilité : le coup ne comptait pas, mais le joueur rebondissait quand même (et le compteur de cœurs ne bougeait pas). L'enchaînement réel était ~5 rebonds pour 3 coups effectifs — d'où la sensation « plus de 3 fois ». Corrigé en ramenant l'invincibilité du boss à **20 frames** (< durée d'un arc de rebond) : chaque écrasement atterrit après la fin de l'invincibilité, donc **exactement 3 écrasements = boss vaincu**, conformément à l'aide. Aucun risque de double-coup (le rebond dégage le joueur du boss en 1 frame, et la condition de saut `vy > 2` devient fausse immédiatement) ; le clignotement de dégât reste visible.
+
 ---
 
 ## 🚀 Déploiement
