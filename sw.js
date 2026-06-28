@@ -4,7 +4,7 @@
 //     récupérée quand il y a une connexion ; le cache ne sert qu'en secours hors-ligne.
 //     => les mises à jour sont vues automatiquement au prochain lancement (connecté).
 //   - icônes / manifest : CACHE D'ABORD → ressources stables, chargement instantané.
-const CACHE_VERSION = 'super-carre-v19';
+const CACHE_VERSION = 'super-carre-v20';
 const ASSETS = [
   './',
   './index.html',
@@ -46,9 +46,11 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   if (estDocumentJeu(event.request)) {
-    // RÉSEAU D'ABORD : on tente le réseau, on met à jour le cache, secours = cache
+    // RÉSEAU D'ABORD : on tente le réseau (revalidation forcée pour toujours
+    // avoir la dernière version, sans dépendre du cache HTTP edge/navigateur),
+    // on met à jour le cache, secours = cache hors-ligne.
     event.respondWith(
-      fetch(event.request)
+      fetch(event.request, { cache: 'no-cache' })
         .then((response) => {
           if (response && response.status === 200) {
             const clone = response.clone();
