@@ -27,10 +27,16 @@ Le saut est **dynamique** : maintenir la touche saute plus haut, relâcher tôt 
 
 Une **musique de fond** accompagne le jeu (générée à la volée, sans fichier audio). Le bouton 🔊 / 🔇 la coupe ou la remet, et ton choix est mémorisé.
 
+Tu peux choisir entre **4 ambiances musicales** depuis le menu d'accueil (bouton **« 🎵 Musique »**) : 🗺️ Aventure (entraînante), 🌙 Calme (douce), 👾 Rétro (arcade rapide) et 🔮 Mystère (atmosphérique). Chaque tap passe à la suivante, avec un aperçu immédiat, et le choix est conservé.
+
 ### But
 Ramasse **toutes les pièces** 🪙 d'un niveau pour débloquer le suivant. Tu démarres avec **5 vies** ❤️. Tomber dans un trou ou toucher un ennemi/pic sans protection coûte une vie. À court de vies, c'est le Game Over.
 
 Tu gagnes **+1 vie bonus** chaque fois que tu atteins un palier de 4 niveaux (niveaux 4, 8, 12, 16, 20, 24). Tu gagnes aussi **+1 vie** à chaque **palier de 5 000 points** franchi (score cumulé sur toute la partie, pas seulement le niveau en cours). Au-delà de 5 vies, le compteur passe en affichage compact (❤ ×6, ❤ ×7…).
+
+**Étoiles** ⭐ : chaque niveau terminé te rapporte de 1 à 3 étoiles selon ta performance — **3 étoiles** si tu finis sans perdre une seule vie, **2** avec une seule perte, **1** sinon. Le meilleur score est conservé : rejoue un niveau pour viser les 3 étoiles. Tes étoiles s'affichent dans le sélecteur de niveaux, avec un compteur total.
+
+**Checkpoints** 🚩 : dans les grands niveaux, un drapeau placé à mi-parcours devient vert quand tu le franchis. Après une chute ou un dégât, tu réapparais à ce checkpoint plutôt qu'au tout début du niveau.
 
 ### Astuces
 - **Saute sur les ennemis** 👾 pour les écraser (et gagner des points) — sauf l'abeille 🐝, impossible à écraser (voir plus bas).
@@ -110,7 +116,7 @@ La difficulté monte progressivement. À partir du niveau 9, les mondes devienne
 | 24 | 💀 Le Chaos Final | 2200×1200 | **Niveau final ultime**, tout combiné (46 pièces, 16 ennemis) |
 
 ### Rejouer un niveau
-Le bouton **« 🎯 CHOISIR UN NIVEAU »** du menu ouvre une grille de tous les niveaux : ceux que tu as débloqués sont jouables directement, les autres restent verrouillés 🔒. Pratique pour refaire un niveau sans tout recommencer.
+Le bouton **« 🎯 CHOISIR UN NIVEAU »** du menu ouvre une grille de tous les niveaux : ceux que tu as débloqués sont jouables directement, les autres restent verrouillés 🔒. Chaque tuile affiche les **étoiles** ⭐ obtenues (sur 3), et un compteur en haut indique ton total sur l'ensemble du jeu. Pratique pour refaire un niveau et viser le 3 étoiles partout.
 
 ---
 
@@ -158,9 +164,11 @@ Le jeu utilise le stockage local du navigateur (`localStorage`) :
 | Donnée | Clé |
 |---|---|
 | Meilleur niveau débloqué | `supercarre_progress` |
+| Étoiles obtenues par niveau | `supercarre_stars` |
 | Hall of Fame (top scores) | `supercarre_highscores` |
 | Niveaux de l'éditeur | `supercarre_editor_levels` |
 | Musique coupée ou non | `supercarre_muet` |
+| Ambiance musicale choisie | `supercarre_piste` |
 
 Au lancement, si une progression existe, le menu propose **▶ CONTINUER** (reprendre au niveau débloqué) en plus de **🔄 NOUVELLE PARTIE** (repartir de zéro, ce qui efface la progression). Terminer un niveau débloque le suivant ; un Game Over ne fait pas perdre les niveaux déjà débloqués.
 
@@ -202,7 +210,8 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 - **Caméra avec scrolling** fluide et parallaxe, bornée aux limites du monde.
 - Personnage **animé** dessiné au canvas (yeux, casquette, animation de course et de saut).
 - Pause (avec auto-pause quand l'onglet passe en arrière-plan).
-- Audio entièrement généré par la **Web Audio API** (bruitages **et musique de fond**, aucun fichier son).
+- Audio entièrement généré par la **Web Audio API** (bruitages et **4 ambiances musicales** au choix, aucun fichier son).
+- **Checkpoints** à mi-parcours dans les grands niveaux, et **système d'étoiles** (1 à 3 par niveau) avec progression sauvegardée.
 - Contrôles tactiles multi-points et clavier.
 
 ---
