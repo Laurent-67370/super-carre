@@ -2247,7 +2247,7 @@ function partagerScores(hs) {
     }).join('\n');
     const texte = `🟥 Super Carré — Hall of Fame 🏆\n\n${lignes}\n\n🎮 Tente de me battre : ${URL_PARTAGE}`;
     if (navigator.share) {
-        navigator.share({ title: '🟥 Super Carré — mes scores', text: texte, url: URL_PARTAGE })
+        navigator.share({ title: '🟥 Super Carré — mes scores', text: texte })
             .catch(err => { if (!err || err.name !== 'AbortError') copierPartage(texte); });
     } else {
         copierPartage(texte);
