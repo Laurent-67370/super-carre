@@ -215,7 +215,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 #ed-dropdown button{background:none;border:none;color:#fff;padding:10px 16px;text-align:left;font-size:14px;border-radius:8px;cursor:pointer;white-space:nowrap;flex-shrink:0}
 #ed-dropdown button:active{background:#2c3e50}
 .ed-dd-sep{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#7a8aa0;padding:6px 16px 2px;flex-shrink:0;font-weight:700}
-#ed-export-overlay,#ed-load-overlay,#ed-import-overlay{position:absolute;inset:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:20;padding:18px}
+#ed-export-overlay,#ed-load-overlay,#ed-import-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;z-index:200;padding:18px}
 #ed-export-overlay.hidden,#ed-load-overlay.hidden,#ed-import-overlay.hidden{display:none}
 .ed-overlay-card{background:#1a1a2e;border:1px solid #444;border-radius:16px;padding:18px;width:100%;max-width:480px;display:flex;flex-direction:column;gap:10px;max-height:85vh}
 .ed-overlay-card h3{color:#FFD700;font-size:18px}
@@ -247,6 +247,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v9</div>
 </div>
 
 <!-- HALL OF FAME -->
