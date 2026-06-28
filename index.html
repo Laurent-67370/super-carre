@@ -324,7 +324,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-music">🎵 Musique : Aventure</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v24</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v25</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -2910,7 +2910,16 @@ function setupControls(game) {
         if (n - lt <= 300) e.preventDefault();
         lt = n;
     }, {passive: false});
-    document.addEventListener('touchmove', (e) => e.preventDefault(), {passive: false});
+    // Empêcher le scroll/zoom pendant le JEU uniquement (canvas + contrôles).
+    // Les overlays (aide, sélection de niveaux, éditeur…) doivent pouvoir défiler
+    // normalement au toucher — sinon l'aide devient impossible à faire défiler
+    // une fois qu'on a joué (ce handler document est installé au 1er lancement).
+    // Note : touch-action:none sur body/canvas/contrôles + overscroll-behavior:none
+    // gèrent déjà le blocage de scroll en CSS ; ce preventDefault n'est là qu'en
+    // renfort pour la zone de jeu, et ne doit JAMAIS toucher les overlays.
+    document.addEventListener('touchmove', (e) => {
+        if (e.target.closest && e.target.closest('#game-wrapper')) e.preventDefault();
+    }, {passive: false});
 
     // Support souris (desktop)
     function bindMouse(btn, key) {
