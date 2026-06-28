@@ -1449,12 +1449,18 @@ class Game {
 
         // === CÔTÉ GAUCHE : cœurs + pièces ===
         // Cœurs
-        const hText='❤'.repeat(this.vies)+'🖤'.repeat(Math.max(0,5-this.vies));
+        // Cœurs : rangée classique jusqu'à 5 vies, format compact « ❤×N » au-delà
+        let hText, hColor='#E74C3C';
+        if (this.vies <= 5) {
+            hText = '❤'.repeat(this.vies) + '🖤'.repeat(Math.max(0, 5 - this.vies));
+        } else {
+            hText = '❤ ×' + this.vies;
+        }
         ctx.textAlign='left';
         const hw=ctx.measureText(hText).width;
         ctx.fillStyle='rgba(0,0,0,.75)';
         this.roundRect(ctx,10,8,hw+24,32,16);ctx.fill();
-        ctx.fillStyle='#E74C3C';
+        ctx.fillStyle=hColor;
         ctx.fillText(hText,22,25);
 
         // Pièces
@@ -1532,12 +1538,18 @@ class Game {
         this.scoreTotal+=this.scoreNiveau; this.tempsTotal+=this.tempsNiveau;
         // Débloquer le niveau suivant dès qu'on termine celui-ci
         this.progress.debloquer(this.niveauActuel + 1);
+        // Bonus : +1 vie tous les 4 niveaux atteints (4, 8, 12, 16)
+        const niveauAtteint = this.niveauActuel + 1;
+        let bonusVie = false;
+        if (niveauAtteint % 4 === 0) { this.vies++; this.updateHearts(); bonusVie = true; }
         if(navigator.vibrate)navigator.vibrate([100,50,100]);
         if(this.niveauActuel>=NIVEAUX.length-1){setTimeout(()=>this.victoireFinale(),800)}
         else{this.audio.transition();setTimeout(()=>{
             document.getElementById('trans-icon').textContent=NIVEAUX[this.niveauActuel].icon;
             document.getElementById('trans-title').textContent=`Niveau ${this.niveauActuel+1} terminé !`;
-            document.getElementById('trans-desc').textContent=`Prochain : ${NIVEAUX[this.niveauActuel+1].nom}`;
+            document.getElementById('trans-desc').textContent = bonusVie
+                ? `❤️ +1 vie bonus ! • Prochain : ${NIVEAUX[this.niveauActuel+1].nom}`
+                : `Prochain : ${NIVEAUX[this.niveauActuel+1].nom}`;
             document.getElementById('trans-coins').textContent=this.scoreTotal;
             document.getElementById('trans-time').textContent=this.tempsTotal.toFixed(1)+'s';
             document.getElementById('transition-screen').classList.add('show');
