@@ -405,6 +405,8 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
         <button id="ed-save">💾 Sauvegarder</button>
         <button id="ed-load">📂 Mes niveaux</button>
         <button id="ed-import">📥 Importer</button>
+        <button id="ed-export-json">💾 Télécharger .json</button>
+        <button id="ed-import-json">📂 Charger .json</button>
         <button id="ed-random">🎲 Niveau aléatoire</button>
         <button id="ed-clear">🧹 Tout effacer</button>
     </div>
@@ -449,6 +451,8 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
         <span id="ed-test-msg">Test en cours…</span>
         <button id="ed-test-back" class="ed-tb-btn ed-accent">◀ Retour éditeur</button>
     </div>
+    <!-- Input fichier caché pour charger un .json -->
+    <input type="file" id="ed-file-input" accept=".json,application/json" style="display:none">
 </div>
 
 <script>
@@ -2580,6 +2584,68 @@ class LevelEditor {
         return true;
     }
 
+    // ---------- Export / Import fichier .json (lossless) ----------
+    // Télécharge le modèle complet du niveau dans un fichier .json.
+    telechargerJSON() {
+        // On exporte le modèle pur (sans propriétés internes éventuelles)
+        const m = this.modele;
+        const data = {
+            format: 'super-carre-niveau',
+            version: 1,
+            nom: m.nom,
+            largeurMonde: m.largeurMonde,
+            hauteurMonde: m.hauteurMonde,
+            spawn: { x: Math.round(m.spawn.x), y: Math.round(m.spawn.y) },
+            objets: m.objets.map(o => {
+                const obj = { type: o.type, x: Math.round(o.x), y: Math.round(o.y) };
+                if (o.w != null) obj.w = Math.round(o.w);
+                if (o.h != null) obj.h = Math.round(o.h);
+                if (o.dist != null) obj.dist = Math.round(o.dist);
+                if (o.vit != null) obj.vit = o.vit;
+                return obj;
+            })
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        // Nom de fichier propre à partir du nom du niveau
+        const nomFichier = (m.nom || 'niveau').replace(/[^a-z0-9_-]+/gi, '_').slice(0, 40);
+        a.href = url;
+        a.download = nomFichier + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    // Charge un modèle depuis le contenu texte d'un fichier .json.
+    // Renvoie true si le fichier est un niveau valide.
+    chargerJSON(texte) {
+        let data;
+        try { data = JSON.parse(texte); } catch (e) { return false; }
+        if (!data || !Array.isArray(data.objets) || !data.spawn) return false;
+        const typesValides = new Set(['sol','herbe','mur','mobileH','mobileV','coin','ennemi','spike','ressort','puDouble','puShield','puSpeed']);
+        const objets = [];
+        for (const o of data.objets) {
+            if (!o || !typesValides.has(o.type)) continue;
+            const obj = { type: o.type, x: +o.x || 0, y: +o.y || 0 };
+            if (o.w != null) obj.w = +o.w;
+            if (o.h != null) obj.h = +o.h;
+            if (o.dist != null) obj.dist = +o.dist;
+            if (o.vit != null) obj.vit = +o.vit;
+            objets.push(obj);
+        }
+        if (objets.length === 0) return false;
+        this.modele = {
+            nom: typeof data.nom === 'string' ? data.nom : 'Niveau importé',
+            largeurMonde: +data.largeurMonde || 800,
+            hauteurMonde: +data.hauteurMonde || 600,
+            spawn: { x: +data.spawn.x || 60, y: +data.spawn.y || 480 },
+            objets
+        };
+        return true;
+    }
+
     // ---------- Sauvegarde locale ----------
     chargerSauvegardes() {
         try { return JSON.parse(localStorage.getItem(this.STORE_KEY)) || []; } catch(e) { return []; }
@@ -2643,7 +2709,39 @@ class LevelEditor {
             this.fit();
             this.dessiner();
         });
-        // Import overlay
+        // Télécharger le niveau en .json
+        document.getElementById('ed-export-json').addEventListener('click', () => {
+            dd.classList.add('hidden');
+            this.telechargerJSON();
+        });
+        // Charger un .json (ouvre le sélecteur de fichier)
+        const fileInput = document.getElementById('ed-file-input');
+        document.getElementById('ed-import-json').addEventListener('click', () => {
+            dd.classList.add('hidden');
+            fileInput.value = ''; // permet de recharger le même fichier
+            fileInput.click();
+        });
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                if (this.chargerJSON(reader.result)) {
+                    document.getElementById('ed-world-w').value = this.modele.largeurMonde;
+                    document.getElementById('ed-world-h').value = this.modele.hauteurMonde;
+                    document.getElementById('ed-name').value = this.modele.nom;
+                    this.deselectionner();
+                    this._snapshot();
+                    this.fit();
+                    this.dessiner();
+                } else {
+                    alert('Fichier .json non reconnu (ce n\'est pas un niveau Super Carré valide).');
+                }
+            };
+            reader.onerror = () => alert('Impossible de lire le fichier.');
+            reader.readAsText(file);
+        });
+        // Import overlay (coller un code)
         document.getElementById('ed-import').addEventListener('click', () => {
             dd.classList.add('hidden');
             document.getElementById('ed-import-text').value = '';
