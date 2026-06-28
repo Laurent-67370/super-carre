@@ -710,6 +710,7 @@ class Player {
         this.coyoteMax = 6;         // ~0.1s de tolérance
         this.jumpBuffer = 0;        // Mémorise un appui fait juste avant d'atterrir
         this.jumpBufferMax = 6;
+        this.frameAnim = 0;         // Compteur pour l'animation du personnage
         this.checkpointX = x; this.checkpointY = y;
         // --- POWER-UPS ---
         this.dejaDoubleJump = false;         // A déjà utilisé le double saut dans ce saut
@@ -719,6 +720,7 @@ class Player {
         this.accelerationNormale = 0.5;
     }
     update(touches, audio, niveau, ennemis, pics) {
+        this.frameAnim++;
         // --- DÉCRÉMENTER LES TIMERS DE POWER-UPS ---
         if (this.powerUpTimer.doublejump > 0) this.powerUpTimer.doublejump--;
         if (this.powerUpTimer.shield > 0) this.powerUpTimer.shield--;
@@ -876,13 +878,89 @@ class Player {
         if (this.invincible > 0 && Math.floor(this.invincible / 4) % 2 === 0) {
             ctx.globalAlpha = 0.35;
         }
-        ctx.fillStyle = '#E74C3C'; ctx.fillRect(this.x, this.y, this.largeur, this.hauteur);
-        ctx.strokeStyle = '#C0392B'; ctx.lineWidth = 2; ctx.strokeRect(this.x, this.y, this.largeur, this.hauteur);
-        const ox = this.direction > 0 ? 11 : 4;
-        ctx.fillStyle = '#FFF'; ctx.fillRect(this.x + ox, this.y + 5, 6, 6); ctx.fillRect(this.x + ox + 9, this.y + 5, 6, 6);
-        ctx.fillStyle = '#000'; const px = this.direction > 0 ? 13 : 6;
-        ctx.fillRect(this.x + px, this.y + 7, 3, 3); ctx.fillRect(this.x + px + 9, this.y + 7, 3, 3);
+        // === PERSONNAGE « Pixou » — design original, expressif et animé ===
+        const x = this.x, y = this.y, L = this.largeur, H = this.hauteur;
+        const dir = this.direction > 0 ? 1 : -1;
+        const cx = x + L / 2;
+        // Animation de course : balancement des pieds quand on bouge au sol
+        const court = this.onGround && Math.abs(this.vx) > 0.5;
+        const phase = court ? Math.sin(this.frameAnim * 0.4) : 0;
+        const enLair = !this.onGround;
+
+        // --- Petits pieds (jaunes) qui s'animent ---
+        ctx.fillStyle = '#F1C40F';
+        if (enLair) {
+            // pieds repliés en saut
+            ctx.fillRect(x + 3, y + H - 3, 8, 4);
+            ctx.fillRect(x + L - 11, y + H - 3, 8, 4);
+        } else {
+            const f1 = phase * 3, f2 = -phase * 3;
+            ctx.fillRect(x + 3, y + H - 2 + f1, 9, 4);
+            ctx.fillRect(x + L - 12, y + H - 2 + f2, 9, 4);
+        }
+
+        // --- Corps arrondi (rouge, dégradé léger) ---
+        const bodyGrad = ctx.createLinearGradient(x, y, x, y + H);
+        bodyGrad.addColorStop(0, '#FF6B5C');
+        bodyGrad.addColorStop(1, '#E74C3C');
+        ctx.fillStyle = bodyGrad;
+        this._rr(ctx, x, y + 3, L, H - 4, 7); ctx.fill();
+        ctx.strokeStyle = '#C0392B'; ctx.lineWidth = 2;
+        this._rr(ctx, x, y + 3, L, H - 4, 7); ctx.stroke();
+
+        // --- Casquette (turquoise — couleur d'identité, pas rouge) ---
+        ctx.fillStyle = '#16A085';
+        this._rr(ctx, x - 1, y, L + 2, 9, 4); ctx.fill();
+        // visière orientée selon la direction
+        ctx.fillStyle = '#138D75';
+        if (dir > 0) { this._rr(ctx, x + L - 4, y + 5, 9, 4, 2); ctx.fill(); }
+        else { this._rr(ctx, x - 5, y + 5, 9, 4, 2); ctx.fill(); }
+        // pompon
+        ctx.fillStyle = '#1ABC9C';
+        ctx.beginPath(); ctx.arc(cx, y, 2.5, 0, 6.28); ctx.fill();
+
+        // --- Yeux expressifs (blancs avec pupille qui suit la direction) ---
+        const eyeY = y + 13;
+        const e1 = cx - 7, e2 = cx + 1; // base des deux yeux
+        // clignement périodique
+        const cligne = (this.frameAnim % 200) < 6;
+        ctx.fillStyle = '#FFF';
+        if (cligne) {
+            ctx.fillRect(e1, eyeY + 3, 6, 1.5); ctx.fillRect(e2, eyeY + 3, 6, 1.5);
+        } else {
+            ctx.beginPath(); ctx.ellipse(e1 + 3, eyeY + 3, 3.2, 4, 0, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(e2 + 3, eyeY + 3, 3.2, 4, 0, 0, 6.28); ctx.fill();
+            // pupilles décalées vers la direction du regard
+            ctx.fillStyle = '#1a1a2e';
+            const pdx = dir * 1.6;
+            ctx.beginPath(); ctx.arc(e1 + 3 + pdx, eyeY + 4, 1.8, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(e2 + 3 + pdx, eyeY + 4, 1.8, 0, 6.28); ctx.fill();
+        }
+
+        // --- Bouche : sourire au sol, petit « o » en saut ---
+        ctx.strokeStyle = '#C0392B'; ctx.lineWidth = 1.5; ctx.fillStyle = '#C0392B';
+        if (enLair) {
+            ctx.beginPath(); ctx.arc(cx, y + H - 7, 1.8, 0, 6.28); ctx.fill();
+        } else {
+            ctx.beginPath(); ctx.arc(cx, y + H - 9, 3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+        }
+        // petites joues
+        ctx.fillStyle = 'rgba(255,150,150,.5)';
+        ctx.beginPath(); ctx.arc(cx - 9, y + H - 9, 2, 0, 6.28); ctx.fill();
+        ctx.beginPath(); ctx.arc(cx + 9, y + H - 9, 2, 0, 6.28); ctx.fill();
+
         ctx.globalAlpha = 1;
+    }
+    // Helper : tracé d'un rectangle à coins arrondis
+    _rr(ctx, x, y, w, h, r) {
+        r = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
     }
     subirDegat() { this.invincible = 90; this.x = this.checkpointX; this.y = this.checkpointY; this.vx = 0; this.vy = 0; }
 }
