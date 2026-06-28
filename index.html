@@ -30,6 +30,11 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 #btn-start.secondaire{background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.3);padding:11px 32px;font-size:clamp(14px,4vw,16px);box-shadow:none;animation:none}
 #start-screen .hint{margin-top:25px;font-size:clamp(10px,3vw,13px);opacity:.7;text-align:center;line-height:1.8}
 
+/* BOUTON AIDE — flottant circulaire en haut à droite */
+#btn-help{position:fixed;top:18px;right:18px;width:54px;height:54px;border-radius:50%;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a1a2e;border:none;font-size:26px;font-weight:700;cursor:pointer;z-index:115;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(255,165,0,.5);transition:transform .15s, box-shadow .15s;animation:helpPulse 2.5s ease-in-out infinite}
+#btn-help:active{transform:scale(.88);box-shadow:0 2px 10px rgba(255,165,0,.4)}
+@keyframes helpPulse{0%,100%{box-shadow:0 4px 20px rgba(255,165,0,.4)}50%{box-shadow:0 6px 30px rgba(255,165,0,.7)}}
+
 /* BOUTON HALL OF FAME */
 #btn-scores{margin-top:12px;background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.3);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:600;border-radius:50px;cursor:pointer;transition:transform .1s}
 #btn-scores:active{transform:scale(.93)}
@@ -262,6 +267,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 
 <!-- ÉCRAN DÉMARRAGE -->
 <div id="start-screen">
+    <button id="btn-help" title="Comment jouer">❓</button>
     <div class="logo">🟥</div>
     <h1>Super Carré</h1>
     <p class="sub">16 niveaux — du tutoriel à la forteresse, plus l'éditeur !</p>
@@ -270,7 +276,6 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-scores">🏆 HALL OF FAME</button>
     <button id="btn-levels">🎯 CHOISIR UN NIVEAU</button>
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
-    <button id="btn-help">❓ AIDE</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
     <div style="margin-top:10px;font-size:11px;opacity:.45">v11</div>
