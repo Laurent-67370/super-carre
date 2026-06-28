@@ -22,6 +22,8 @@ Le saut est **dynamique** : maintenir la touche saute plus haut, relâcher tôt 
 ### But
 Ramasse **toutes les pièces** 🪙 d'un niveau pour débloquer le suivant. Tu démarres avec **5 vies** ❤️. Tomber dans un trou ou toucher un ennemi/pic sans protection coûte une vie. À court de vies, c'est le Game Over.
 
+Tu gagnes **+1 vie bonus** chaque fois que tu atteins un palier de 4 niveaux (niveaux 4, 8, 12, 16). Au-delà de 5 vies, le compteur passe en affichage compact (❤ ×6, ❤ ×7…).
+
 ### Astuces
 - **Saute sur les ennemis** 👾 pour les écraser (et gagner des points).
 - Les **ressorts** 🔴 propulsent très haut.
