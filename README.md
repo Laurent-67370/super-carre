@@ -224,6 +224,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 - **Combats de boss** tous les 6 niveaux (boss à 3 points de vie, écrasable sur la tête).
 - Contrôles tactiles multi-points et clavier.
 
+### ✨ v28 — migration modulaire + build Vite
+
+Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
 ### 🔧 Correctif v29 — sélecteur de niveaux cassé (régression v28)
 
 La migration modulaire v28 a cassé l'accès direct aux niveaux (« 🎯 CHOISIR UN NIVEAU » restait vide / ne se remplissait pas) : `remplirSelecteurNiveaux()` (dans `main.js`) utilise `NIVEAUX`, mais `main.js` ne l'importait pas → `ReferenceError` au clic (le `NIVEAUX.forEach` qui remplit la grille ne s'exécutait pas). Corrigé en ajoutant `import { NIVEAUX } from './levels.js'` à `main.js`. (Le contrôle exhaustif des imports avait sauté `main.js` — désormais inclus.)
