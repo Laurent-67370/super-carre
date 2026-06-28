@@ -112,12 +112,13 @@ Accessible via le bouton **« ✏️ ÉDITEUR DE NIVEAUX »** du menu d'accueil.
 ### Fonctions
 - **Monde L / Monde H** : règle la largeur et la hauteur du monde (pour des niveaux qui scrollent).
 - **↶ Annuler / ↷ Rétablir** : revenir en arrière ou refaire une action (undo/redo).
+- **🎲 Niveau aléatoire** : génère automatiquement un niveau **jouable** (course horizontale ou ascension verticale, tiré au hasard). Chaque plateforme est placée à portée de saut de la précédente, les pièces sont toujours accessibles et les dangers évitables. Confirmation demandée si le niveau courant n'est pas vide.
 - **▶ Tester** : jouer immédiatement son niveau, puis « ◀ Retour éditeur » pour revenir à l'édition.
-- **💾 Sauvegarder** et **📂 Mes niveaux** : enregistrer et recharger ses créations.
-- **⤓ Export** : récupère le code du niveau (pour l'intégrer au jeu ou le partager).
-- **📥 Importer** : recrée un niveau à partir d'un code exporté (collé dans la zone d'import).
+- **💾 Sauvegarder** et **📂 Mes niveaux** : enregistrer et recharger ses créations dans le navigateur.
+- **⤓ Export** / **📥 Importer** : copier-coller le code d'un niveau (format `NIVEAUX`).
+- **💾 Télécharger .json** / **📂 Charger .json** : exporter ou importer un niveau sous forme de **fichier `.json`**, pratique pour le sauvegarder hors du navigateur ou le partager. Le format JSON est sans perte (contrairement au copier-coller de code).
 
-Les niveaux créés sont stockés localement dans le navigateur. Export + Import permettent de **partager** un niveau : il suffit d'envoyer le code à quelqu'un, qui le colle dans son éditeur.
+Les niveaux créés sont stockés localement dans le navigateur. Le partage se fait soit par le code (Export/Importer), soit par fichier `.json` (Télécharger/Charger).
 
 ---
 
