@@ -17,6 +17,9 @@ Jeu de plateforme HTML5 autonome, jouable au clavier comme au tactile. Tout le j
 | Sauter | Espace, ↑ ou Z | bouton 🦘 |
 | Pause | Échap ou P | bouton ⏸ |
 | Couper / remettre la musique | — | bouton 🔊 / 🔇 |
+| Ouvrir l'aide intégrée | — | bouton **❓** (haut à droite) |
+
+💡 Un bouton **❓ doré** flottant en haut à droite ouvre une **aide intégrée** (« Comment jouer »), consultable à tout moment sans quitter la partie : contrôles, ennemis, power-ups, éléments et score.
 
 Le saut est **dynamique** : maintenir la touche saute plus haut, relâcher tôt fait un petit saut. Une tolérance de saut (*coyote time*) et une mémorisation de l'appui (*jump buffer*) rendent les sauts plus pardonnants, surtout sur mobile.
 
@@ -28,9 +31,19 @@ Ramasse **toutes les pièces** 🪙 d'un niveau pour débloquer le suivant. Tu d
 Tu gagnes **+1 vie bonus** chaque fois que tu atteins un palier de 4 niveaux (niveaux 4, 8, 12, 16). Au-delà de 5 vies, le compteur passe en affichage compact (❤ ×6, ❤ ×7…).
 
 ### Astuces
-- **Saute sur les ennemis** 👾 pour les écraser (et gagner des points).
+- **Saute sur les ennemis** 👾 pour les écraser (et gagner des points) — sauf l'abeille 🐝, impossible à écraser (voir plus bas).
 - Les **ressorts** 🔴 propulsent très haut.
 - Les **pics** 🔺 sont mortels au contact.
+
+### 👾 Ennemis
+
+| Ennemi | Comportement | Écrasable ? |
+|---|---|---|
+| 👾 Patrouilleur violet | marche de gauche à droite | ✅ oui — saute dessus (+150 pts) |
+| 🦘 Blob turquoise | rebondit en boucle sur place | ✅ oui — en tombant dessus (+150 pts) |
+| 🐝 Abeille | vole en zigzag | ❌ **non** — évite-la ou utilise un bouclier 🟡 |
+
+> ⚠️ On ne peut **pas** écraser une abeille : contourne-la ou active un bouclier avant de passer.
 
 ### Le héros : Pixou
 Tu incarnes **Pixou**, un petit personnage rouge à casquette turquoise, au design original. Il est animé : ses yeux suivent la direction du regard, il cligne des yeux, ses pieds se balancent à la course et il fait une petite tête de surprise en plein saut.
@@ -45,7 +58,7 @@ Chaque power-up dure environ 10 secondes (visible via l'aura autour du joueur).
 |---|---|
 | 🔵 Double saut | un second saut en l'air |
 | 🟡 Bouclier | immunité temporaire aux dégâts |
-| 🟢 Vitesse | déplacement accéléré |
+| 🟠 Vitesse | déplacement accéléré |
 
 ---
 
@@ -103,11 +116,15 @@ Accessible via le bouton **« ✏️ ÉDITEUR DE NIVEAUX »** du menu d'accueil.
 | ↔️ | Plateforme mobile horizontale |
 | ↕️ | Plateforme mobile verticale |
 | 🪙 | Pièce |
-| 👾 | Ennemi |
+| 👾 | Ennemi patrouilleur (marche, écrasable) |
+| 🦘 | Ennemi sauteur / blob (rebondit, écrasable) |
+| 🐝 | Ennemi volant / abeille (zigzag, **non écrasable**) |
 | 🔺 | Pics |
 | 🔴 | Ressort |
 | 🔵 | Power-up double saut |
 | 🟡 | Power-up bouclier |
+| 🟠 | Power-up vitesse |
+| 🚩 | Point de départ (spawn) |
 
 ### Fonctions
 - **Monde L / Monde H** : règle la largeur et la hauteur du monde (pour des niveaux qui scrollent).
