@@ -1239,6 +1239,7 @@ class Game {
         this.tempsNiveau = 0; this.frameCount = 0; this.vies = 5;
         this.scoreCumul = 0; // Score total affiché pendant le jeu (pièces + ennemis + power-ups)
         this.piecesTotal = 0; // Nombre de pièces ramassées (pour l'affichage Hall of Fame)
+        this.prochainPalierScore = 5000; // +1 vie chaque fois que le score franchit ce seuil
         this.etat = 'menu'; this.shakeFrames = 0;
         this.player = null; this.niveau = []; this.pieces = []; this.ennemis = []; this.pics = []; this.nuages = [];
         this.ressorts = []; this.powerups = [];
@@ -1383,6 +1384,19 @@ class Game {
         if(this.shakeFrames>0)this.shakeFrames--;
         // La caméra suit le joueur en douceur
         this.recalculerCamera(false);
+        // Bonus : +1 vie à chaque palier de 5000 points
+        this.verifierBonusScore();
+    }
+    // Accorde +1 vie chaque fois que le score franchit un multiple de 5000.
+    // Gère le franchissement de plusieurs paliers d'un coup.
+    verifierBonusScore() {
+        while (this.scoreCumul >= this.prochainPalierScore) {
+            this.vies++;
+            this.updateHearts();
+            this.scorePopups.push({ x: this.player.x, y: this.player.y - 20, vie: 60, text: '❤ +1 VIE !' });
+            if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+            this.prochainPalierScore += 5000;
+        }
     }
     dessiner() {
         const ctx = this.ctx;
@@ -1632,7 +1646,7 @@ class Game {
     }
     // Réinitialise l'état d'une partie et charge le niveau demandé
     _resetPartie(idx) {
-        this.niveauActuel=idx;this.scoreTotal=0;this.tempsTotal=0;this.vies=5;this.scoreCumul=0;this.piecesTotal=0;
+        this.niveauActuel=idx;this.scoreTotal=0;this.tempsTotal=0;this.vies=5;this.scoreCumul=0;this.piecesTotal=0;this.prochainPalierScore=5000;
         document.getElementById('win-screen').classList.remove('show');
         document.getElementById('gameover-screen').classList.remove('show');
         document.getElementById('transition-screen').classList.remove('show');
@@ -2125,7 +2139,7 @@ class LevelEditor {
         const gw = document.getElementById('game-wrapper');
         const banner = document.getElementById('ed-test-banner');
         // Préparer le moteur en mode test
-        this.game.vies = 5; this.game.scoreCumul = 0; this.game.piecesTotal = 0;
+        this.game.vies = 5; this.game.scoreCumul = 0; this.game.piecesTotal = 0; this.game.prochainPalierScore = 5000;
         this.game.scoreTotal = 0; this.game.tempsTotal = 0; this.game.niveauActuel = 0;
         this.game._onTestFini = (reussi) => {
             this.game.etat = 'paused'; // fige la simulation pendant l'affichage du résultat
