@@ -36,7 +36,18 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 
 /* ÉCRAN HALL OF FAME */
 #scores-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:110;padding:20px}
+#levels-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:110;padding:20px}
+#levels-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;max-width:420px;width:100%;margin:18px 0;max-height:60vh;overflow-y:auto;padding:4px}
+.level-tile{aspect-ratio:1;border-radius:14px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-weight:700;transition:transform .1s,background .2s;gap:2px}
+.level-tile .ico{font-size:clamp(18px,5vw,24px)}
+.level-tile .num{font-size:clamp(13px,3.5vw,16px)}
+.level-tile:active{transform:scale(.92)}
+.level-tile.unlocked{background:rgba(26,188,156,.18);border-color:rgba(26,188,156,.55)}
+.level-tile.locked{opacity:.4;cursor:not-allowed;background:rgba(0,0,0,.25)}
+.level-tile.locked .ico{filter:grayscale(1)}
+@media(orientation:landscape) and (max-height:500px){#levels-grid{grid-template-columns:repeat(8,1fr);max-width:680px;max-height:50vh}}
 #scores-screen.show{display:flex}
+#levels-screen.show{display:flex}
 #scores-screen h2{font-size:clamp(26px,8vw,42px);color:#FFD700;margin-bottom:5px;text-align:center;text-shadow:0 0 30px rgba(255,215,0,.4)}
 #scores-screen .sub-scores{font-size:clamp(12px,3.5vw,15px);opacity:.6;margin-bottom:20px}
 .score-table{width:100%;max-width:400px;display:flex;flex-direction:column;gap:6px;margin-bottom:20px}
@@ -52,8 +63,8 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 .score-name{flex:1;font-size:clamp(14px,4.5vw,18px);font-weight:700;letter-spacing:2px;text-transform:uppercase}
 .score-val{font-size:clamp(14px,4.5vw,18px);font-weight:700;color:#FFD700}
 .score-empty{text-align:center;opacity:.4;font-size:clamp(13px,4vw,16px);padding:20px}
-#btn-scores-back{background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.3);padding:12px 36px;font-size:clamp(14px,4.5vw,17px);font-weight:600;border-radius:50px;cursor:pointer}
-#btn-scores-back:active{transform:scale(.93)}
+#btn-scores-back,#btn-levels-back{background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.3);padding:12px 36px;font-size:clamp(14px,4.5vw,17px);font-weight:600;border-radius:50px;cursor:pointer}
+#btn-scores-back:active,#btn-levels-back:active{transform:scale(.93)}
 
 /* ÉCRAN SAISIE NOM (ARCADE 3D) */
 #name-entry{position:fixed;inset:0;background:linear-gradient(180deg,#0a0015 0%,#1a0030 50%,#0a0015 100%);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:115;padding:20px;overflow:hidden}
@@ -148,6 +159,8 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 
 /* BOUTON PAUSE + OVERLAY */
 #btn-pause{position:absolute;top:calc(env(safe-area-inset-top,8px) + 8px);right:12px;z-index:25;width:clamp(38px,10vw,48px);height:clamp(38px,10vw,48px);border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;font-size:clamp(16px,4.5vw,20px);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:none;transition:transform .08s,background .2s}
+#btn-mute{position:absolute;top:calc(env(safe-area-inset-top,8px) + 8px);right:calc(12px + clamp(38px,10vw,48px) + 8px);z-index:25;width:clamp(38px,10vw,48px);height:clamp(38px,10vw,48px);border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(0,0,0,.45);color:#fff;font-size:clamp(15px,4.2vw,19px);display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:none;transition:transform .08s,background .2s}
+#btn-mute:active{transform:scale(.9)}
 #btn-pause:active{transform:scale(.9);background:rgba(0,0,0,.65)}
 #pause-overlay{position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;background:rgba(10,0,25,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #pause-overlay.show{display:flex}
@@ -161,7 +174,8 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 
 @media(orientation:landscape) and (max-height:500px){.touch-btn{width:clamp(66px,18vw,86px);height:clamp(66px,18vw,86px)}.btn-jump{width:clamp(76px,21vw,96px);height:clamp(76px,21vw,96px)}}
 /* ===================== ÉDITEUR DE NIVEAUX ===================== */
-#btn-editor{margin-top:12px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:600;border-radius:50px;cursor:pointer;transition:transform .1s}
+#btn-editor,#btn-levels{margin-top:12px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:600;border-radius:50px;cursor:pointer;transition:transform .1s}
+#btn-levels:active{transform:scale(.93)}
 #btn-install{margin-top:12px;background:rgba(26,188,156,.15);color:#1ABC9C;border:2px solid rgba(26,188,156,.5);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:700;border-radius:50px;cursor:pointer;transition:transform .1s}
 #btn-install:active{transform:scale(.93)}
 #btn-editor:active{transform:scale(.93)}
@@ -204,6 +218,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 .ed-hint{font-size:12px;color:#999}
 .ed-hint code{background:#0f0f1e;padding:1px 5px;border-radius:4px;color:#FFD700}
 #ed-export-text{width:100%;height:200px;background:#0f0f1e;border:1px solid #444;color:#9ee;border-radius:8px;padding:10px;font-family:monospace;font-size:11px;resize:none;-webkit-user-select:all;user-select:all}
+#ed-import-text{width:100%;height:200px;background:#0f0f1e;border:1px solid #444;color:#9ee;border-radius:8px;padding:10px;font-family:monospace;font-size:11px;resize:none;-webkit-user-select:text;user-select:text}
 .ed-overlay-btns{display:flex;gap:10px;justify-content:flex-end}
 #ed-load-list{display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:55vh}
 .ed-load-item{display:flex;align-items:center;gap:8px;background:#0f1e3a;border-radius:10px;padding:10px 12px}
@@ -224,6 +239,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-continue" style="display:none">▶ CONTINUER</button>
     <button id="btn-start">▶ JOUER</button>
     <button id="btn-scores">🏆 HALL OF FAME</button>
+    <button id="btn-levels">🎯 CHOISIR UN NIVEAU</button>
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
@@ -236,6 +252,14 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <div class="score-table" id="score-table"></div>
     <button id="btn-scores-back">◀ RETOUR</button>
     <button id="btn-scores-replay" style="display:none;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a1a2e;border:none;padding:12px 36px;font-size:clamp(14px,4.5vw,17px);font-weight:700;border-radius:50px;cursor:pointer;margin-top:8px;box-shadow:0 6px 25px rgba(255,165,0,.4)">🔄 NOUVELLE PARTIE</button>
+</div>
+
+<!-- SÉLECTEUR DE NIVEAUX -->
+<div id="levels-screen">
+    <h2>🎯 CHOISIR UN NIVEAU</h2>
+    <p class="sub-scores">Rejoue un niveau débloqué</p>
+    <div id="levels-grid"></div>
+    <button id="btn-levels-back">◀ RETOUR</button>
 </div>
 
 <!-- SAISIE DE NOM ARCADE -->
@@ -260,6 +284,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <div id="canvas-area">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
         <button id="btn-pause" aria-label="Pause">⏸</button>
+        <button id="btn-mute" aria-label="Son">🔊</button>
         <div id="pause-overlay">
             <div class="pause-card">
                 <div class="pause-icon">⏸️</div>
@@ -379,6 +404,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <div id="ed-dropdown" class="hidden">
         <button id="ed-save">💾 Sauvegarder</button>
         <button id="ed-load">📂 Mes niveaux</button>
+        <button id="ed-import">📥 Importer</button>
         <button id="ed-clear">🧹 Tout effacer</button>
     </div>
 
@@ -401,6 +427,19 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
             <h3>Mes niveaux</h3>
             <div id="ed-load-list"></div>
             <button id="ed-load-close" class="ed-tb-btn">Fermer</button>
+        </div>
+    </div>
+
+    <!-- Overlay import depuis un code -->
+    <div id="ed-import-overlay" class="hidden">
+        <div class="ed-overlay-card">
+            <h3>Importer un niveau</h3>
+            <p class="ed-hint">Colle ici le code d'un niveau exporté.</p>
+            <textarea id="ed-import-text" placeholder="Colle le code du niveau ici…"></textarea>
+            <div class="ed-overlay-btns">
+                <button id="ed-import-ok" class="ed-tb-btn ed-accent">📥 Importer</button>
+                <button id="ed-import-close" class="ed-tb-btn">Annuler</button>
+            </div>
         </div>
     </div>
 
@@ -728,6 +767,75 @@ class AudioManager {
     ecrase() { this.beep(600, 150, 0.15, 'square', 0.12); }
     victoire() { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>this.beep(f,f,0.18,'square',0.12),i*130)); }
     transition() { this.beep(440, 880, 0.2, 'sine', 0.08); }
+
+    // === MUSIQUE DE FOND ===
+    // Mélodie chiptune générée en boucle. Programmée par petits blocs pour
+    // rester fluide. Coupable via muet (n'affecte pas les bruitages).
+    demarrerMusique() {
+        if (!this.ctx || this.musiqueActive) return;
+        this.musiqueActive = true;
+        this.musiqueMuet = this.musiqueMuet || false;
+        // Gain maître de la musique (séparé des bruitages)
+        this.musicGain = this.ctx.createGain();
+        this.musicGain.gain.value = this.musiqueMuet ? 0 : 0.06;
+        this.musicGain.connect(this.ctx.destination);
+        // Mélodie (fréquences en Hz) — boucle entraînante en La mineur
+        this.melodie = [
+            440,0,523,0, 659,0,523,0, 440,0,392,0, 440,440,0,0,
+            349,0,440,0, 523,0,440,0, 392,0,330,0, 392,392,0,0,
+            440,0,523,0, 659,0,784,0, 659,0,523,0, 440,440,0,0,
+            523,0,494,0, 440,0,392,0, 440,0,494,0, 523,523,0,0
+        ];
+        // Ligne de basse (une note tous les 4 temps)
+        this.basse = [220,165,220,196];
+        this.noteIndex = 0;
+        this.basseIndex = 0;
+        this.tempoNote = 0.16; // durée d'un temps (s)
+        this.prochaineNote = this.ctx.currentTime + 0.1;
+        this._planifierMusique();
+    }
+    _planifierMusique() {
+        if (!this.musiqueActive || !this.ctx) return;
+        const maintenant = this.ctx.currentTime;
+        // Programmer les notes jusqu'à 0,3s dans le futur
+        while (this.prochaineNote < maintenant + 0.3) {
+            const f = this.melodie[this.noteIndex % this.melodie.length];
+            if (f > 0) this._noteMusique(f, this.prochaineNote, this.tempoNote * 0.9, 'square', 0.5);
+            // basse tous les 4 temps
+            if (this.noteIndex % 4 === 0) {
+                const bf = this.basse[this.basseIndex % this.basse.length];
+                this._noteMusique(bf, this.prochaineNote, this.tempoNote * 3.6, 'triangle', 0.7);
+                this.basseIndex++;
+            }
+            this.noteIndex++;
+            this.prochaineNote += this.tempoNote;
+        }
+        this._musiqueTimer = setTimeout(() => this._planifierMusique(), 100);
+    }
+    _noteMusique(freq, t, dur, type, vol) {
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(vol, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+        o.connect(g); g.connect(this.musicGain);
+        o.start(t); o.stop(t + dur + 0.05);
+    }
+    arreterMusique() {
+        this.musiqueActive = false;
+        if (this._musiqueTimer) clearTimeout(this._musiqueTimer);
+        if (this.musicGain) { try { this.musicGain.disconnect(); } catch(e){} this.musicGain = null; }
+    }
+    basculerMuet() {
+        this.musiqueMuet = !this.musiqueMuet;
+        if (this.musicGain) {
+            const t = this.ctx.currentTime;
+            this.musicGain.gain.setValueAtTime(this.musiqueMuet ? 0 : 0.06, t);
+        }
+        return this.musiqueMuet;
+    }
 }
 
 // ============================================================
@@ -1706,6 +1814,7 @@ class Game {
             return;
         }
         this.etat = 'menu';
+        if (this.audio) this.audio.arreterMusique();
         ['pause-overlay','win-screen','gameover-screen','transition-screen','scores-screen']
             .forEach(id => { const el = document.getElementById(id); if (el) el.classList.remove('show'); });
         document.getElementById('btn-pause').textContent = '⏸';
@@ -2285,6 +2394,56 @@ class LevelEditor {
         return `    {nom:${JSON.stringify(m.nom)},icon:"⭐",desc:"Niveau personnalisé",spawn:{x:${q(m.spawn.x)},y:${q(m.spawn.y)}},${dims}\n    creer:()=>({niveau:[${parts.join(',')}],pieces:[${coins}],ennemis:[${enns}],pics:[${spk}],ressorts:[${rss}],powerups:[${pus}]})}`;
     }
 
+    // ---------- Import depuis un code exporté ----------
+    // Parse le texte produit par exporter() (sans eval, par expressions régulières)
+    // et reconstruit le modèle. Renvoie true si au moins un élément a été lu.
+    importer(texte) {
+        if (!texte || !texte.trim()) return false;
+        const mod = this.modeleVide();
+        mod.objets = [];
+        let trouve = 0;
+
+        // Nom
+        const mNom = texte.match(/nom:\s*"((?:[^"\\]|\\.)*)"/);
+        if (mNom) { try { mod.nom = JSON.parse('"' + mNom[1] + '"'); } catch(e) { mod.nom = mNom[1]; } }
+        // Spawn
+        const mSpawn = texte.match(/spawn:\s*\{\s*x:\s*(-?\d+)\s*,\s*y:\s*(-?\d+)\s*\}/);
+        if (mSpawn) { mod.spawn = { x: +mSpawn[1], y: +mSpawn[2] }; }
+        // Dimensions du monde
+        const mLw = texte.match(/largeurMonde:\s*(\d+)/);
+        const mLh = texte.match(/hauteurMonde:\s*(\d+)/);
+        mod.largeurMonde = mLw ? +mLw[1] : 800;
+        mod.hauteurMonde = mLh ? +mLh[1] : 600;
+
+        // Plateformes : new Platform(x,y,w,h,'couleur','type')
+        const reP = /new\s+Platform\(\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*'[^']*'\s*,\s*'(sol|herbe|mur)'\s*\)/g;
+        let m;
+        while ((m = reP.exec(texte))) { mod.objets.push({ type: m[5], x: +m[1], y: +m[2], w: +m[3], h: +m[4] }); trouve++; }
+        // Plateformes mobiles : new MovingPlatform(x,y,w,h,'h'|'v',dist,vit)
+        const reM = /new\s+MovingPlatform\(\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*'(h|v)'\s*,\s*(-?\d+)\s*,\s*([\d.]+)\s*\)/g;
+        while ((m = reM.exec(texte))) { mod.objets.push({ type: m[5] === 'h' ? 'mobileH' : 'mobileV', x: +m[1], y: +m[2], w: +m[3], h: +m[4], dist: +m[6], vit: Math.round(parseFloat(m[7]) * 1000) / 10 }); trouve++; }
+        // Pièces
+        const reC = /new\s+Coin\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)/g;
+        while ((m = reC.exec(texte))) { mod.objets.push({ type: 'coin', x: +m[1], y: +m[2] }); trouve++; }
+        // Ennemis : new Ennemi(x,y,dist,vit)
+        const reE = /new\s+Ennemi\(\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*([\d.]+)\s*\)/g;
+        while ((m = reE.exec(texte))) { mod.objets.push({ type: 'ennemi', x: +m[1], y: +m[2], dist: +m[3], vit: parseFloat(m[4]) }); trouve++; }
+        // Pics : new Spike(x,y,w)
+        const reS = /new\s+Spike\(\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*(-?\d+)\s*\)/g;
+        while ((m = reS.exec(texte))) { mod.objets.push({ type: 'spike', x: +m[1], y: +m[2], w: +m[3] }); trouve++; }
+        // Ressorts
+        const reR = /new\s+Ressort\(\s*(-?\d+)\s*,\s*(-?\d+)\s*\)/g;
+        while ((m = reR.exec(texte))) { mod.objets.push({ type: 'ressort', x: +m[1], y: +m[2] }); trouve++; }
+        // Power-ups : new PowerUp(x,y,'type')
+        const rePU = /new\s+PowerUp\(\s*(-?\d+)\s*,\s*(-?\d+)\s*,\s*'(doublejump|shield|speed)'\s*\)/g;
+        const mapPU = { doublejump: 'puDouble', shield: 'puShield', speed: 'puSpeed' };
+        while ((m = rePU.exec(texte))) { mod.objets.push({ type: mapPU[m[3]], x: +m[1], y: +m[2] }); trouve++; }
+
+        if (trouve === 0) return false;
+        this.modele = mod;
+        return true;
+    }
+
     // ---------- Sauvegarde locale ----------
     chargerSauvegardes() {
         try { return JSON.parse(localStorage.getItem(this.STORE_KEY)) || []; } catch(e) { return []; }
@@ -2333,6 +2492,28 @@ class LevelEditor {
         document.getElementById('ed-save').addEventListener('click', () => { dd.classList.add('hidden'); this.sauvegarder(); });
         document.getElementById('ed-clear').addEventListener('click', () => { dd.classList.add('hidden'); if (confirm('Tout effacer ?')) { this.modele = this.modeleVide(); document.getElementById('ed-name').value = this.modele.nom; this.deselectionner(); this._snapshot(); this.fit(); this.dessiner(); } });
         document.getElementById('ed-load').addEventListener('click', () => { dd.classList.add('hidden'); this._ouvrirListe(); });
+        // Import overlay
+        document.getElementById('ed-import').addEventListener('click', () => {
+            dd.classList.add('hidden');
+            document.getElementById('ed-import-text').value = '';
+            document.getElementById('ed-import-overlay').classList.remove('hidden');
+        });
+        document.getElementById('ed-import-close').addEventListener('click', () => document.getElementById('ed-import-overlay').classList.add('hidden'));
+        document.getElementById('ed-import-ok').addEventListener('click', () => {
+            const txt = document.getElementById('ed-import-text').value;
+            if (this.importer(txt)) {
+                document.getElementById('ed-world-w').value = this.modele.largeurMonde;
+                document.getElementById('ed-world-h').value = this.modele.hauteurMonde;
+                document.getElementById('ed-name').value = this.modele.nom;
+                this.deselectionner();
+                this._snapshot();
+                this.fit();
+                this.dessiner();
+                document.getElementById('ed-import-overlay').classList.add('hidden');
+            } else {
+                alert('Code non reconnu. Vérifie que tu as bien collé un niveau exporté.');
+            }
+        });
         // Export overlay
         document.getElementById('ed-export-close').addEventListener('click', () => document.getElementById('ed-export-overlay').classList.add('hidden'));
         document.getElementById('ed-export-copy').addEventListener('click', () => {
@@ -2540,6 +2721,7 @@ window.addEventListener('DOMContentLoaded', () => {
         gameWrapper.style.display = 'flex';
         game.configurerCanvas(); // le canvas a maintenant sa taille réelle dans le layout
         if (!game._controlesInstalles) { setupControls(game); game._controlesInstalles = true; }
+        game.audio.demarrerMusique();
         demarrage();
     }
 
@@ -2563,6 +2745,36 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-scores-back').addEventListener('click', () => {
         document.getElementById('scores-screen').classList.remove('show');
     });
+
+    // --- SÉLECTEUR DE NIVEAUX ---
+    function remplirSelecteurNiveaux() {
+        const grid = document.getElementById('levels-grid');
+        grid.innerHTML = '';
+        const maxDebloque = game.progress.niveauDebloque; // index du plus haut niveau atteint
+        NIVEAUX.forEach((niv, i) => {
+            const debloque = i <= maxDebloque;
+            const tile = document.createElement('button');
+            tile.className = 'level-tile ' + (debloque ? 'unlocked' : 'locked');
+            tile.innerHTML = debloque
+                ? `<span class="ico">${niv.icon}</span><span class="num">${i + 1}</span>`
+                : `<span class="ico">🔒</span><span class="num">${i + 1}</span>`;
+            if (debloque) {
+                tile.addEventListener('click', () => {
+                    document.getElementById('levels-screen').classList.remove('show');
+                    entrerEnJeu(() => game.demarrerAuNiveau(i));
+                });
+            }
+            grid.appendChild(tile);
+        });
+    }
+    document.getElementById('btn-levels').addEventListener('click', () => {
+        game.audio.init(); game.audio.resume();
+        remplirSelecteurNiveaux();
+        document.getElementById('levels-screen').classList.add('show');
+    });
+    document.getElementById('btn-levels-back').addEventListener('click', () => {
+        document.getElementById('levels-screen').classList.remove('show');
+    });
     // Hall of Fame (après enregistrement du score → retour menu)
     document.getElementById('btn-scores-replay').addEventListener('click', () => {
         game.audio.resume();
@@ -2583,6 +2795,27 @@ window.addEventListener('DOMContentLoaded', () => {
     };
     btnPause.addEventListener('click', togglePause);
     btnPause.addEventListener('touchstart', togglePause, {passive:false});
+
+    // Bouton muet (musique) — conserve le choix dans localStorage
+    const btnMute = document.getElementById('btn-mute');
+    function appliquerEtatMute() {
+        const muet = localStorage.getItem('supercarre_muet') === '1';
+        game.audio.musiqueMuet = muet;
+        btnMute.textContent = muet ? '🔇' : '🔊';
+        if (game.audio.musicGain) game.audio.musicGain.gain.value = muet ? 0 : 0.06;
+    }
+    const toggleMute = (e) => {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
+        game.audio.init();
+        const muet = game.audio.basculerMuet();
+        try { localStorage.setItem('supercarre_muet', muet ? '1' : '0'); } catch(err){}
+        btnMute.textContent = muet ? '🔇' : '🔊';
+    };
+    btnMute.addEventListener('click', toggleMute);
+    btnMute.addEventListener('touchstart', toggleMute, {passive:false});
+    // Restaurer l'état muet au chargement
+    try { if (localStorage.getItem('supercarre_muet') === '1') { game.audio.musiqueMuet = true; btnMute.textContent = '🔇'; } } catch(err){}
+
     document.getElementById('btn-resume').addEventListener('click', () => game.reprendre());
     document.getElementById('btn-quit').addEventListener('click', () => game.quitterVersMenu());
     // Mettre en pause automatiquement si l'app passe en arrière-plan
