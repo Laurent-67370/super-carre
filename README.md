@@ -16,8 +16,11 @@ Jeu de plateforme HTML5 autonome, jouable au clavier comme au tactile. Tout le j
 | Aller à droite | → ou D | bouton ▶ |
 | Sauter | Espace, ↑ ou Z | bouton 🦘 |
 | Pause | Échap ou P | bouton ⏸ |
+| Couper / remettre la musique | — | bouton 🔊 / 🔇 |
 
 Le saut est **dynamique** : maintenir la touche saute plus haut, relâcher tôt fait un petit saut. Une tolérance de saut (*coyote time*) et une mémorisation de l'appui (*jump buffer*) rendent les sauts plus pardonnants, surtout sur mobile.
+
+Une **musique de fond** accompagne le jeu (générée à la volée, sans fichier audio). Le bouton 🔊 / 🔇 la coupe ou la remet, et ton choix est mémorisé.
 
 ### But
 Ramasse **toutes les pièces** 🪙 d'un niveau pour débloquer le suivant. Tu démarres avec **5 vies** ❤️. Tomber dans un trou ou toucher un ennemi/pic sans protection coûte une vie. À court de vies, c'est le Game Over.
@@ -81,6 +84,9 @@ La difficulté monte progressivement. À partir du niveau 9, les mondes devienne
 | 15 | 🦘 Le Saut de la Foi | 1500×800 | Sauts de précision |
 | 16 | 🏰 La Forteresse | 2000×1100 | **Niveau final géant** (29 pièces, 9 ennemis) |
 
+### Rejouer un niveau
+Le bouton **« 🎯 CHOISIR UN NIVEAU »** du menu ouvre une grille de tous les niveaux : ceux que tu as débloqués sont jouables directement, les autres restent verrouillés 🔒. Pratique pour refaire un niveau sans tout recommencer.
+
 ---
 
 ## ✏️ Éditeur de niveaux
@@ -105,11 +111,13 @@ Accessible via le bouton **« ✏️ ÉDITEUR DE NIVEAUX »** du menu d'accueil.
 
 ### Fonctions
 - **Monde L / Monde H** : règle la largeur et la hauteur du monde (pour des niveaux qui scrollent).
+- **↶ Annuler / ↷ Rétablir** : revenir en arrière ou refaire une action (undo/redo).
 - **▶ Tester** : jouer immédiatement son niveau, puis « ◀ Retour éditeur » pour revenir à l'édition.
-- **💾 Sauvegarder** : conserve le niveau dans le navigateur.
+- **💾 Sauvegarder** et **📂 Mes niveaux** : enregistrer et recharger ses créations.
 - **⤓ Export** : récupère le code du niveau (pour l'intégrer au jeu ou le partager).
+- **📥 Importer** : recrée un niveau à partir d'un code exporté (collé dans la zone d'import).
 
-Les niveaux créés sont stockés localement dans le navigateur.
+Les niveaux créés sont stockés localement dans le navigateur. Export + Import permettent de **partager** un niveau : il suffit d'envoyer le code à quelqu'un, qui le colle dans son éditeur.
 
 ---
 
@@ -122,6 +130,7 @@ Le jeu utilise le stockage local du navigateur (`localStorage`) :
 | Meilleur niveau débloqué | `supercarre_progress` |
 | Hall of Fame (top scores) | `supercarre_highscores` |
 | Niveaux de l'éditeur | `supercarre_editor_levels` |
+| Musique coupée ou non | `supercarre_muet` |
 
 Au lancement, si une progression existe, le menu propose **▶ CONTINUER** (reprendre au niveau débloqué) en plus de **🔄 NOUVELLE PARTIE** (repartir de zéro, ce qui efface la progression). Terminer un niveau débloque le suivant ; un Game Over ne fait pas perdre les niveaux déjà débloqués.
 
@@ -163,7 +172,7 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 - **Caméra avec scrolling** fluide et parallaxe, bornée aux limites du monde.
 - Personnage **animé** dessiné au canvas (yeux, casquette, animation de course et de saut).
 - Pause (avec auto-pause quand l'onglet passe en arrière-plan).
-- Audio généré par la **Web Audio API** (pas de fichiers son).
+- Audio entièrement généré par la **Web Audio API** (bruitages **et musique de fond**, aucun fichier son).
 - Contrôles tactiles multi-points et clavier.
 
 ---
