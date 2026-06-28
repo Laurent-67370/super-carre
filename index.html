@@ -189,7 +189,8 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 
 @media(orientation:landscape) and (max-height:500px){.touch-btn{width:clamp(66px,18vw,86px);height:clamp(66px,18vw,86px)}.btn-jump{width:clamp(76px,21vw,96px);height:clamp(76px,21vw,96px)}}
 /* ===================== ÉDITEUR DE NIVEAUX ===================== */
-#btn-editor,#btn-levels{margin-top:12px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:600;border-radius:50px;cursor:pointer;transition:transform .1s}
+#btn-editor,#btn-levels,#btn-music{margin-top:12px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:600;border-radius:50px;cursor:pointer;transition:transform .1s}
+#btn-music:active{transform:scale(.93)}
 #btn-levels:active{transform:scale(.93)}
 #btn-install{margin-top:12px;background:rgba(26,188,156,.15);color:#1ABC9C;border:2px solid rgba(26,188,156,.5);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:700;border-radius:50px;cursor:pointer;transition:transform .1s}
 #btn-install:active{transform:scale(.93)}
@@ -320,9 +321,10 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-scores">🏆 HALL OF FAME</button>
     <button id="btn-levels">🎯 CHOISIR UN NIVEAU</button>
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
+    <button id="btn-music">🎵 Musique : Aventure</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v17</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v18</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -947,24 +949,81 @@ class AudioManager {
         if (!this.ctx || this.musiqueActive) return;
         this.musiqueActive = true;
         this.musiqueMuet = this.musiqueMuet || false;
+        if (this.pisteIndex == null) this.pisteIndex = 0;
         // Gain maître de la musique (séparé des bruitages)
         this.musicGain = this.ctx.createGain();
         this.musicGain.gain.value = this.musiqueMuet ? 0 : 0.06;
         this.musicGain.connect(this.ctx.destination);
-        // Mélodie (fréquences en Hz) — boucle entraînante en La mineur
-        this.melodie = [
-            440,0,523,0, 659,0,523,0, 440,0,392,0, 440,440,0,0,
-            349,0,440,0, 523,0,440,0, 392,0,330,0, 392,392,0,0,
-            440,0,523,0, 659,0,784,0, 659,0,523,0, 440,440,0,0,
-            523,0,494,0, 440,0,392,0, 440,0,494,0, 523,523,0,0
-        ];
-        // Ligne de basse (une note tous les 4 temps)
-        this.basse = [220,165,220,196];
+        this._chargerPiste(this.pisteIndex);
         this.noteIndex = 0;
         this.basseIndex = 0;
-        this.tempoNote = 0.16; // durée d'un temps (s)
         this.prochaineNote = this.ctx.currentTime + 0.1;
         this._planifierMusique();
+    }
+    // Catalogue des pistes musicales (toutes générées, aucun fichier audio)
+    static get PISTES() {
+        return [
+            {
+                nom: 'Aventure', emoji: '🗺️', onde: 'square', tempo: 0.16, volMel: 0.5, volBasse: 0.7, ondeBasse: 'triangle',
+                melodie: [
+                    440,0,523,0, 659,0,523,0, 440,0,392,0, 440,440,0,0,
+                    349,0,440,0, 523,0,440,0, 392,0,330,0, 392,392,0,0,
+                    440,0,523,0, 659,0,784,0, 659,0,523,0, 440,440,0,0,
+                    523,0,494,0, 440,0,392,0, 440,0,494,0, 523,523,0,0
+                ],
+                basse: [220,165,220,196]
+            },
+            {
+                nom: 'Calme', emoji: '🌙', onde: 'triangle', tempo: 0.24, volMel: 0.55, volBasse: 0.6, ondeBasse: 'sine',
+                melodie: [
+                    523,0,0,0, 587,0,659,0, 523,0,0,0, 392,0,0,0,
+                    440,0,0,0, 523,0,587,0, 523,0,0,0,0,0,0,0,
+                    659,0,0,0, 587,0,523,0, 494,0,0,0, 440,0,0,0,
+                    523,0,0,0, 494,0,440,0, 392,0,0,0,0,0,0,0
+                ],
+                basse: [262,196,220,294]
+            },
+            {
+                nom: 'Rétro', emoji: '👾', onde: 'sawtooth', tempo: 0.12, volMel: 0.42, volBasse: 0.6, ondeBasse: 'square',
+                melodie: [
+                    330,330,392,392, 494,494,392,0, 330,392,494,587, 494,392,330,0,
+                    349,349,440,440, 523,523,440,0, 349,440,523,659, 523,440,349,0,
+                    392,494,587,494, 392,330,392,494, 587,659,587,494, 392,330,294,0,
+                    330,392,494,659, 587,494,392,330, 294,330,392,494, 392,0,0,0
+                ],
+                basse: [165,165,196,131]
+            },
+            {
+                nom: 'Mystère', emoji: '🔮', onde: 'sine', tempo: 0.22, volMel: 0.6, volBasse: 0.55, ondeBasse: 'triangle',
+                melodie: [
+                    440,0,0,466, 0,0,415,0, 440,0,0,0, 349,0,0,0,
+                    415,0,0,440, 0,0,392,0, 349,0,0,0,0,0,0,0,
+                    523,0,0,494, 0,0,440,0, 466,0,0,0, 415,0,0,0,
+                    440,0,415,0, 392,0,349,0, 330,0,0,0,0,0,0,0
+                ],
+                basse: [110,117,98,87]
+            }
+        ];
+    }
+    _chargerPiste(idx) {
+        const p = AudioManager.PISTES[idx] || AudioManager.PISTES[0];
+        this.melodie = p.melodie;
+        this.basse = p.basse;
+        this.tempoNote = p.tempo;
+        this._ondeMel = p.onde;
+        this._ondeBasse = p.ondeBasse;
+        this._volMel = p.volMel;
+        this._volBasse = p.volBasse;
+    }
+    // Change de piste à chaud (redémarre la séquence en gardant le flux)
+    changerPiste(idx) {
+        this.pisteIndex = idx;
+        if (this.musiqueActive && this.ctx) {
+            this._chargerPiste(idx);
+            this.noteIndex = 0;
+            this.basseIndex = 0;
+            this.prochaineNote = this.ctx.currentTime + 0.05;
+        }
     }
     _planifierMusique() {
         if (!this.musiqueActive || !this.ctx) return;
@@ -972,11 +1031,11 @@ class AudioManager {
         // Programmer les notes jusqu'à 0,3s dans le futur
         while (this.prochaineNote < maintenant + 0.3) {
             const f = this.melodie[this.noteIndex % this.melodie.length];
-            if (f > 0) this._noteMusique(f, this.prochaineNote, this.tempoNote * 0.9, 'square', 0.5);
+            if (f > 0) this._noteMusique(f, this.prochaineNote, this.tempoNote * 0.9, this._ondeMel, this._volMel);
             // basse tous les 4 temps
             if (this.noteIndex % 4 === 0) {
                 const bf = this.basse[this.basseIndex % this.basse.length];
-                this._noteMusique(bf, this.prochaineNote, this.tempoNote * 3.6, 'triangle', 0.7);
+                this._noteMusique(bf, this.prochaineNote, this.tempoNote * 3.6, this._ondeBasse, this._volBasse);
                 this.basseIndex++;
             }
             this.noteIndex++;
@@ -3605,6 +3664,28 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-editor').addEventListener('click', () => {
         game.audio.init();
         editor.ouvrir();
+    });
+
+    // --- Sélecteur de musique (cycle entre les ambiances) ---
+    const btnMusic = document.getElementById('btn-music');
+    const PISTES = AudioManager.PISTES;
+    // Restaurer le choix mémorisé
+    let pisteCourante = 0;
+    try { const p = parseInt(localStorage.getItem('supercarre_piste'), 10); if (!isNaN(p) && p >= 0 && p < PISTES.length) pisteCourante = p; } catch(e) {}
+    game.audio.pisteIndex = pisteCourante;
+    function majLibelleMusique() {
+        const p = PISTES[pisteCourante];
+        btnMusic.textContent = `${p.emoji} Musique : ${p.nom}`;
+    }
+    majLibelleMusique();
+    btnMusic.addEventListener('click', () => {
+        game.audio.init(); game.audio.resume();
+        pisteCourante = (pisteCourante + 1) % PISTES.length;
+        majLibelleMusique();
+        try { localStorage.setItem('supercarre_piste', String(pisteCourante)); } catch(e) {}
+        // Aperçu : démarrer la musique si besoin, puis basculer sur la piste choisie
+        if (!game.audio.musiqueActive) { game.audio.musiqueMuet = false; game.audio.demarrerMusique(); }
+        game.audio.changerPiste(pisteCourante);
     });
 
     // Bouton AIDE
