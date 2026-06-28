@@ -181,14 +181,21 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 #btn-editor:active{transform:scale(.93)}
 #editor-screen{position:fixed;inset:0;background:#0f0f1e;display:none;flex-direction:column;z-index:90;overflow:hidden}
 #editor-screen.show{display:flex}
-#ed-topbar{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,6px) + 6px) 10px 6px;background:#1a1a2e;border-bottom:1px solid #333;flex-shrink:0}
-#ed-name{flex:0 1 auto;min-width:80px;max-width:160px;background:#0f0f1e;border:1px solid #444;color:#fff;border-radius:8px;padding:7px 10px;font-size:14px}
-.ed-spacer{flex:1}
-.ed-tb-btn{background:#2c3e50;color:#fff;border:1px solid #455;border-radius:8px;padding:7px 12px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:transform .08s}
+#ed-topbar{display:flex;align-items:center;gap:6px;padding:calc(env(safe-area-inset-top,6px) + 6px) 8px 6px;background:#1a1a2e;border-bottom:1px solid #333;flex-shrink:0}
+#ed-name{flex:1 1 50px;min-width:50px;max-width:160px;background:#0f0f1e;border:1px solid #444;color:#fff;border-radius:8px;padding:7px 10px;font-size:14px}
+.ed-spacer{flex:0 0 0}
+.ed-tb-btn{background:#2c3e50;color:#fff;border:1px solid #455;border-radius:8px;padding:7px 12px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;transition:transform .08s;flex-shrink:0}
 .ed-tb-btn:active{transform:scale(.92)}
 .ed-tb-btn.ed-accent{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a0030;border:none}
 .ed-tb-btn.ed-del-btn{background:#E74C3C;border:none}
 .ed-more{padding:7px 11px}
+/* En portrait étroit : boutons Tester/Export en icône seule pour garder le menu ⋯ visible */
+@media (max-width:560px){
+  #ed-topbar{gap:4px;padding-left:6px;padding-right:6px}
+  #ed-test .ed-lbl,#ed-export .ed-lbl{display:none}
+  #ed-test,#ed-export{padding:7px 10px}
+  #ed-name{max-width:110px}
+}
 #ed-palette{display:flex;gap:5px;padding:7px 8px 10px;background:#16213e;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:#FFD700 #16213e}
 #ed-palette::-webkit-scrollbar{height:5px}
 #ed-palette::-webkit-scrollbar-thumb{background:#FFD700;border-radius:3px}
@@ -247,7 +254,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v10</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v11</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -359,9 +366,8 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
         <div class="ed-spacer"></div>
         <button id="ed-undo" class="ed-tb-btn" title="Annuler (Ctrl+Z)">↶</button>
         <button id="ed-redo" class="ed-tb-btn" title="Rétablir (Ctrl+Y)">↷</button>
-        <button id="ed-test" class="ed-tb-btn ed-accent">▶ Tester</button>
-        <button id="ed-export" class="ed-tb-btn">⤓ Export</button>
-        <button id="ed-menu2" class="ed-tb-btn ed-more">⋯</button>
+        <button id="ed-test" class="ed-tb-btn ed-accent" title="Tester">▶<span class="ed-lbl"> Tester</span></button>
+        <button id="ed-menu2" class="ed-tb-btn ed-more" title="Menu">⋯</button>
     </div>
 
     <div id="ed-palette">
@@ -411,6 +417,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
         <button id="ed-save">💾 Sauvegarder</button>
         <button id="ed-load">📂 Mes niveaux</button>
         <div class="ed-dd-sep">Partage (code)</div>
+        <button id="ed-export">⤓ Exporter le code</button>
         <button id="ed-import">📥 Coller un code</button>
         <div class="ed-dd-sep">Fichier .json</div>
         <button id="ed-export-json">💾 Télécharger .json</button>
@@ -2697,6 +2704,7 @@ class LevelEditor {
         document.getElementById('ed-redo').addEventListener('click', () => this.redo());
         document.getElementById('ed-test').addEventListener('click', () => this.tester());
         document.getElementById('ed-export').addEventListener('click', () => {
+            document.getElementById('ed-dropdown').classList.add('hidden');
             document.getElementById('ed-export-text').value = this.exporter();
             document.getElementById('ed-export-overlay').classList.remove('hidden');
         });
