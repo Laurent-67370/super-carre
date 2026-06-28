@@ -324,7 +324,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-music">🎵 Musique : Aventure</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v21</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v22</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -1590,11 +1590,14 @@ class EnnemiSaut {
 //  BOSS — gros ennemi à écraser 3 fois sur la tête
 // ============================================================
 class Boss {
-    constructor(x, y, mondeW) {
+    constructor(x, y, mondeW, bornes) {
         this.largeur = 60; this.hauteur = 52;
         this.x = x; this.y = y;
         this.baseY = y;
         this.mondeW = mondeW || 800;
+        // bornes horizontales de patrouille (par défaut tout le monde)
+        this.minX = bornes ? bornes.min : 4;
+        this.maxX = bornes ? bornes.max : (this.mondeW - 4 - this.largeur);
         this.pv = 3; this.pvMax = 3;
         this.vitesse = 1.4;
         this.direction = 1;
@@ -1623,8 +1626,8 @@ class Boss {
         this.temps += 0.05;
         const v = this.vitesse * (1 + this.colere * 0.8);
         this.x += v * this.direction;
-        if (this.x <= 4) { this.x = 4; this.direction = 1; }
-        if (this.x + this.largeur >= this.mondeW - 4) { this.x = this.mondeW - 4 - this.largeur; this.direction = -1; }
+        if (this.x <= this.minX) { this.x = this.minX; this.direction = 1; }
+        if (this.x >= this.maxX) { this.x = this.maxX; this.direction = -1; }
         this.y = this.baseY + Math.abs(Math.sin(this.temps * 2)) * -4;
     }
     dessiner(ctx) {
@@ -1983,19 +1986,52 @@ class Game {
         // Dimensions du monde (défaut = taille écran → niveaux classiques sans scroll)
         this.mondeW = largeurMonde || this.W;
         this.mondeH = hauteurMonde || this.H;
-        // --- BOSS tous les 6 niveaux (6, 12, 18, 24) — jamais en mode test éditeur ---
         this.boss = null;
         this.bossVaincu = false;
-        const numNiveau = this.niveauActuel + 1;
-        if (!this.modeTest && numNiveau % 6 === 0) {
-            // Le boss apparaît en haut du monde, centré
-            this.boss = new Boss(this.mondeW / 2 - 30, 60, this.mondeW);
-            this.bossVaincu = false;
-        }
         this.player = new Player(spawn.x, spawn.y);
         this.player.checkpointX = spawn.x; this.player.checkpointY = spawn.y;
         this.player.mondeW = this.mondeW; this.player.mondeH = this.mondeH;
         const platSafe = this.niveau.filter(p=>p.type==='herbe');
+        // --- BOSS tous les 6 niveaux (6, 12, 18, 24) — jamais en mode test éditeur ---
+        // Placé juste au-dessus d'une plateforme existante pour être TOUJOURS atteignable.
+        const numNiveau = this.niveauActuel + 1;
+        if (!this.modeTest && numNiveau % 6 === 0) {
+            const platsSol = this.niveau.filter(p => p.type === 'herbe' || p.type === 'sol');
+            // Choisir une bonne plateforme « arène » : large, et avec assez d'espace au-dessus
+            // pour que le boss y patrouille à hauteur de saut sans être collé au plafond.
+            let arene = null;
+            if (platsSol.length) {
+                const candidates = platsSol.filter(p => p.largeur >= 100 && p.y >= 130 && p.y < this.mondeH - 100);
+                const pool = candidates.length ? candidates : platsSol.filter(p => p.largeur >= 80);
+                const finalPool = pool.length ? pool : platsSol;
+                // parmi celles qui ont de l'espace, prendre une plateforme assez haute mais pas trop
+                // (cible : autour du tiers supérieur du monde)
+                const cible = this.mondeH * 0.35;
+                arene = finalPool.reduce((a, b) => (Math.abs(b.y - cible) < Math.abs(a.y - cible) ? b : a));
+            }
+            const bossH = 52;
+            // le boss patrouille à ~70px au-dessus de la plateforme arène → atteignable d'un saut,
+            // mais pas collé (écart entre 55 et 75px pour laisser de la marge de saut)
+            const ecartSouhaite = 70;
+            let bossY = arene ? (arene.y - bossH - ecartSouhaite) : Math.max(20, this.mondeH - 220);
+            if (bossY < 20) bossY = 20; // ne pas sortir en haut du monde
+            // si l'espace au-dessus est trop réduit, on garde au moins 50px d'écart
+            if (arene && (arene.y - bossH - bossY) < 50) bossY = Math.max(20, arene.y - bossH - 50);
+            const bx = arene ? (arene.x + arene.largeur / 2 - 30) : (this.mondeW / 2 - 30);
+            // bornes de patrouille : au-dessus de la plateforme arène (+ marge), pour rester atteignable
+            let bornes = null;
+            if (arene) {
+                const marge = 40;
+                bornes = {
+                    min: Math.max(4, arene.x - marge),
+                    max: Math.min(this.mondeW - 4 - 60, arene.x + arene.largeur + marge - 60)
+                };
+                if (bornes.max < bornes.min) bornes.max = bornes.min; // plateforme étroite
+            }
+            this.boss = new Boss(bx, bossY, this.mondeW, bornes);
+            this.bossArene = arene ? { x: arene.x, r: arene.x + arene.largeur, y: arene.y } : null;
+            this.bossVaincu = false;
+        }
         // Checkpoint à mi-parcours, uniquement pour les grands niveaux (où une chute coûte cher).
         // On choisit une plateforme proche du milieu géographique du parcours.
         this.checkpoint = null;
