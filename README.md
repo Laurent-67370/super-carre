@@ -72,6 +72,8 @@ Chaque power-up dure environ 10 secondes (visible via l'aura autour du joueur).
 
 Le score final ajoute un bonus pour les vies restantes et les niveaux franchis, moins une légère pénalité de temps. Les meilleurs scores sont enregistrés dans le **Hall of Fame** (avec saisie d'un pseudo).
 
+📤 **Partage tes scores** : depuis le Hall of Fame, le bouton **« 📤 PARTAGER »** ouvre la feuille de partage native du système (Web Share API) avec le classement top 5 et un lien vers le jeu. Sur les navigateurs sans feuille de partage (ordinateur), le classement est copié dans le presse-papier d'un seul appui — plus qu'à le coller wherever tu veux.
+
 ---
 
 ## 🗺️ Les 24 niveaux

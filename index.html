@@ -70,6 +70,10 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 .score-empty{text-align:center;opacity:.4;font-size:clamp(13px,4vw,16px);padding:20px}
 #btn-scores-back,#btn-levels-back{background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.3);padding:12px 36px;font-size:clamp(14px,4.5vw,17px);font-weight:600;border-radius:50px;cursor:pointer}
 #btn-scores-back:active,#btn-levels-back:active{transform:scale(.93)}
+#btn-scores-share{margin-top:8px;background:linear-gradient(135deg,#2E86C1,#1ABC9C);color:#fff;border:none;padding:12px 36px;font-size:clamp(14px,4.5vw,17px);font-weight:700;border-radius:50px;cursor:pointer;box-shadow:0 4px 18px rgba(26,188,156,.35)}
+#btn-scores-share:active{transform:scale(.93)}
+#share-toast{position:fixed;left:50%;bottom:22%;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.88);color:#fff;padding:12px 22px;border-radius:50px;font-size:clamp(13px,3.8vw,15px);font-weight:600;z-index:200;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+#share-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ÉCRAN SAISIE NOM (ARCADE 3D) */
 #name-entry{position:fixed;inset:0;background:linear-gradient(180deg,#0a0015 0%,#1a0030 50%,#0a0015 100%);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:115;padding:20px;overflow:hidden}
@@ -278,7 +282,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v13</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v14</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -288,7 +292,11 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <div class="score-table" id="score-table"></div>
     <button id="btn-scores-back">◀ RETOUR</button>
     <button id="btn-scores-replay" style="display:none;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a1a2e;border:none;padding:12px 36px;font-size:clamp(14px,4.5vw,17px);font-weight:700;border-radius:50px;cursor:pointer;margin-top:8px;box-shadow:0 6px 25px rgba(255,165,0,.4)">🔄 NOUVELLE PARTIE</button>
+    <button id="btn-scores-share" style="display:none">📤 PARTAGER</button>
 </div>
+
+<!-- TOAST PARTAGE -->
+<div id="share-toast"></div>
 
 <!-- SÉLECTEUR DE NIVEAUX -->
 <div id="levels-screen">
@@ -370,6 +378,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
             <div class="help-row"><span class="emoji">✨</span><span class="desc">Power-up ramassé</span><span class="kbd" style="color:#FFD700">+250</span></div>
             <div class="help-sep"></div>
             <div class="help-row"><span class="desc" style="opacity:.7">Bonus fin de partie : vies restantes × 500 + niveaux franchis × 200, moins une légère pénalité de temps. Les <strong>5 meilleurs scores</strong> sont sauvegardés !</span></div>
+            <div class="help-row"><span class="emoji">📤</span><span class="desc">Dans le Hall of Fame, le bouton <strong>« 📤 PARTAGER »</strong> envoie ton classement vers l'app de ton choix (WhatsApp, SMS…) — ou le copie sur ordinateur</span></div>
         </div>
 
     </div>
@@ -2209,6 +2218,8 @@ class Game {
 function afficherHallOfFame(hs) {
     const table = document.getElementById('score-table');
     const data = hs.getTableau();
+    const btnShare = document.getElementById('btn-scores-share');
+    if (btnShare) btnShare.style.display = data.length > 0 ? 'inline-block' : 'none';
     if (data.length === 0) {
         table.innerHTML = '<div class="score-empty">Aucun score enregistré.<br>Sois le premier légende ! 🎮</div>';
         return;
@@ -2220,6 +2231,53 @@ function afficherHallOfFame(hs) {
             <div class="score-val">${s.score}<br><span style="font-size:.65em;opacity:.6">🪙${s.pieces} • ⏱️${s.temps}s</span></div>
         </div>
     `).join('');
+}
+
+// ============================================================
+//  PARTAGE DES SCORES — Web Share API + fallback presse-papier
+// ============================================================
+const URL_PARTAGE = 'https://laurent-67370.github.io/super-carre/';
+
+function partagerScores(hs) {
+    const data = hs.getTableau();
+    if (data.length === 0) { afficherToast("Aucun score à partager — joue d'abord ! 🎮"); return; }
+    const lignes = data.map(s => {
+        const pref = /^\d+$/.test(String(s.rank)) ? `${s.rank}. ` : `${s.rank} `;
+        return `${pref}${s.nom} — ${s.score.toLocaleString('fr-FR')} pts (niv ${s.niveau}/${NIVEAUX.length} · 🪙 ${s.pieces} · ⏱️ ${s.temps}s)`;
+    }).join('\n');
+    const texte = `🟥 Super Carré — Hall of Fame 🏆\n\n${lignes}\n\n🎮 Tente de me battre : ${URL_PARTAGE}`;
+    if (navigator.share) {
+        navigator.share({ title: '🟥 Super Carré — mes scores', text: texte, url: URL_PARTAGE })
+            .catch(err => { if (!err || err.name !== 'AbortError') copierPartage(texte); });
+    } else {
+        copierPartage(texte);
+    }
+}
+
+function copierPartage(texte) {
+    try {
+        navigator.clipboard.writeText(texte)
+            .then(() => afficherToast('📋 Scores copiés ! Colle-les où tu veux.'))
+            .catch(() => fallbackCopierPartage(texte));
+    } catch(e) { fallbackCopierPartage(texte); }
+}
+
+function fallbackCopierPartage(texte) {
+    const ta = document.createElement('textarea');
+    ta.value = texte; ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); afficherToast('📋 Scores copiés ! Colle-les où tu veux.'); }
+    catch(e) { afficherToast('❌ Copie impossible — partage manuellement.'); }
+    document.body.removeChild(ta);
+}
+
+function afficherToast(msg) {
+    const t = document.getElementById('share-toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(window._shareToastT);
+    window._shareToastT = setTimeout(() => t.classList.remove('show'), 2600);
 }
 
 // ============================================================
@@ -3357,6 +3415,10 @@ window.addEventListener('DOMContentLoaded', () => {
     });
     document.getElementById('btn-scores-back').addEventListener('click', () => {
         document.getElementById('scores-screen').classList.remove('show');
+    });
+    document.getElementById('btn-scores-share').addEventListener('click', () => {
+        game.audio.resume();
+        partagerScores(game.hs);
     });
 
     // --- SÉLECTEUR DE NIVEAUX ---
