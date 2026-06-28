@@ -224,6 +224,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 - **Combats de boss** tous les 6 niveaux (boss à 3 points de vie, écrasable sur la tête).
 - Contrôles tactiles multi-points et clavier.
 
+### 🔧 Correctif v29 — sélecteur de niveaux cassé (régression v28)
+
+La migration modulaire v28 a cassé l'accès direct aux niveaux (« 🎯 CHOISIR UN NIVEAU » restait vide / ne se remplissait pas) : `remplirSelecteurNiveaux()` (dans `main.js`) utilise `NIVEAUX`, mais `main.js` ne l'importait pas → `ReferenceError` au clic (le `NIVEAUX.forEach` qui remplit la grille ne s'exécutait pas). Corrigé en ajoutant `import { NIVEAUX } from './levels.js'` à `main.js`. (Le contrôle exhaustif des imports avait sauté `main.js` — désormais inclus.)
+
 ### 🔧 Correctif v25 — défilement de l'aide bloqué sur mobile après avoir joué
 
 Le guide d'aide (et la sélection de niveaux, l'éditeur) devenait impossible à faire défiler au toucher **après avoir lancé une partie**. Cause : un écouteur `touchmove` au niveau du document appelait `preventDefault()` sur *tous* les glissements tactiles (installé au 1er lancement via `setupControls`) — il bloquait donc le scroll de tous les overlays, pas seulement celui du jeu. Le blocage du scroll/zoom pendant le jeu est déjà garanti en CSS (`touch-action:none` sur `body`/canvas/contrôles + `overscroll-behavior:none`), le `preventDefault` JS était donc redondant pour le jeu et nuisible aux overlays. Désormais, il ne s'applique qu'aux touches effectuées sur la zone de jeu (`#game-wrapper`), laissant tous les menus et overlays défiler normalement à tout moment.

@@ -2,6 +2,7 @@ import { Game } from './game.js';
 import { LevelEditor } from './editor.js';
 import { NameEntry } from './nameentry.js';
 import { AudioManager } from './audio.js';
+import { NIVEAUX } from './levels.js';
 import { setupControls } from './controls.js';
 import { afficherHallOfFame, partagerScores } from './ui.js';
 import './style.css';
