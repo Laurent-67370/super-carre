@@ -1,0 +1,19 @@
+{
+  "name": "Super Carré — Aventure",
+  "short_name": "Super Carré",
+  "description": "Jeu de plateforme — 16 niveaux, éditeur de niveaux, mondes géants à explorer.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "any",
+  "background_color": "#0f0f1e",
+  "theme_color": "#0f0f1e",
+  "lang": "fr",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
