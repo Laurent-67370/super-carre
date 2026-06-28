@@ -1,7 +1,7 @@
 {
   "name": "Super Carré — Aventure",
   "short_name": "Super Carré",
-  "description": "Jeu de plateforme — 16 niveaux, éditeur de niveaux, mondes géants à explorer.",
+  "description": "Jeu de plateforme — 24 niveaux, éditeur de niveaux, mondes géants à explorer.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "fullscreen",

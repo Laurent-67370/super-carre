@@ -1,6 +1,6 @@
 # 🟥 Super Carré
 
-Jeu de plateforme HTML5 autonome, jouable au clavier comme au tactile. Tout le jeu tient dans un seul fichier `index.html` (aucune dépendance, aucun serveur requis) : il suffit de l'ouvrir dans un navigateur ou de le déposer sur un hébergement statique.
+Jeu de plateforme HTML5 autonome, jouable au clavier comme au tactile. La **source** est organisée en modules ES (`src/`) assemblés par **Vite** ; le build produit un **`index.html` unique** (JS + CSS inlinés et minifiés via `vite-plugin-singlefile`), déployé en statique sur GitHub Pages.
 
 **24 niveaux**, un éditeur de niveaux intégré, une sauvegarde de progression, un Hall of Fame — et c'est une **PWA installable** (jouable hors-ligne, en plein écran sur mobile).
 
@@ -212,8 +212,8 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 ## 🛠️ Caractéristiques techniques
 
-- **Jeu en un seul fichier**, sans dépendance externe ni build.
-- **PWA** installable et jouable hors-ligne (manifest + Service Worker).
+- **Source modulaire** (`src/` : entités, niveaux, audio, jeu, éditeur, contrôles, UI) assemblée par **Vite** ; build = **`index.html` unique** (JS + CSS inlinés et minifiés, ~46 ko gzip).
+- **PWA** installable et jouable hors-ligne (manifest + Service Worker réseau-d'abord + `updateViaCache:'none'`).
 - Boucle de jeu à **pas de temps fixe (60 Hz)** : vitesse identique quel que soit le taux de rafraîchissement de l'écran.
 - Rendu adapté à la **densité de pixels** (`devicePixelRatio`) : net sur écrans Retina / haute résolution.
 - **Caméra avec scrolling** fluide et parallaxe, bornée aux limites du monde.
@@ -244,13 +244,16 @@ Le boss a bien **3 points de vie**, mais il donnait l'impression d'en demander p
 
 ## 🚀 Déploiement
 
-Aucune compilation. Pour héberger le jeu, déposer les fichiers (`index.html`, `manifest.json`, `sw.js` et le dossier `icons/`) sur n'importe quel hébergement statique en **HTTPS** (le Service Worker exige HTTPS, sauf en `localhost`).
+**Production (GitHub Pages via CI)** : à chaque `push` sur `main`, le workflow `.github/workflows/deploy.yml` fait `npm ci && npm run build` puis déploie `dist/` sur GitHub Pages (Source : « GitHub Actions » dans Settings → Pages). Le build produit un **`dist/index.html` unique** (JS + CSS inlinés/minifiés) + `sw.js` + `manifest.json` + `icons/`.
 
-Pour jouer ou tester en local, lancer un petit serveur plutôt que d'ouvrir le fichier en `file://` (nécessaire pour la PWA et la sauvegarde) :
+**Dev / test local** :
 
 ```bash
-# depuis le dossier contenant les fichiers
-python3 -m http.server 8000
-# puis ouvrir http://localhost:8000/
+npm install        # installer Vite + vite-plugin-singlefile
+npm run dev        # serveur de dev Vite (http://localhost:5173, hot reload)
+npm run build      # build de prod -> dist/index.html (fichier unique inliné)
+npm run preview    # prévisualiser le build
 ```
+
+Le `dist/` généré peut aussi être déposé tel quel sur n'importe quel hébergement statique en **HTTPS** (le Service Worker exige HTTPS, sauf en `localhost`).
 
