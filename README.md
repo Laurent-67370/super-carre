@@ -28,7 +28,7 @@ Une **musique de fond** accompagne le jeu (générée à la volée, sans fichier
 ### But
 Ramasse **toutes les pièces** 🪙 d'un niveau pour débloquer le suivant. Tu démarres avec **5 vies** ❤️. Tomber dans un trou ou toucher un ennemi/pic sans protection coûte une vie. À court de vies, c'est le Game Over.
 
-Tu gagnes **+1 vie bonus** chaque fois que tu atteins un palier de 4 niveaux (niveaux 4, 8, 12, 16, 20, 24). Au-delà de 5 vies, le compteur passe en affichage compact (❤ ×6, ❤ ×7…).
+Tu gagnes **+1 vie bonus** chaque fois que tu atteins un palier de 4 niveaux (niveaux 4, 8, 12, 16, 20, 24). Tu gagnes aussi **+1 vie** à chaque **palier de 5 000 points** franchi (score cumulé sur toute la partie, pas seulement le niveau en cours). Au-delà de 5 vies, le compteur passe en affichage compact (❤ ×6, ❤ ×7…).
 
 ### Astuces
 - **Saute sur les ennemis** 👾 pour les écraser (et gagner des points) — sauf l'abeille 🐝, impossible à écraser (voir plus bas).
