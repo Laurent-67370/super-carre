@@ -2,7 +2,7 @@
 
 Jeu de plateforme HTML5 autonome, jouable au clavier comme au tactile. Tout le jeu tient dans un seul fichier `index.html` (aucune dépendance, aucun serveur requis) : il suffit de l'ouvrir dans un navigateur ou de le déposer sur un hébergement statique.
 
-**16 niveaux**, un éditeur de niveaux intégré, une sauvegarde de progression, un Hall of Fame — et c'est une **PWA installable** (jouable hors-ligne, en plein écran sur mobile).
+**20 niveaux**, un éditeur de niveaux intégré, une sauvegarde de progression, un Hall of Fame — et c'est une **PWA installable** (jouable hors-ligne, en plein écran sur mobile).
 
 🎮 **Jouer en ligne :** https://laurent-67370.github.io/super-carre/
 
@@ -28,7 +28,7 @@ Une **musique de fond** accompagne le jeu (générée à la volée, sans fichier
 ### But
 Ramasse **toutes les pièces** 🪙 d'un niveau pour débloquer le suivant. Tu démarres avec **5 vies** ❤️. Tomber dans un trou ou toucher un ennemi/pic sans protection coûte une vie. À court de vies, c'est le Game Over.
 
-Tu gagnes **+1 vie bonus** chaque fois que tu atteins un palier de 4 niveaux (niveaux 4, 8, 12, 16). Au-delà de 5 vies, le compteur passe en affichage compact (❤ ×6, ❤ ×7…).
+Tu gagnes **+1 vie bonus** chaque fois que tu atteins un palier de 4 niveaux (niveaux 4, 8, 12, 16, 20). Au-delà de 5 vies, le compteur passe en affichage compact (❤ ×6, ❤ ×7…).
 
 ### Astuces
 - **Saute sur les ennemis** 👾 pour les écraser (et gagner des points) — sauf l'abeille 🐝, impossible à écraser (voir plus bas).
@@ -74,7 +74,7 @@ Le score final ajoute un bonus pour les vies restantes et les niveaux franchis, 
 
 ---
 
-## 🗺️ Les 16 niveaux
+## 🗺️ Les 20 niveaux
 
 La difficulté monte progressivement. À partir du niveau 9, les mondes deviennent **plus grands que l'écran** : la caméra suit le joueur (scrolling horizontal et/ou vertical).
 
@@ -95,7 +95,11 @@ La difficulté monte progressivement. À partir du niveau 9, les mondes devienne
 | 13 | 💀 La Course Infernale | 2000×600 | Gauntlet horizontal, pièges enchaînés |
 | 14 | 🕳️ Le Gouffre Sans Fond | 800×1300 | Descente/ascension verticale |
 | 15 | 🦘 Le Saut de la Foi | 1500×800 | Sauts de précision |
-| 16 | 🏰 La Forteresse | 2000×1100 | **Niveau final géant** (29 pièces, 9 ennemis) |
+| 16 | 🏰 La Forteresse | 2000×1100 | Forteresse géante à gravir de bas en haut (29 pièces, 9 ennemis) |
+| 17 | 🌋 La Coulée | 1800×600 | Failles de pics à franchir, plateformes mobiles |
+| 18 | 🏔️ La Cordillère | 2000×700 | Ascension de sommets, plateformes mobiles h/v |
+| 19 | 🌊 L'Archipel | 1800×800 | Îles flottantes au-dessus du vide, ressorts |
+| 20 | 🐉 L'Antre du Dragon | 2000×1100 | **Niveau final géant** (30 pièces, 11 ennemis) |
 
 ### Rejouer un niveau
 Le bouton **« 🎯 CHOISIR UN NIVEAU »** du menu ouvre une grille de tous les niveaux : ceux que tu as débloqués sont jouables directement, les autres restent verrouillés 🔒. Pratique pour refaire un niveau sans tout recommencer.
