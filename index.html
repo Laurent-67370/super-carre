@@ -238,6 +238,24 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 .ed-load-item button.ed-li-del{background:#E74C3C}
 #ed-test-banner{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:calc(env(safe-area-inset-top,6px) + 8px) 14px 8px;background:rgba(231,76,60,.92);z-index:30;font-size:14px;font-weight:600}
 #ed-test-banner.hidden{display:none}
+
+/* ===================== OVERLAY AIDE ===================== */
+#help-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#1a1a3e,#0f0f1e);display:none;flex-direction:column;z-index:120;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#help-screen.show{display:flex}
+#help-header{position:sticky;top:0;background:rgba(15,12,41,.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding:calc(env(safe-area-inset-top,8px) + 12px) 16px 12px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(255,215,0,.15);z-index:5}
+#help-header h2{font-size:clamp(20px,6vw,32px);color:#FFD700;flex:1;text-shadow:0 0 20px rgba(255,215,0,.3)}
+#btn-help-back{background:rgba(255,255,255,.1);color:#fff;border:2px solid rgba(255,255,255,.25);padding:9px 20px;font-size:clamp(13px,4vw,15px);font-weight:700;border-radius:50px;cursor:pointer;flex-shrink:0}
+#btn-help-back:active{transform:scale(.93)}
+#help-content{padding:16px;max-width:600px;margin:0 auto;width:100%;padding-bottom:calc(env(safe-area-inset-bottom,16px) + 20px)}
+.help-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:16px;margin-bottom:14px}
+.help-card h3{font-size:clamp(15px,4.5vw,18px);font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.help-card h3 .ico{font-size:clamp(20px,6vw,26px)}
+.help-row{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:clamp(12px,3.5vw,14px);line-height:1.5}
+.help-row .emoji{font-size:clamp(18px,5vw,22px);width:32px;text-align:center;flex-shrink:0}
+.help-row .desc{flex:1;opacity:.85}
+.help-row .kbd{display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:3px 10px;font-size:clamp(11px,3vw,13px);font-weight:700;min-width:36px;text-align:center}
+.help-sep{height:1px;background:rgba(255,255,255,.08);margin:8px 0}
+.help-tip{background:rgba(255,215,0,.08);border-left:3px solid #FFD700;border-radius:0 8px 8px 0;padding:10px 14px;font-size:clamp(12px,3.5vw,14px);opacity:.85;line-height:1.5;margin-top:8px}
 </style>
 </head>
 <body>
@@ -252,6 +270,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-scores">🏆 HALL OF FAME</button>
     <button id="btn-levels">🎯 CHOISIR UN NIVEAU</button>
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
+    <button id="btn-help">❓ AIDE</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
     <div style="margin-top:10px;font-size:11px;opacity:.45">v11</div>
@@ -291,7 +310,66 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     </div>
 </div>
 
-<!-- ZONE DE JEU -->
+<!-- OVERLAY AIDE -->
+<div id="help-screen">
+    <div id="help-header">
+        <h2>❓ Comment jouer</h2>
+        <button id="btn-help-back">◀ RETOUR</button>
+    </div>
+    <div id="help-content">
+
+        <div class="help-card">
+            <h3><span class="ico">🎮</span> Contrôles</h3>
+            <div class="help-row"><span class="emoji">◀▶</span><span class="desc">Aller à gauche / droite</span><span class="kbd">← →</span></div>
+            <div class="help-row"><span class="emoji">🦘</span><span class="desc">Sauter (maintenir = plus haut)</span><span class="kbd">Espace</span></div>
+            <div class="help-row"><span class="emoji">⏸️</span><span class="desc">Mettre en pause</span><span class="kbd">Échap</span></div>
+            <div class="help-row"><span class="emoji">🔇</span><span class="desc">Couper le son</span><span class="desc" style="opacity:.6;font-size:.85em">bouton en haut</span></div>
+            <div class="help-tip">💡 Le saut est <strong>dynamique</strong> : tape court = petit bond, maintenu = grand saut. Une tolérance de saut pardonne les appuis trop tôt !</div>
+        </div>
+
+        <div class="help-card">
+            <h3><span class="ico">🎯</span> But du jeu</h3>
+            <div class="help-row"><span class="emoji">🪙</span><span class="desc">Ramasse <strong>toutes les pièces</strong> d'un niveau pour passer au suivant</span></div>
+            <div class="help-row"><span class="emoji">❤️</span><span class="desc">Tu démarres avec <strong>5 vies</strong>. Pics, ennemis et chutes en coûtent une</span></div>
+            <div class="help-row"><span class="emoji">🎁</span><span class="desc">Bonus <strong>+1 vie</strong> tous les 4 niveaux (4, 8, 12, 16)</span></div>
+        </div>
+
+        <div class="help-card">
+            <h3><span class="ico">👾</span> Ennemis</h3>
+            <div class="help-row"><span class="emoji">👾</span><span class="desc"><strong>Patrouilleur violet</strong> — marche de gauche à droite. <strong>Saute dessus pour l'écraser !</strong> (+150 pts)</span></div>
+            <div class="help-row"><span class="emoji">🦘</span><span class="desc"><strong>Blob turquoise</strong> — rebondit en boucle. Écrasable en tombant dessus (+150 pts)</span></div>
+            <div class="help-row"><span class="emoji">🐝</span><span class="desc"><strong>Abeille</strong> — vole en zigzag. <strong>IMPOSSIBLE à écraser</strong> ! Évite-la ou utilise un bouclier</span></div>
+            <div class="help-tip">⚠️ On ne peut pas écraser une abeille ! Contourne-la ou active un bouclier 🟡 avant de passer.</div>
+        </div>
+
+        <div class="help-card">
+            <h3><span class="ico">⚡</span> Power-ups (10 sec)</h3>
+            <div class="help-row"><span class="emoji">🔵</span><span class="desc"><strong>Double saut</strong> — un second saut en plein vol (+250 pts)</span></div>
+            <div class="help-row"><span class="emoji">🟡</span><span class="desc"><strong>Bouclier</strong> — immunité totale aux dégâts (+250 pts)</span></div>
+            <div class="help-row"><span class="emoji">🟠</span><span class="desc"><strong>Vitesse</strong> — déplacement accéléré (+250 pts)</span></div>
+            <div class="help-tip">💡 La barre en bas de l'écran montre les power-ups actifs et leur temps restant.</div>
+        </div>
+
+        <div class="help-card">
+            <h3><span class="ico">🔧</span> Éléments</h3>
+            <div class="help-row"><span class="emoji">🔴</span><span class="desc"><strong>Ressort</strong> — te propulse très haut. Atterris dessus pour rebondir</span></div>
+            <div class="help-row"><span class="emoji">🔺</span><span class="desc"><strong>Pics</strong> — mortels au contact. Saute par-dessus !</span></div>
+            <div class="help-row"><span class="emoji">↔️</span><span class="desc"><strong>Plateformes mobiles</strong> — bougent et te portent avec elles</span></div>
+            <div class="help-row"><span class="emoji">🗺️</span><span class="desc"><strong>Grands niveaux</strong> (9+) — la caméra te suit dans le scrolling</span></div>
+        </div>
+
+        <div class="help-card">
+            <h3><span class="ico">🏆</span> Score & Hall of Fame</h3>
+            <div class="help-row"><span class="emoji">🪙</span><span class="desc">Pièce collectée</span><span class="kbd" style="color:#FFD700">+100</span></div>
+            <div class="help-row"><span class="emoji">💥</span><span class="desc">Ennemi écrasé</span><span class="kbd" style="color:#FFD700">+150</span></div>
+            <div class="help-row"><span class="emoji">✨</span><span class="desc">Power-up ramassé</span><span class="kbd" style="color:#FFD700">+250</span></div>
+            <div class="help-sep"></div>
+            <div class="help-row"><span class="desc" style="opacity:.7">Bonus fin de partie : vies restantes × 500 + niveaux franchis × 200, moins une légère pénalité de temps. Les <strong>5 meilleurs scores</strong> sont sauvegardés !</span></div>
+        </div>
+
+    </div>
+</div>
+
 <div id="game-wrapper">
     <div id="canvas-area">
         <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -1541,6 +1619,10 @@ class Game {
         this.player = null; this.niveau = []; this.pieces = []; this.ennemis = []; this.pics = []; this.nuages = [];
         this.ressorts = []; this.powerups = [];
         this.scorePopups = []; // Popups "+100" flottants à chaque pièce collectée
+        // --- SYSTÈME TUTORIEL (niveau 1, première fois) ---
+        this.tutoHints = [];   // {x, y, text, triggerX, vu}
+        this.tutoVu = false;   // localStorage → on n'affiche qu'une fois
+        try { this.tutoVu = localStorage.getItem('supercarre_tuto_vu') === '1'; } catch(e) {}
     }
     // Adapte le backing store du canvas à la densité de pixels de l'écran.
     // La logique de jeu continue de raisonner en coordonnées 800×600 ;
@@ -1592,6 +1674,16 @@ class Game {
         // Caméra : centrée immédiatement sur le spawn (pas de glissement au démarrage)
         this.camX = 0; this.camY = 0;
         this.recalculerCamera(true);
+
+        // --- Tutoriel niveau 1 (première fois uniquement) ---
+        this.tutoHints = [];
+        if (!this.tutoVu && this.niveauActuel === 0 && !this.modeTest) {
+            this.tutoHints = [
+                { text: '◀ ▶ pour bouger', triggerX: 80, vu: false, fade: 0, y: 400 },
+                { text: '🦘 pour sauter !', triggerX: 250, vu: false, fade: 0, y: 340 },
+                { text: '🪙 Ramasse toutes les pièces !', triggerX: 440, vu: false, fade: 0, y: 280 },
+            ];
+        }
         // HUD dessiné sur canvas — plus de mises à jour DOM
         this.updateHearts(); this.etat = 'playing';
     }
@@ -1620,6 +1712,24 @@ class Game {
         this.frameCount++;
         if (this.frameCount%6===0){this.tempsNiveau=Math.round((this.frameCount/60)*10)/10}
         for(const p of this.niveau){if(p.update&&p.axe)p.update()}
+
+        // --- Mise à jour des bulles tutoriel ---
+        if (this.player && this.tutoHints.length > 0) {
+            for (const h of this.tutoHints) {
+                if (!h.vu && this.player.x >= h.triggerX) {
+                    h.vu = true; h.fade = 0;
+                }
+                if (h.vu && h.fade < 1) h.fade = Math.min(1, h.fade + 0.05);
+                if (h.vu && h.fade >= 1 && this.player.x > h.triggerX + 150) {
+                    h.fade = Math.max(0, h.fade - 0.03);
+                }
+            }
+            // Marquer le tuto comme vu quand toutes les bulles ont été déclenchées
+            if (this.tutoHints.every(h => h.vu)) {
+                this.tutoVu = true;
+                try { localStorage.setItem('supercarre_tuto_vu', '1'); } catch(e) {}
+            }
+        }
         for(const e of this.ennemis) e.update(this.player);
 
         // Mettre à jour les popups de score flottants
@@ -1755,6 +1865,44 @@ class Game {
 
         // --- HUD DESSINÉ SUR CANVAS (zéro clignotement, zéro composition DOM) ---
         this.dessinerHUD(ctx);
+
+        // --- BULLES TUTORIEL ---
+        this.dessinerTuto(ctx);
+    }
+
+    dessinerTuto(ctx) {
+        if (this.tutoHints.length === 0) return;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (const h of this.tutoHints) {
+            if (h.fade <= 0) continue;
+            const px = this.player ? this.player.x + this.player.largeur / 2 : h.triggerX;
+            const py = this.player ? this.player.y - 50 : h.y;
+            ctx.globalAlpha = h.fade;
+            // Mesure du texte
+            ctx.font = 'bold 16px -apple-system,system-ui,sans-serif';
+            const tw = ctx.measureText(h.text).width;
+            const bw = tw + 28, bh = 32, bx = px - bw / 2, by = py - bh / 2;
+            // Fond de la bulle
+            ctx.fillStyle = 'rgba(0,0,0,.82)';
+            this.roundRect(ctx, bx, by, bw, bh, 10); ctx.fill();
+            // Bordure dorée
+            ctx.strokeStyle = 'rgba(255,215,0,.5)'; ctx.lineWidth = 1.5;
+            this.roundRect(ctx, bx, by, bw, bh, 10); ctx.stroke();
+            // Petit triangle pointant vers le joueur
+            ctx.fillStyle = 'rgba(0,0,0,.82)';
+            ctx.beginPath();
+            ctx.moveTo(px - 6, py + bh / 2);
+            ctx.lineTo(px + 6, py + bh / 2);
+            ctx.lineTo(px, py + bh / 2 + 8);
+            ctx.closePath(); ctx.fill();
+            // Texte
+            ctx.fillStyle = '#FFD700';
+            ctx.fillText(h.text, px, py);
+        }
+        ctx.globalAlpha = 1;
+        ctx.restore();
     }
 
     // Helper : rectangle arrondi
@@ -3115,6 +3263,15 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('btn-editor').addEventListener('click', () => {
         game.audio.init();
         editor.ouvrir();
+    });
+
+    // Bouton AIDE
+    document.getElementById('btn-help').addEventListener('click', () => {
+        game.audio.init(); game.audio.resume();
+        document.getElementById('help-screen').classList.add('show');
+    });
+    document.getElementById('btn-help-back').addEventListener('click', () => {
+        document.getElementById('help-screen').classList.remove('show');
     });
 
     // Bouton « Installer » : déclenche l'invite native de Chrome
