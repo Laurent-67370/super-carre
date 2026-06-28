@@ -228,6 +228,14 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le guide d'aide (et la sélection de niveaux, l'éditeur) devenait impossible à faire défiler au toucher **après avoir lancé une partie**. Cause : un écouteur `touchmove` au niveau du document appelait `preventDefault()` sur *tous* les glissements tactiles (installé au 1er lancement via `setupControls`) — il bloquait donc le scroll de tous les overlays, pas seulement celui du jeu. Le blocage du scroll/zoom pendant le jeu est déjà garanti en CSS (`touch-action:none` sur `body`/canvas/contrôles + `overscroll-behavior:none`), le `preventDefault` JS était donc redondant pour le jeu et nuisible aux overlays. Désormais, il ne s'applique qu'aux touches effectuées sur la zone de jeu (`#game-wrapper`), laissant tous les menus et overlays défiler normalement à tout moment.
 
+### 🔧 Correctif v26 — particules & popups persistants entre niveaux + mort par chute invisible
+
+Deux petits bugs visuels :
+
+1. **Particules et popups qui fuyaient d'un niveau à l'autre.** `_initNiveau` (appelé à chaque chargement de niveau) ne vidait pas `effets` (confettis des paliers de 5 000 points, débris de mort) ni `scorePopups` (`+100`, `BOSS VAINCU !`, `🚩 Checkpoint !`). Contrairement au constructeur et à `_resetPartie` qui les réinitialisent. Bilan : des particules ou popups encore animés pouvais clignoter brièvement au tout début du niveau suivant. Corrigé en vidant `effets` et `scorePopups` dans `_initNiveau`.
+
+2. **Mort par chute dans un trou invisible à la dernière vie.** Quand on tombe dans un trou en perdant sa dernière vie, le joueur est déjà sorti de l'écran par le bas (`y > hauteurMonde + 50`) : les débris de Pixou apparaissaient hors caméra et l'animation de mort jouait 45 frames sur une scène figée vide avant le game over. Désormais, sur une mort par chute (`'trou'`), les débris apparaissent en bas de la zone visible (caméra) — l'explosion de Pixou reste visible. Le comportement pour une mort par ennemi/pic (`'degat'`, joueur à l'écran) est inchangé.
+
 ---
 
 ## 🚀 Déploiement

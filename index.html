@@ -324,7 +324,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-music">🎵 Musique : Aventure</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v25</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v26</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -1992,6 +1992,10 @@ class Game {
         this.scoreNiveau = 0; this.totalPiecesNiveau = this.pieces.length;
         this.mortsNiveau = 0; // morts/dégâts subis dans ce niveau (pour les étoiles)
         this.tempsNiveau = 0; this.frameCount = 0;
+        // Vider les particules et popups du niveau précédent (confettis de palier,
+        // débris de mort, popups +100/BOSS VAINCU…) pour qu'elles ne s'affichent
+        // pas brièvement au tout début du niveau suivant.
+        this.effets = []; this.scorePopups = [];
         // Dimensions du monde (défaut = taille écran → niveaux classiques sans scroll)
         this.mondeW = largeurMonde || this.W;
         this.mondeH = hauteurMonde || this.H;
@@ -2209,7 +2213,16 @@ class Game {
         if(result==='degat'||result==='trou'){
             this.audio.degat(); if(navigator.vibrate)navigator.vibrate(200);
             this.vies--; this.updateHearts(); this.shakeFrames=8; this.mortsNiveau++;
-            if(this.vies<=0){ this._spawnDebris(this.player.x+15, this.player.y+15); this.etat='mort'; this.mortFrame=0; return; }
+            if(this.vies<=0){
+                // Sur une chute dans un trou, le joueur est déjà sorti de l'écran par le bas :
+                // on fait apparaître les débris en bas de la zone visible (caméra) pour que
+                // l'animation de mort reste visible, au lieu d'afficher une scène figée vide
+                // pendant 45 frames. Sur un dégât normal (ennemi/pic), le joueur est à l'écran
+                // → on garde le comportement d'origine (player.y).
+                const dy = result==='trou' ? (this.camY + this.H - 30) : (this.player.y + 15);
+                this._spawnDebris(this.player.x + 15, dy);
+                this.etat='mort'; this.mortFrame=0; return;
+            }
             if(this.checkpoint&&this.checkpoint.atteint){this.player.checkpointX=this.checkpoint.spawnX;this.player.checkpointY=this.checkpoint.spawnY}
             this.player.subirDegat();
             this.recalculerCamera(true); // recentrage immédiat après respawn
