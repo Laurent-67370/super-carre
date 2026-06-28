@@ -6,6 +6,8 @@ Jeu de plateforme HTML5 autonome, jouable au clavier comme au tactile. Tout le j
 
 🎮 **Jouer en ligne :** https://laurent-67370.github.io/super-carre/
 
+🟥 **Pixou**, le héros carré, a du tempérament : il sourit en ramassant les pièces, s'effraie quand un ennemi s'approche, fait la grimace quand il est touché, et triomphe à chaque palier de 5 000 points. Il s'aplatit à l'atterrissage, s'étire au saut (**squash & stretch**), et explose en petits carrés à sa dernière vie. Des **confettis** célèbrent chaque franchissement de palier.
+
 ---
 
 ## 🎮 Comment jouer

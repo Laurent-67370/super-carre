@@ -282,7 +282,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v14</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v15</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -983,9 +983,19 @@ class Player {
         this.dureePowerUp = 600;             // 10 secondes à 60fps
         this.vitesseMaxNormale = 4.5;        // Sauvegardé pour le boost de vitesse
         this.accelerationNormale = 0.5;
+        // --- EXPRESSIONS & SQUASH/STRETCH ---
+        this.expression = 'normal';   // normal | joy | hurt | scared | win
+        this.expressionTimer = 0;     // frames restantes avant retour à normal
+        this.sx = 1; this.sy = 1;     // facteurs d'échelle squash&stretch (rendu uniquement)
+        this.auSolPrev = false;       // état au sol frame précédente (détection atterrissage)
+        this._lastVy = 0;             // vy frame précédente (impact d'atterrissage)
     }
+    // Fixe une expression prioritaire (ne remplace pas une expression plus longue en cours)
+    setExpression(e, duree) { if (duree >= this.expressionTimer) { this.expression = e; this.expressionTimer = duree; } }
     update(touches, audio, niveau, ennemis, pics) {
         this.frameAnim++;
+        // --- DÉCRÉMENTER LE TIMER D'EXPRESSION ---
+        if (this.expressionTimer > 0) { this.expressionTimer--; if (this.expressionTimer === 0) this.expression = 'normal'; }
         // --- DÉCRÉMENTER LES TIMERS DE POWER-UPS ---
         if (this.powerUpTimer.doublejump > 0) this.powerUpTimer.doublejump--;
         if (this.powerUpTimer.shield > 0) this.powerUpTimer.shield--;
@@ -1103,6 +1113,15 @@ class Player {
         if (this.y > mH + 50) return 'trou';
         if (this.y < 0) { this.y = 0; this.vy = 0; }
         if (this.invincible > 0) this.invincible--;
+        // --- SQUASH & STRETCH (rendu uniquement, n'affecte pas la collision) ---
+        // Atterrissage après une chute → aplatissement ; saut vers le haut → étirement
+        if (!this.auSolPrev && this.onGround && this._lastVy > 6) { this.sx = 1.25; this.sy = 0.78; }
+        else if (this.vy < -6) { this.sx = 0.85; this.sy = 1.15; }
+        // Ease progressif vers la forme neutre
+        this.sx += (1 - this.sx) * 0.18;
+        this.sy += (1 - this.sy) * 0.18;
+        this.auSolPrev = this.onGround;
+        this._lastVy = this.vy;
         return null;
     }
     collisionAABB(o) {
@@ -1147,11 +1166,18 @@ class Player {
         // === PERSONNAGE « Pixou » — design original, expressif et animé ===
         const x = this.x, y = this.y, L = this.largeur, H = this.hauteur;
         const dir = this.direction > 0 ? 1 : -1;
-        const cx = x + L / 2;
+        const cx = x + L / 2, cy = y + H / 2;
         // Animation de course : balancement des pieds quand on bouge au sol
         const court = this.onGround && Math.abs(this.vx) > 0.5;
         const phase = court ? Math.sin(this.frameAnim * 0.4) : 0;
         const enLair = !this.onGround;
+        const expr = this.expression;
+
+        // --- Squash & stretch : déformation du corps autour de son centre ---
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(this.sx, this.sy);
+        ctx.translate(-cx, -cy);
 
         // --- Petits pieds (jaunes) qui s'animent ---
         ctx.fillStyle = '#F1C40F';
@@ -1185,35 +1211,72 @@ class Player {
         ctx.fillStyle = '#1ABC9C';
         ctx.beginPath(); ctx.arc(cx, y, 2.5, 0, 6.28); ctx.fill();
 
-        // --- Yeux expressifs (blancs avec pupille qui suit la direction) ---
+        // --- Yeux & bouche : expression contextuelle ---
         const eyeY = y + 13;
         const e1 = cx - 7, e2 = cx + 1; // base des deux yeux
-        // clignement périodique
         const cligne = (this.frameAnim % 200) < 6;
-        ctx.fillStyle = '#FFF';
-        if (cligne) {
-            ctx.fillRect(e1, eyeY + 3, 6, 1.5); ctx.fillRect(e2, eyeY + 3, 6, 1.5);
-        } else {
-            ctx.beginPath(); ctx.ellipse(e1 + 3, eyeY + 3, 3.2, 4, 0, 0, 6.28); ctx.fill();
-            ctx.beginPath(); ctx.ellipse(e2 + 3, eyeY + 3, 3.2, 4, 0, 0, 6.28); ctx.fill();
-            // pupilles décalées vers la direction du regard
-            ctx.fillStyle = '#1a1a2e';
-            const pdx = dir * 1.6;
-            ctx.beginPath(); ctx.arc(e1 + 3 + pdx, eyeY + 4, 1.8, 0, 6.28); ctx.fill();
-            ctx.beginPath(); ctx.arc(e2 + 3 + pdx, eyeY + 4, 1.8, 0, 6.28); ctx.fill();
-        }
-
-        // --- Bouche : sourire au sol, petit « o » en saut ---
+        const pdx = dir * 1.6;
         ctx.strokeStyle = '#C0392B'; ctx.lineWidth = 1.5; ctx.fillStyle = '#C0392B';
-        if (enLair) {
-            ctx.beginPath(); ctx.arc(cx, y + H - 7, 1.8, 0, 6.28); ctx.fill();
+        if (expr === 'hurt') {
+            // Yeux en X (deux traits croisés par œil)
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.moveTo(e1, eyeY + 1); ctx.lineTo(e1 + 6, eyeY + 7);
+            ctx.moveTo(e1 + 6, eyeY + 1); ctx.lineTo(e1, eyeY + 7);
+            ctx.moveTo(e2, eyeY + 1); ctx.lineTo(e2 + 6, eyeY + 7);
+            ctx.moveTo(e2 + 6, eyeY + 1); ctx.lineTo(e2, eyeY + 7);
+            ctx.stroke();
+            ctx.lineWidth = 1.5;
+            // Bouche froncée (arc vers le bas)
+            ctx.beginPath(); ctx.arc(cx, y + H - 5, 3, 1.15 * Math.PI, 1.85 * Math.PI); ctx.stroke();
+        } else if (expr === 'joy' || expr === 'win') {
+            // Yeux en arcs joyeux ^^
+            const w = expr === 'win' ? 5 : 4;
+            ctx.lineWidth = 1.8;
+            ctx.beginPath(); ctx.arc(e1 + 3, eyeY + 5, w, 1.1 * Math.PI, 1.9 * Math.PI); ctx.stroke();
+            ctx.beginPath(); ctx.arc(e2 + 3, eyeY + 5, w, 1.1 * Math.PI, 1.9 * Math.PI); ctx.stroke();
+            ctx.lineWidth = 1.5;
+            // Grand sourire ouvert
+            const r = expr === 'win' ? 5 : 4;
+            ctx.beginPath(); ctx.arc(cx, y + H - 11, r, 0.1 * Math.PI, 0.9 * Math.PI); ctx.fill();
+        } else if (expr === 'scared') {
+            // Yeux agrandis + grosses pupilles
+            ctx.fillStyle = '#FFF';
+            ctx.beginPath(); ctx.ellipse(e1 + 3, eyeY + 3, 4, 4.5, 0, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(e2 + 3, eyeY + 3, 4, 4.5, 0, 0, 6.28); ctx.fill();
+            ctx.fillStyle = '#1a1a2e';
+            ctx.beginPath(); ctx.arc(e1 + 3 + pdx, eyeY + 3, 2.4, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(e2 + 3 + pdx, eyeY + 3, 2.4, 0, 6.28); ctx.fill();
+            // Petit O de surprise
+            ctx.beginPath(); ctx.arc(cx, y + H - 8, 2.2, 0, 6.28); ctx.fill();
+            // Goutte de sueur
+            ctx.fillStyle = 'rgba(133,193,233,.8)';
+            ctx.beginPath(); ctx.arc(x + L - 3, y + 8, 2, 0, 6.28); ctx.fill();
         } else {
-            ctx.beginPath(); ctx.arc(cx, y + H - 9, 3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+            // 'normal' : yeux blancs + pupilles directionnelles + clignement
+            ctx.fillStyle = '#FFF';
+            if (cligne) {
+                ctx.fillRect(e1, eyeY + 3, 6, 1.5); ctx.fillRect(e2, eyeY + 3, 6, 1.5);
+            } else {
+                ctx.beginPath(); ctx.ellipse(e1 + 3, eyeY + 3, 3.2, 4, 0, 0, 6.28); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(e2 + 3, eyeY + 3, 3.2, 4, 0, 0, 6.28); ctx.fill();
+                ctx.fillStyle = '#1a1a2e';
+                ctx.beginPath(); ctx.arc(e1 + 3 + pdx, eyeY + 4, 1.8, 0, 6.28); ctx.fill();
+                ctx.beginPath(); ctx.arc(e2 + 3 + pdx, eyeY + 4, 1.8, 0, 6.28); ctx.fill();
+            }
+            // Bouche : sourire au sol, petit « o » en saut
+            if (enLair) {
+                ctx.beginPath(); ctx.arc(cx, y + H - 7, 1.8, 0, 6.28); ctx.fill();
+            } else {
+                ctx.beginPath(); ctx.arc(cx, y + H - 9, 3, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+            }
         }
         // petites joues
         ctx.fillStyle = 'rgba(255,150,150,.5)';
         ctx.beginPath(); ctx.arc(cx - 9, y + H - 9, 2, 0, 6.28); ctx.fill();
         ctx.beginPath(); ctx.arc(cx + 9, y + H - 9, 2, 0, 6.28); ctx.fill();
+
+        ctx.restore();  // fin squash & stretch
 
         ctx.globalAlpha = 1;
     }
@@ -1228,7 +1291,7 @@ class Player {
         ctx.arcTo(x, y, x + w, y, r);
         ctx.closePath();
     }
-    subirDegat() { this.invincible = 90; this.x = this.checkpointX; this.y = this.checkpointY; this.vx = 0; this.vy = 0; }
+    subirDegat() { this.invincible = 90; this.x = this.checkpointX; this.y = this.checkpointY; this.vx = 0; this.vy = 0; this.expression = 'hurt'; this.expressionTimer = 90; }
 }
 
 // ============================================================
@@ -1647,6 +1710,7 @@ class Game {
         this.scoreCumul = 0; // Score total affiché pendant le jeu (pièces + ennemis + power-ups)
         this.piecesTotal = 0; // Nombre de pièces ramassées (pour l'affichage Hall of Fame)
         this.prochainPalierScore = 5000; // +1 vie chaque fois que le score franchit ce seuil
+        this.effets = []; // particules de feedback (confettis paliers, débris mort)
         this.etat = 'menu'; this.shakeFrames = 0;
         this.player = null; this.niveau = []; this.pieces = []; this.ennemis = []; this.pics = []; this.nuages = [];
         this.ressorts = []; this.powerups = [];
@@ -1740,6 +1804,14 @@ class Game {
     }
     updateHearts() { /* HUD dessiné sur canvas — plus de DOM */ }
     update() {
+        // --- MORT FUN : anime les débris de Pixou avant le game over ---
+        if (this.etat === 'mort') {
+            this.mortFrame = (this.mortFrame || 0) + 1;
+            this._updateEffets();
+            for (let i = this.scorePopups.length - 1; i >= 0; i--) { const p = this.scorePopups[i]; p.y -= 1.5; p.vie--; if (p.vie <= 0) this.scorePopups.splice(i, 1); }
+            if (this.mortFrame >= 45) this.gameOver();
+            return;
+        }
         if (this.etat !== 'playing') return;
         this.frameCount++;
         if (this.frameCount%6===0){this.tempsNiveau=Math.round((this.frameCount/60)*10)/10}
@@ -1766,6 +1838,7 @@ class Game {
 
         // Mettre à jour les popups de score flottants
         for(let i=this.scorePopups.length-1;i>=0;i--){const p=this.scorePopups[i];p.y-=1.5;p.vie--;if(p.vie<=0)this.scorePopups.splice(i,1)}
+        this._updateEffets();
 
         const result = this.player.update(this.touches,this.audio,this.niveau,this.ennemis,this.pics);
         // Bonus pour chaque ennemi écrasé cette frame (+150)
@@ -1773,11 +1846,21 @@ class Game {
             this.scoreCumul += 150 * this.player.ennemisEcrases;
             this.scorePopups.push({x:this.player.x, y:this.player.y-10, vie:45, text:'+150'});
             this.player.ennemisEcrases = 0;
+            this.player.setExpression('joy', 20);
+        }
+        // Expression « effrayé » si un ennemi vivant est tout proche (sauf si une expression prioritaire est active)
+        if (this.player.expressionTimer === 0) {
+            let scare = false;
+            const pcx = this.player.x + 15, pcy = this.player.y + 15;
+            for (const e of this.ennemis) {
+                if (!e.mort) { const ex = (e.x + e.largeur / 2) - pcx, ey = (e.y + e.hauteur / 2) - pcy; if (ex * ex + ey * ey < 55 * 55) { scare = true; break; } }
+            }
+            this.player.expression = scare ? 'scared' : 'normal';
         }
         if(result==='degat'||result==='trou'){
             this.audio.degat(); if(navigator.vibrate)navigator.vibrate(200);
             this.vies--; this.updateHearts(); this.shakeFrames=8;
-            if(this.vies<=0){this.gameOver();return}
+            if(this.vies<=0){ this._spawnDebris(this.player.x+15, this.player.y+15); this.etat='mort'; this.mortFrame=0; return; }
             if(this.player.checkpointMid&&result==='trou'){this.player.checkpointX=this.player.checkpointMid.x;this.player.checkpointY=this.player.checkpointMid.y}
             this.player.subirDegat();
             this.recalculerCamera(true); // recentrage immédiat après respawn
@@ -1790,6 +1873,7 @@ class Game {
                 if(navigator.vibrate)navigator.vibrate(30);
                 // Popup de score flottant sur le canvas
                 this.scorePopups.push({x:piece.x,y:piece.y,vie:45,text:'+100'});
+                this.player.setExpression('joy', 18);
                 if(this.scoreNiveau>=Math.ceil(this.totalPiecesNiveau/2)&&this.player.checkpointMid){this.player.checkpointX=this.player.checkpointMid.x;this.player.checkpointY=this.player.checkpointMid.y}
                 if(this.scoreNiveau>=this.totalPiecesNiveau){this.niveauTermine();return}
             }
@@ -1816,6 +1900,7 @@ class Game {
                 this.audio.victoire();
                 if(navigator.vibrate) navigator.vibrate([30, 20, 50]);
                 this.scorePopups.push({x:pu.x, y:pu.y, vie:50, text:pu.type==='doublejump'?'DBL SAUT +250':pu.type==='shield'?'BOUCLIER +250':'VITESSE +250'});
+                this.player.setExpression('joy', 30);
             }
         }
         const wrapN = Math.max(850, this.mondeW + 50);
@@ -1832,9 +1917,52 @@ class Game {
         while (this.scoreCumul >= this.prochainPalierScore) {
             this.vies++;
             this.updateHearts();
-            this.scorePopups.push({ x: this.player.x, y: this.player.y - 20, vie: 60, text: '❤ +1 VIE !' });
+            const palier = this.prochainPalierScore;
+            this.scorePopups.push({ x: this.player.x, y: this.player.y - 20, vie: 70, text: `🎉 ${palier} !` });
+            this.scorePopups.push({ x: this.player.x, y: this.player.y - 44, vie: 60, text: '❤ +1 VIE !' });
+            this._spawnConfettis(this.player.x + 15, this.player.y + 5, 28);
+            this.player.setExpression('joy', 40);
             if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
             this.prochainPalierScore += 5000;
+        }
+    }
+    // Confettis colorés (célébration de palier de points)
+    _spawnConfettis(x, y, n) {
+        const couleurs = ['#FFD700', '#FF6B5C', '#16A085', '#3498DB', '#9B59B6', '#E67E22', '#FFF'];
+        for (let i = 0; i < n; i++) {
+            this.effets.push({
+                x, y,
+                vx: (Math.random() - 0.5) * 8,
+                vy: -Math.random() * 6 - 2,
+                g: 0.25,
+                couleur: couleurs[Math.floor(Math.random() * couleurs.length)],
+                taille: 3 + Math.random() * 4,
+                rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.4,
+                vie: 60, vieMax: 60, type: 'confetti'
+            });
+        }
+    }
+    // Débris rouges (mort fun de Pixou)
+    _spawnDebris(x, y) {
+        const couleurs = ['#FF6B5C', '#E74C3C', '#C0392B', '#F1C40F', '#16A085'];
+        for (let i = 0; i < 14; i++) {
+            this.effets.push({
+                x, y,
+                vx: (Math.random() - 0.5) * 12,
+                vy: -Math.random() * 9 - 2,
+                g: 0.4,
+                couleur: couleurs[Math.floor(Math.random() * couleurs.length)],
+                taille: 4 + Math.random() * 5,
+                rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 0.5,
+                vie: 45, vieMax: 45, type: 'debris'
+            });
+        }
+    }
+    _updateEffets() {
+        for (let i = this.effets.length - 1; i >= 0; i--) {
+            const e = this.effets[i];
+            e.vy += e.g; e.x += e.vx; e.y += e.vy; e.rot += e.vr; e.vie--;
+            if (e.vie <= 0) this.effets.splice(i, 1);
         }
     }
     dessiner() {
@@ -1876,7 +2004,19 @@ class Game {
         for(const piece of this.pieces) piece.dessiner(ctx);
         for(const r of this.ressorts) r.dessiner(ctx);
         for(const pu of this.powerups) pu.dessiner(ctx);
-        if(this.player) this.player.dessiner(ctx);
+        if(this.player && this.etat !== 'mort') this.player.dessiner(ctx);
+
+        // Particules d'effets (confettis, débris) dans le repère monde
+        for(const ef of this.effets){
+            ctx.save();
+            ctx.globalAlpha = Math.min(1, ef.vie / (ef.vieMax * 0.5));
+            ctx.translate(ef.x, ef.y);
+            ctx.rotate(ef.rot);
+            ctx.fillStyle = ef.couleur;
+            ctx.fillRect(-ef.taille/2, -ef.taille/2, ef.taille, ef.taille);
+            ctx.restore();
+        }
+        ctx.globalAlpha = 1;
 
         // Popups de score flottants (dans le repère monde)
         ctx.globalAlpha = 1;
@@ -2123,7 +2263,7 @@ class Game {
     }
     // Réinitialise l'état d'une partie et charge le niveau demandé
     _resetPartie(idx) {
-        this.niveauActuel=idx;this.scoreTotal=0;this.tempsTotal=0;this.vies=5;this.scoreCumul=0;this.piecesTotal=0;this.prochainPalierScore=5000;
+        this.niveauActuel=idx;this.scoreTotal=0;this.tempsTotal=0;this.vies=5;this.scoreCumul=0;this.piecesTotal=0;this.prochainPalierScore=5000;this.effets=[];
         document.getElementById('win-screen').classList.remove('show');
         document.getElementById('gameover-screen').classList.remove('show');
         document.getElementById('transition-screen').classList.remove('show');
@@ -2196,7 +2336,7 @@ class Game {
                 this._accumulateur -= PAS;
                 n++;
             }
-            if (this.etat === 'playing' || (this.modeTest && document.getElementById('game-wrapper').style.display !== 'none')) {
+            if (this.etat === 'playing' || this.etat === 'mort' || (this.modeTest && document.getElementById('game-wrapper').style.display !== 'none')) {
                 this.dessiner();
             }
         } catch(err) {
