@@ -405,6 +405,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
         <button id="ed-save">💾 Sauvegarder</button>
         <button id="ed-load">📂 Mes niveaux</button>
         <button id="ed-import">📥 Importer</button>
+        <button id="ed-random">🎲 Niveau aléatoire</button>
         <button id="ed-clear">🧹 Tout effacer</button>
     </div>
 
@@ -2015,6 +2016,141 @@ class LevelEditor {
         };
     }
 
+    // ---------- Génération aléatoire de niveaux JOUABLES ----------
+    // Construit un parcours de plateformes toujours atteignables (physique réelle :
+    // saut ~95px de haut, ~120px de portée), puis décore avec pièces, dangers
+    // évitables et power-ups. Valide le résultat ; régénère si besoin.
+    genererAleatoire(diff) {
+        const SAUT_H = 95, SAUT_W = 120, JL = 30;
+        const rnd = (a, b) => a + Math.random() * (b - a);
+        const ri = (a, b) => Math.floor(rnd(a, b + 1));
+        const ch = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        const D = {
+            doux:      { dangers: 0.10, ennemis: 0.15, mobiles: 0.10, powerups: 2 },
+            equilibre: { dangers: 0.22, ennemis: 0.30, mobiles: 0.20, powerups: 2 },
+            intense:   { dangers: 0.38, ennemis: 0.45, mobiles: 0.30, powerups: 1 }
+        }[diff] || { dangers: 0.22, ennemis: 0.30, mobiles: 0.20, powerups: 2 };
+
+        const construire = () => {
+            const vertical = Math.random() < 0.5;
+            const objets = [];
+            let mondeW, mondeH, spawn;
+            const chemin = [];
+
+            if (vertical) {
+                mondeW = 800; mondeH = ri(900, 1300);
+                objets.push({ type: 'sol', x: 0, y: mondeH - 40, w: mondeW, h: 40 });
+                objets.push({ type: 'mur', x: 0, y: 0, w: 20, h: mondeH - 40 });
+                objets.push({ type: 'mur', x: mondeW - 20, y: 0, w: 20, h: mondeH - 40 });
+                let cx = ri(60, 200), cy = mondeH - 110, cw = ri(100, 140);
+                chemin.push({ x: cx, y: cy, w: cw });
+                spawn = { x: cx + 20, y: cy - JL };
+                while (cy > 160) {
+                    const ny = cy - ri(60, SAUT_H), w = ri(90, 140);
+                    let nx = cx + ri(-SAUT_W, SAUT_W);
+                    nx = Math.max(40, Math.min(mondeW - 40 - w, nx));
+                    chemin.push({ x: nx, y: ny, w }); cx = nx; cy = ny; cw = w;
+                }
+            } else {
+                mondeW = ri(1200, 2000); mondeH = 600;
+                objets.push({ type: 'mur', x: 0, y: 0, w: 20, h: 560 });
+                objets.push({ type: 'mur', x: mondeW - 20, y: 0, w: 20, h: 560 });
+                let cx = 30, cy = 470, cw = ri(120, 180);
+                objets.push({ type: 'sol', x: 0, y: 560, w: cw + 40, h: 40 });
+                chemin.push({ x: cx, y: cy, w: cw });
+                spawn = { x: 60, y: cy - JL };
+                while (cx < mondeW - 200) {
+                    const nx = cx + cw + ri(70, SAUT_W);
+                    if (nx > mondeW - 120) break;
+                    const w = ri(80, 140);
+                    let ny = cy + ri(-SAUT_H, SAUT_H);
+                    ny = Math.max(180, Math.min(500, ny));
+                    chemin.push({ x: nx, y: ny, w }); cx = nx; cy = ny; cw = w;
+                }
+                objets.push({ type: 'sol', x: mondeW - 160, y: 560, w: 160, h: 40 });
+            }
+
+            // plateformes du chemin (certaines deviennent mobiles)
+            const nbMob = Math.round(chemin.length * D.mobiles);
+            const mobIdx = new Set();
+            for (let k = 0; k < nbMob; k++) mobIdx.add(ri(1, Math.max(1, chemin.length - 2)));
+            chemin.forEach((p, i) => {
+                if (mobIdx.has(i) && i > 0 && i < chemin.length - 1) {
+                    const axe = Math.random() < 0.5 ? 'mobileH' : 'mobileV';
+                    objets.push({ type: axe, x: p.x, y: p.y, w: Math.min(p.w, 90), h: 16, dist: ri(45, 80), vit: +rnd(2, 3).toFixed(1) });
+                } else {
+                    objets.push({ type: 'herbe', x: p.x, y: p.y, w: p.w, h: 18 });
+                }
+            });
+
+            // pièces au-dessus de chaque plateforme
+            chemin.forEach(p => objets.push({ type: 'coin', x: Math.round(p.x + p.w / 2 - 8), y: Math.round(p.y - ri(35, 55)) }));
+
+            // dangers (pics) évitables
+            if (!vertical) {
+                for (let i = 0; i < chemin.length - 1; i++) {
+                    if (Math.random() < D.dangers) {
+                        const a = chemin[i], b = chemin[i + 1];
+                        const gx = a.x + a.w + 5, gw = Math.max(0, b.x - gx - 5);
+                        if (gw >= 30) objets.push({ type: 'spike', x: Math.round(gx), y: 540, w: Math.min(gw, 100) });
+                    }
+                }
+            } else {
+                const nb = Math.round(D.dangers * 5), placed = [];
+                for (let k = 0; k < nb; k++) {
+                    const w = ri(50, 90); let x, e = 0, ok = false;
+                    do { x = ri(40, mondeW - 60 - w); ok = placed.every(px => Math.abs(px - x) > w + 130); e++; } while (!ok && e < 12);
+                    if (ok) { objets.push({ type: 'spike', x, y: mondeH - 60, w }); placed.push(x); }
+                }
+            }
+
+            // ennemis sur plateformes (esquivables/écrasables)
+            chemin.forEach((p, i) => {
+                if (i > 0 && i < chemin.length - 1 && Math.random() < D.ennemis && p.w >= 90 && !mobIdx.has(i)) {
+                    const dist = Math.max(20, Math.min(Math.round(p.w / 2) - 10, 60));
+                    objets.push({ type: 'ennemi', x: Math.round(p.x + p.w / 2), y: Math.round(p.y - 28), dist, vit: +rnd(0.7, 1.2).toFixed(1) });
+                }
+            });
+
+            // ressort de fin + power-ups
+            const last = chemin[chemin.length - 1];
+            objets.push({ type: 'ressort', x: Math.round(last.x + last.w / 2 - 14), y: Math.round(last.y - 14) });
+            const milieu = chemin.slice(1, -1).length ? chemin.slice(1, -1) : chemin;
+            const tPU = ['puDouble', 'puShield', 'puSpeed'];
+            for (let k = 0; k < D.powerups; k++) {
+                const p = ch(milieu);
+                objets.push({ type: ch(tPU), x: Math.round(p.x + p.w / 2 - 10), y: Math.round(p.y - 40) });
+            }
+
+            return { nom: (vertical ? 'Ascension' : 'Course') + ' aléatoire', largeurMonde: mondeW, hauteurMonde: mondeH, spawn, objets, _vertical: vertical, _chemin: chemin };
+        };
+
+        const valide = (m) => {
+            const W = m.largeurMonde, H = m.hauteurMonde;
+            const plats = m.objets.filter(o => o.type === 'herbe' || o.type === 'sol' || o.type === 'mobileH' || o.type === 'mobileV').map(o => ({ x: o.x, y: o.y, r: o.x + o.w, w: o.w }));
+            const s = m.spawn;
+            if (!plats.some(p => s.x + JL > p.x && s.x < p.r && p.y >= s.y && p.y <= s.y + JL + 100)) return false;
+            if (m.objets.some(o => o.x < 0 || o.x > W || o.y < 0 || o.y > H)) return false;
+            for (let i = 1; i < m._chemin.length; i++) {
+                const a = m._chemin[i - 1], b = m._chemin[i];
+                const dyOK = Math.abs(b.y - a.y) <= SAUT_H + 5 || b.y > a.y;
+                const gapX = Math.max(0, Math.max(a.x - b.x - b.w, b.x - a.x - a.w));
+                if (!(dyOK && gapX <= SAUT_W + 5)) return false;
+            }
+            const coins = m.objets.filter(o => o.type === 'coin');
+            for (const c of coins) {
+                if (!plats.some(p => c.x >= p.x - SAUT_W && c.x <= p.r + SAUT_W && c.y <= p.y && c.y >= p.y - SAUT_H - 50)) return false;
+            }
+            return true;
+        };
+
+        // Générer jusqu'à obtenir un niveau valide (quasi toujours du 1er coup)
+        let m, essais = 0;
+        do { m = construire(); essais++; } while (!valide(m) && essais < 30);
+        delete m._vertical; delete m._chemin;
+        return m;
+    }
+
     ouvrir() {
         this.scr.classList.add('show');
         document.getElementById('start-screen').style.display = 'none';
@@ -2492,6 +2628,21 @@ class LevelEditor {
         document.getElementById('ed-save').addEventListener('click', () => { dd.classList.add('hidden'); this.sauvegarder(); });
         document.getElementById('ed-clear').addEventListener('click', () => { dd.classList.add('hidden'); if (confirm('Tout effacer ?')) { this.modele = this.modeleVide(); document.getElementById('ed-name').value = this.modele.nom; this.deselectionner(); this._snapshot(); this.fit(); this.dessiner(); } });
         document.getElementById('ed-load').addEventListener('click', () => { dd.classList.add('hidden'); this._ouvrirListe(); });
+        // Génération aléatoire (avec confirmation si le niveau courant n'est pas vide)
+        document.getElementById('ed-random').addEventListener('click', () => {
+            dd.classList.add('hidden');
+            const nonVide = this.modele.objets.length > 0;
+            if (nonVide && !confirm('Remplacer le niveau actuel par un niveau aléatoire ?')) return;
+            const m = this.genererAleatoire('equilibre');
+            this.modele = m;
+            document.getElementById('ed-world-w').value = m.largeurMonde;
+            document.getElementById('ed-world-h').value = m.hauteurMonde;
+            document.getElementById('ed-name').value = m.nom;
+            this.deselectionner();
+            this._snapshot();
+            this.fit();
+            this.dessiner();
+        });
         // Import overlay
         document.getElementById('ed-import').addEventListener('click', () => {
             dd.classList.add('hidden');
