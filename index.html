@@ -327,6 +327,8 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
         <button id="ed-menu" class="ed-tb-btn">🏠</button>
         <input id="ed-name" type="text" value="Mon niveau" maxlength="24" placeholder="Nom du niveau">
         <div class="ed-spacer"></div>
+        <button id="ed-undo" class="ed-tb-btn" title="Annuler (Ctrl+Z)">↶</button>
+        <button id="ed-redo" class="ed-tb-btn" title="Rétablir (Ctrl+Y)">↷</button>
         <button id="ed-test" class="ed-tb-btn ed-accent">▶ Tester</button>
         <button id="ed-export" class="ed-tb-btn">⤓ Export</button>
         <button id="ed-menu2" class="ed-tb-btn ed-more">⋯</button>
@@ -1723,12 +1725,24 @@ class Game {
         // En pause / transition / menu : on ne simule pas, et on ne laisse pas
         // l'accumulateur gonfler (sinon rattrapage brutal à la reprise)
         if (this.etat !== 'playing') this._accumulateur = 0;
-        while (this._accumulateur >= PAS && n < 5) {
-            this.update();
-            this._accumulateur -= PAS;
-            n++;
+        try {
+            while (this._accumulateur >= PAS && n < 5) {
+                this.update();
+                this._accumulateur -= PAS;
+                n++;
+            }
+            if (this.etat === 'playing' || (this.modeTest && document.getElementById('game-wrapper').style.display !== 'none')) {
+                this.dessiner();
+            }
+        } catch(err) {
+            console.error('[Game] Crash dans la boucle:', err);
+            // Si on est en mode test, revenir à l'éditeur proprement
+            if (this.modeTest && this._editor) {
+                this._editor.finTest();
+                alert('⚠️ Le niveau a rencontré une erreur :\n' + err.message + '\n\nVérifie les propriétés des objets (distances, vitesses).');
+            }
+            this.etat = 'menu';
         }
-        this.dessiner();
         requestAnimationFrame((t) => this.boucle(t));
     }
     demarrer() { this.demarrerAuNiveau(0); }
@@ -1869,13 +1883,18 @@ class LevelEditor {
         this.canvas = document.getElementById('ed-canvas');
         this.ctx = this.canvas.getContext('2d');
         this.GRID = 10;          // pas de la grille / snap
-        this.outil = 'select';
+        this.outil = 'select';   // outil actif
         this.selection = null;   // objet sélectionné
         this.modele = this.modeleVide();
         this.cam = { x: 0, y: 0, zoom: 1 };
         this.STORE_KEY = 'supercarre_editor_levels';
+        // --- Historique Undo/Redo ---
+        this._hist = [];          // pile d'états passés
+        this._histFutur = [];     // pile d'états futurs (pour redo)
+        this._HIST_MAX = 50;      // profondeur max
         this._initUI();
         this._initPointer();
+        this._snapshot();         // état initial
     }
 
     modeleVide() {
@@ -1975,7 +1994,7 @@ class LevelEditor {
     placer(mx, my) {
         if (this.outil === 'spawn') {
             this.modele.spawn = { x: this.snap(mx), y: this.snap(my) };
-            this.dessiner(); return;
+            this._snapshot(); this.dessiner(); return;
         }
         const d = this.dimsDefaut(this.outil);
         const o = { type: this.outil, x: this.snap(mx - (d.w || 0) / 2), y: this.snap(my - (d.h || 0) / 2), ...d };
@@ -1984,15 +2003,41 @@ class LevelEditor {
         // ennemi : posé par son coin
         this.modele.objets.push(o);
         this.selection = (this.outil === 'select') ? o : null;
-        this.dessiner();
+        this._snapshot(); this.dessiner();
     }
     effacerSous(mx, my) {
         const o = this.objetSous(mx, my);
         if (o) {
             this.modele.objets.splice(this.modele.objets.indexOf(o), 1);
             if (this.selection === o) this.deselectionner();
-            this.dessiner();
+            this._snapshot(); this.dessiner();
         }
+    }
+
+    // ---------- Undo / Redo ----------
+    _snapshot() {
+        // Sauvegarde une copie profonde de l'état courant
+        this._hist.push(JSON.stringify(this.modele));
+        if (this._hist.length > this._HIST_MAX) this._hist.shift();
+        this._histFutur = []; // toute nouvelle action vide le futur
+    }
+    undo() {
+        if (this._hist.length < 2) return; // au moins l'état initial + 1
+        this._histFutur.push(this._hist.pop()); // déplace courant vers futur
+        const prev = this._hist[this._hist.length - 1];
+        this.modele = JSON.parse(prev);
+        this.selection = null;
+        document.getElementById('ed-props').classList.add('hidden');
+        this.fit(); this.dessiner();
+    }
+    redo() {
+        if (this._histFutur.length === 0) return;
+        const state = this._histFutur.pop();
+        this._hist.push(state);
+        this.modele = JSON.parse(state);
+        this.selection = null;
+        document.getElementById('ed-props').classList.add('hidden');
+        this.fit(); this.dessiner();
     }
 
     // ---------- Rendu ----------
@@ -2112,15 +2157,18 @@ class LevelEditor {
     construireData() {
         const niveau = [], pieces = [], ennemis = [], pics = [], ressorts = [], powerups = [];
         for (const o of this.modele.objets) {
+            // Sécuriser les propriétés numériques (NaN → crash)
+            const dist = Math.max(0, o.dist || 0);
+            const vit = Math.max(0.1, o.vit || 1);
             switch (o.type) {
-                case 'sol':   niveau.push(new Platform(o.x,o.y,o.w,o.h,'#8B4513','sol')); break;
-                case 'herbe': niveau.push(new Platform(o.x,o.y,o.w,o.h,'#228B22','herbe')); break;
-                case 'mur':   niveau.push(new Platform(o.x,o.y,o.w,o.h,'#6B4226','mur')); break;
-                case 'mobileH': niveau.push(new MovingPlatform(o.x,o.y,o.w,o.h,'h',o.dist,o.vit/100)); break;
-                case 'mobileV': niveau.push(new MovingPlatform(o.x,o.y,o.w,o.h,'v',o.dist,o.vit/100)); break;
+                case 'sol':   niveau.push(new Platform(o.x,o.y,Math.max(10,o.w||100),Math.max(10,o.h||40),'#8B4513','sol')); break;
+                case 'herbe': niveau.push(new Platform(o.x,o.y,Math.max(10,o.w||100),Math.max(10,o.h||20),'#228B22','herbe')); break;
+                case 'mur':   niveau.push(new Platform(o.x,o.y,Math.max(10,o.w||20),Math.max(10,o.h||200),'#6B4226','mur')); break;
+                case 'mobileH': niveau.push(new MovingPlatform(o.x,o.y,Math.max(10,o.w||80),Math.max(10,o.h||16),'h',dist,vit/100)); break;
+                case 'mobileV': niveau.push(new MovingPlatform(o.x,o.y,Math.max(10,o.w||80),Math.max(10,o.h||16),'v',dist,vit/100)); break;
                 case 'coin':  pieces.push(new Coin(o.x,o.y)); break;
-                case 'ennemi':ennemis.push(new Ennemi(o.x,o.y,o.dist,o.vit)); break;
-                case 'spike': pics.push(new Spike(o.x,o.y,o.w)); break;
+                case 'ennemi':ennemis.push(new Ennemi(o.x,o.y,dist,vit)); break;
+                case 'spike': pics.push(new Spike(o.x,o.y,Math.max(10,o.w||40))); break;
                 case 'ressort':ressorts.push(new Ressort(o.x,o.y)); break;
                 case 'puDouble':powerups.push(new PowerUp(o.x,o.y,'doublejump')); break;
                 case 'puShield':powerups.push(new PowerUp(o.x,o.y,'shield')); break;
@@ -2136,9 +2184,41 @@ class LevelEditor {
         const piecesCount = this.modele.objets.filter(o => o.type === 'coin').length;
         if (piecesCount === 0) probs.push('Ajoute au moins une pièce 🪙 (sinon le niveau ne peut pas être gagné).');
         const sols = this.modele.objets.filter(o => o.type === 'sol' || o.type === 'herbe');
-        if (sols.length === 0) probs.push('Ajoute au moins une plateforme.');
+        if (sols.length === 0) probs.push('Ajoute au moins une plateforme ou un sol.');
         const s = this.modele.spawn;
         if (s.x < 0 || s.x > this.modele.largeurMonde || s.y < 0 || s.y > this.modele.hauteurMonde) probs.push('Le point de départ 🚩 est hors du monde.');
+        // Vérifier que le spawn n'est pas DANS un objet solide
+        const spawnBox = { x: s.x, y: s.y, w: 30, h: 30 };
+        for (const o of this.modele.objets) {
+            if (o.type === 'sol' || o.type === 'herbe' || o.type === 'mur' || o.type === 'mobileH' || o.type === 'mobileV') {
+                const b = this.bbox(o);
+                if (spawnBox.x < b.x + b.w && spawnBox.x + spawnBox.w > b.x &&
+                    spawnBox.y < b.y + b.h && spawnBox.y + spawnBox.h > b.y) {
+                    probs.push('Le point de départ 🚩 est bloqué DANS une plateforme. Déplace-le dans un espace vide.');
+                    break;
+                }
+            }
+        }
+        // Vérifier qu'il y a une plateforme SOUS le spawn (sinon chute immédiate)
+        let solSousSpawn = false;
+        for (const o of this.modele.objets) {
+            if (o.type === 'sol' || o.type === 'herbe') {
+                const b = this.bbox(o);
+                if (s.x + 15 >= b.x && s.x + 15 <= b.x + b.w && s.y + 30 >= b.y - 5 && s.y + 30 <= b.y + b.h + 60) {
+                    solSousSpawn = true; break;
+                }
+            }
+        }
+        if (!solSousSpawn && probs.length === 0) {
+            probs.push('⚠️ Pas de plateforme sous le point de départ 🚩 — tu vas tomber immédiatement !');
+        }
+        // Avertissement pour objets hors-monde (pas bloquant, juste informatif)
+        let horsMonde = 0;
+        for (const o of this.modele.objets) {
+            const b = this.bbox(o);
+            if (b.x + b.w < 0 || b.x > this.modele.largeurMonde || b.y + b.h < 0 || b.y > this.modele.hauteurMonde) horsMonde++;
+        }
+        if (horsMonde > 0) probs.push(`${horsMonde} objet(s) sont hors des limites du monde.`);
         return probs;
     }
 
@@ -2240,6 +2320,8 @@ class LevelEditor {
         });
         // Barre du haut
         document.getElementById('ed-menu').addEventListener('click', () => this.fermer());
+        document.getElementById('ed-undo').addEventListener('click', () => this.undo());
+        document.getElementById('ed-redo').addEventListener('click', () => this.redo());
         document.getElementById('ed-test').addEventListener('click', () => this.tester());
         document.getElementById('ed-export').addEventListener('click', () => {
             document.getElementById('ed-export-text').value = this.exporter();
@@ -2249,7 +2331,7 @@ class LevelEditor {
         const dd = document.getElementById('ed-dropdown');
         document.getElementById('ed-menu2').addEventListener('click', () => dd.classList.toggle('hidden'));
         document.getElementById('ed-save').addEventListener('click', () => { dd.classList.add('hidden'); this.sauvegarder(); });
-        document.getElementById('ed-clear').addEventListener('click', () => { dd.classList.add('hidden'); if (confirm('Tout effacer ?')) { this.modele = this.modeleVide(); document.getElementById('ed-name').value = this.modele.nom; this.deselectionner(); this.fit(); this.dessiner(); } });
+        document.getElementById('ed-clear').addEventListener('click', () => { dd.classList.add('hidden'); if (confirm('Tout effacer ?')) { this.modele = this.modeleVide(); document.getElementById('ed-name').value = this.modele.nom; this.deselectionner(); this._snapshot(); this.fit(); this.dessiner(); } });
         document.getElementById('ed-load').addEventListener('click', () => { dd.classList.add('hidden'); this._ouvrirListe(); });
         // Export overlay
         document.getElementById('ed-export-close').addEventListener('click', () => document.getElementById('ed-export-overlay').classList.add('hidden'));
@@ -2288,6 +2370,12 @@ class LevelEditor {
         // Test banner
         document.getElementById('ed-test-back').addEventListener('click', () => this.finTest());
         window.addEventListener('resize', () => { if (this.scr.classList.contains('show')) { this.resize(); this.dessiner(); } });
+        // Raccourcis clavier Undo/Redo
+        window.addEventListener('keydown', (e) => {
+            if (!this.scr.classList.contains('show')) return;
+            if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { e.preventDefault(); if (e.shiftKey) this.redo(); else this.undo(); }
+            if ((e.ctrlKey || e.metaKey) && e.code === 'KeyY') { e.preventDefault(); this.redo(); }
+        });
     }
 
     _ouvrirListe() {
@@ -2364,7 +2452,13 @@ class LevelEditor {
                 this.selectionner(this.selection); // rafraîchit le panneau
             }
         };
-        const onUp = (e) => { dragging = false; mode = null; };
+        const onUp = (e) => {
+            if (dragging && moved && mode !== 'pan') {
+                // Snapshot seulement si on a réellement modifié un objet (pas un simple pan)
+                this._snapshot();
+            }
+            dragging = false; mode = null;
+        };
 
         cv.addEventListener('mousedown', onDown);
         window.addEventListener('mousemove', onMove);
