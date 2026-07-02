@@ -92,6 +92,42 @@ function init() {
         document.getElementById('help-screen').classList.remove('show');
     });
 
+    // --- GÉNÉRIQUE STAR WARS (🎬 INTRO dans l'aide) ---
+    function fermerCrawl() {
+        const scr = document.getElementById('crawl-screen');
+        scr.classList.remove('show');
+        // Réinitialise les animations (retire/remet les éléments animés)
+        const txt = document.getElementById('crawl-text');
+        const intro = document.getElementById('crawl-intro');
+        for (const el of [txt, intro]) {
+            const clone = el.cloneNode(true);
+            el.parentNode.replaceChild(clone, el);
+        }
+    }
+    document.getElementById('btn-crawl').addEventListener('click', () => {
+        const scr = document.getElementById('crawl-screen');
+        // Champ d'étoiles généré une seule fois (~110 étoiles)
+        const stars = document.getElementById('crawl-stars');
+        if (!stars.childElementCount) {
+            for (let i = 0; i < 110; i++) {
+                const s = document.createElement('div');
+                s.className = 'crawl-star';
+                const taille = Math.random() * 2 + 1;
+                s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*100}%;width:${taille}px;height:${taille}px;animation-delay:${(Math.random()*3).toFixed(2)}s`;
+                stars.appendChild(s);
+            }
+        }
+        scr.classList.add('show');
+        if (navigator.vibrate) navigator.vibrate(30);
+        // Fin du défilement → fermeture automatique
+        document.getElementById('crawl-text').addEventListener('animationend', fermerCrawl, { once: true });
+    });
+    document.getElementById('btn-crawl-skip').addEventListener('click', fermerCrawl);
+    // Toucher n'importe où ferme aussi le générique
+    document.getElementById('crawl-screen').addEventListener('click', (e) => {
+        if (e.target.id !== 'btn-crawl-skip') fermerCrawl();
+    });
+
     // Bouton « Installer » : déclenche l'invite native de Chrome
     document.getElementById('btn-install').addEventListener('click', async () => {
         if (!_deferredInstallPrompt) return;

@@ -63,7 +63,7 @@
     <button id="btn-save">💾 SAUVEGARDE</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v31</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v32</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -121,6 +121,7 @@
 <div id="help-screen">
     <div id="help-header">
         <h2>❓ Comment jouer</h2>
+        <button id="btn-crawl">🎬 INTRO</button>
         <button id="btn-help-back">◀ RETOUR</button>
     </div>
     <div id="help-content">
@@ -143,6 +144,15 @@
             <div class="help-row"><span class="emoji">⭐</span><span class="desc">Bonus <strong>+1 vie</strong> à chaque palier de <strong>5 000 points</strong> (cumulé sur toute la partie)</span></div>
             <div class="help-row"><span class="emoji">🌟</span><span class="desc">Chaque niveau te rapporte <strong>1 à 3 étoiles</strong> : 3 si tu finis sans perdre de vie, 2 avec une seule perte, 1 sinon</span></div>
             <div class="help-tip">💡 Tes étoiles s'affichent dans <strong>« 🎯 Choisir un niveau »</strong>. Rejoue les niveaux pour décrocher les 3 étoiles partout !</div>
+        </div>
+
+        <div class="help-card">
+            <h3><span class="ico">⏱️</span> Contre-la-montre</h3>
+            <div class="help-row"><span class="emoji">⏱️</span><span class="desc">Ton <strong>meilleur temps</strong> est mémorisé pour chaque niveau — il ne peut que s'améliorer</span></div>
+            <div class="help-row"><span class="emoji">🥇</span><span class="desc">Trois médailles à décrocher : <strong>🥇 or</strong>, <strong>🥈 argent</strong>, <strong>🥉 bronze</strong>. Chaque niveau a ses propres seuils, adaptés à sa taille (et à son boss !)</span></div>
+            <div class="help-row"><span class="emoji">🔥</span><span class="desc">L'écran de fin de niveau affiche ton chrono, ta médaille, la mention <strong>RECORD !</strong> et le temps à battre pour la médaille supérieure</span></div>
+            <div class="help-row"><span class="emoji">🎯</span><span class="desc">Ta médaille apparaît <strong>en haut à droite de chaque tuile</strong> dans « Choisir un niveau »</span></div>
+            <div class="help-tip">💡 Étoiles et médailles sont indépendantes : les ⭐ récompensent la prudence, les 🥇 la vitesse. Les deux à la fois, c'est la perfection !</div>
         </div>
 
         <div class="help-card">
@@ -189,7 +199,32 @@
             <div class="help-row"><span class="emoji">📤</span><span class="desc">Dans le Hall of Fame, le bouton <strong>« 📤 PARTAGER »</strong> envoie ton classement vers l'app de ton choix (WhatsApp, SMS…) — ou le copie sur ordinateur</span></div>
         </div>
 
+        <div class="help-card">
+            <h3><span class="ico">💾</span> Sauvegarde</h3>
+            <div class="help-row"><span class="emoji">📤</span><span class="desc"><strong>EXPORTER</strong> (menu → 💾 SAUVEGARDE) télécharge un fichier contenant TOUTE ta progression : niveaux, étoiles, chronos, Hall of Fame, niveaux créés dans l'éditeur, préférences</span></div>
+            <div class="help-row"><span class="emoji">📥</span><span class="desc"><strong>IMPORTER</strong> restaure ce fichier — après un nettoyage du navigateur, ou sur un autre appareil pour emporter ta progression</span></div>
+            <div class="help-tip">💡 Exporte de temps en temps : c'est ton assurance-vie contre un « effacer les données de navigation » malheureux !</div>
+        </div>
+
     </div>
+</div>
+
+<!-- GÉNÉRIQUE STAR WARS -->
+<div id="crawl-screen">
+    <div id="crawl-stars"></div>
+    <p id="crawl-intro">Il y a bien longtemps, dans un navigateur lointain, très lointain…</p>
+    <div id="crawl-persp">
+        <div id="crawl-text">
+            <p class="crawl-logo">SUPER CARRÉ</p>
+            <p class="crawl-ep">Épisode XXIV<br>LE CHAOS FINAL</p>
+            <p>C'est une période de chaos dans le royaume des plateformes. PIXOU, courageux carré rouge à la casquette turquoise, s'élance à travers 24 mondes pour ramasser jusqu'à la dernière pièce d'or.</p>
+            <p>Sur sa route : des pics mortels, des patrouilleurs violets, des abeilles impossibles à écraser… et tous les 6 niveaux, un BOSS couronné qu'il faudra piétiner trois fois pour l'envoyer au tapis.</p>
+            <p>Armé de son double saut, de son bouclier et de ses ressorts, Pixou vise les trois étoiles de la prudence et la médaille d'or du contre-la-montre.</p>
+            <p>Le drapeau du checkpoint flotte au loin. Les pièces scintillent. La musique s'élève.</p>
+            <p>Que la partie commence…</p>
+        </div>
+    </div>
+    <button id="btn-crawl-skip">✕ PASSER</button>
 </div>
 
 <div id="game-wrapper">
