@@ -60,9 +60,10 @@
     <button id="btn-levels">🎯 CHOISIR UN NIVEAU</button>
     <button id="btn-editor">✏️ ÉDITEUR DE NIVEAUX</button>
     <button id="btn-music">🎵 Musique : Aventure</button>
+    <button id="btn-save">💾 SAUVEGARDE</button>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v29</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v30</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -84,6 +85,19 @@
     <p class="sub-scores" id="levels-stars-total">⭐ 0 / 0</p>
     <div id="levels-grid"></div>
     <button id="btn-levels-back">◀ RETOUR</button>
+</div>
+
+<!-- SAUVEGARDE (export / import) -->
+<div id="save-screen">
+    <h2>💾 SAUVEGARDE</h2>
+    <p class="sub-scores">Progression, étoiles, chronos, scores,<br>niveaux créés et préférences</p>
+    <div class="save-buttons">
+        <button id="btn-save-export">📤 EXPORTER<br><span class="save-hint">Télécharge un fichier de sauvegarde</span></button>
+        <button id="btn-save-import">📥 IMPORTER<br><span class="save-hint">Restaure depuis un fichier</span></button>
+    </div>
+    <p class="save-warning">⚠️ Importer remplace la progression actuelle</p>
+    <input type="file" id="save-file" accept=".json,application/json" style="display:none">
+    <button id="btn-save-back">◀ RETOUR</button>
 </div>
 
 <!-- SAISIE DE NOM ARCADE -->
@@ -219,6 +233,7 @@
     <p class="info" id="trans-desc"></p>
     <p class="info">🪙 Pièces : <strong id="trans-coins">0</strong></p>
     <p class="info">⏱️ Temps total : <strong id="trans-time">0.0s</strong></p>
+    <p class="info" id="trans-chrono" style="margin-top:6px;color:#FFD700"></p>
     <button id="btn-next">▶ CONTINUER</button>
 </div>
 

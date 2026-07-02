@@ -78,10 +78,27 @@ export class ProgressManager {
     constructor(nbNiveaux) {
         this.key = 'supercarre_progress';
         this.starsKey = 'supercarre_stars';
+        this.tempsKey = 'supercarre_temps';
         this.nbNiveaux = nbNiveaux;
         this.niveauDebloque = this.charger(); // index 0-based du plus haut niveau atteint
         this.etoiles = this.chargerEtoiles(); // {idxNiveau: nbEtoiles}
+        this.temps = this.chargerTemps();     // {idxNiveau: meilleur temps en secondes}
     }
+    chargerTemps() {
+        try { return JSON.parse(localStorage.getItem(this.tempsKey)) || {}; } catch(e) { return {}; }
+    }
+    // Enregistre le temps d'un niveau (garde le MEILLEUR = plus petit).
+    // Retourne true si c'est un nouveau record.
+    enregistrerTemps(idx, t) {
+        const actuel = this.temps[idx];
+        if (actuel === undefined || t < actuel) {
+            this.temps[idx] = Math.round(t * 10) / 10;
+            try { localStorage.setItem(this.tempsKey, JSON.stringify(this.temps)); } catch(e) {}
+            return true;
+        }
+        return false;
+    }
+    tempsDe(idx) { return this.temps[idx] !== undefined ? this.temps[idx] : null; }
     charger() {
         try {
             const v = parseInt(localStorage.getItem(this.key), 10);
@@ -116,8 +133,45 @@ export class ProgressManager {
     reinitialiser() {
         this.niveauDebloque = 0;
         this.etoiles = {};
-        try { localStorage.removeItem(this.key); localStorage.removeItem(this.starsKey); } catch(e) {}
+        this.temps = {};
+        try { localStorage.removeItem(this.key); localStorage.removeItem(this.starsKey); localStorage.removeItem(this.tempsKey); } catch(e) {}
     }
+}
+
+// ============================================================
+//  SAUVEGARDE EXPORTABLE — export/import de TOUTES les données
+//  du jeu (progression, étoiles, temps, scores, niveaux créés,
+//  préférences). Protège contre la perte lors d'un nettoyage
+//  du navigateur, et permet de migrer vers un autre appareil.
+// ============================================================
+export function exporterSauvegarde() {
+    const data = {
+        _app: 'super-carre',
+        _format: 1,
+        _date: new Date().toISOString()
+    };
+    for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith('supercarre_')) data[k] = localStorage.getItem(k);
+    }
+    return JSON.stringify(data, null, 2);
+}
+
+// Restaure une sauvegarde. Retourne le nombre d'entrées importées.
+// Lève une erreur si le fichier n'est pas une sauvegarde valide.
+export function importerSauvegarde(json) {
+    const data = JSON.parse(json);
+    if (!data || data._app !== 'super-carre') {
+        throw new Error('Ce fichier n\'est pas une sauvegarde Super Carré.');
+    }
+    let n = 0;
+    for (const [k, v] of Object.entries(data)) {
+        if (k.startsWith('supercarre_') && typeof v === 'string') {
+            try { localStorage.setItem(k, v); n++; } catch(e) {}
+        }
+    }
+    if (n === 0) throw new Error('Sauvegarde vide — rien à restaurer.');
+    return n;
 }
 
 // ============================================================

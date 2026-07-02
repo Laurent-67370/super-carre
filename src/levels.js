@@ -82,5 +82,45 @@ export const NIVEAUX=[
 ];
 
 // ============================================================
+//  CONTRE-LA-MONTRE — seuils de médailles par niveau
+//  Calculés automatiquement à partir du contenu du niveau
+//  (taille du monde, pièces, boss). Résultat mis en cache.
+//  🥇 or ≤ seuil "or" • 🥈 argent ≤ or×1.6 • 🥉 bronze ≤ or×2.4
+// ============================================================
+const _seuilsCache = {};
+export function seuilsMedailles(idx) {
+    if (_seuilsCache[idx]) return _seuilsCache[idx];
+    const niv = NIVEAUX[idx];
+    if (!niv) return null;
+    const d = niv.creer();
+    const w = niv.largeurMonde || 800, h = niv.hauteurMonde || 600;
+    const boss = (idx + 1) % 6 === 0;
+    // Estimation du temps "expert" : base + ramassage des pièces
+    // + traversée du monde + combat de boss éventuel.
+    let or = 8
+        + d.pieces.length * 1.5
+        + (w / 800) * 6
+        + (h / 600) * 5
+        + (boss ? 20 : 0);
+    or = Math.round(or);
+    const s = { or, argent: Math.round(or * 1.6), bronze: Math.round(or * 2.4) };
+    _seuilsCache[idx] = s;
+    return s;
+}
+
+// Retourne la médaille ('or'|'argent'|'bronze'|null) pour un temps donné
+export function medaillePour(idx, temps) {
+    if (temps === null || temps === undefined) return null;
+    const s = seuilsMedailles(idx);
+    if (!s) return null;
+    if (temps <= s.or) return 'or';
+    if (temps <= s.argent) return 'argent';
+    if (temps <= s.bronze) return 'bronze';
+    return null;
+}
+
+export const MEDAILLE_EMOJI = { or: '🥇', argent: '🥈', bronze: '🥉' };
+
+// ============================================================
 //  GAME
 // ============================================================

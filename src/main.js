@@ -2,9 +2,10 @@ import { Game } from './game.js';
 import { LevelEditor } from './editor.js';
 import { NameEntry } from './nameentry.js';
 import { AudioManager } from './audio.js';
-import { NIVEAUX } from './levels.js';
+import { NIVEAUX, medaillePour, MEDAILLE_EMOJI } from './levels.js';
 import { setupControls } from './controls.js';
-import { afficherHallOfFame, partagerScores } from './ui.js';
+import { afficherHallOfFame, partagerScores, afficherToast } from './ui.js';
+import { exporterSauvegarde, importerSauvegarde } from './storage.js';
 import './style.css';
 
 /* === Prologue : Service Worker (PWA) + invite d'installation === */
@@ -172,8 +173,13 @@ function init() {
             const etoilesHTML = debloque
                 ? `<span class="tile-stars">${'★'.repeat(nbEtoiles)}${'☆'.repeat(3 - nbEtoiles)}</span>`
                 : '';
+            // Médaille contre-la-montre (🥇🥈🥉) selon le meilleur temps
+            const medaille = debloque ? medaillePour(i, game.progress.tempsDe(i)) : null;
+            const medailleHTML = medaille ? `<span class="tile-medal">${MEDAILLE_EMOJI[medaille]}</span>` : '';
+            const bestT = debloque ? game.progress.tempsDe(i) : null;
+            if (bestT !== null) tile.title = `Meilleur temps : ${bestT.toFixed(1)}s`;
             tile.innerHTML = debloque
-                ? `<span class="ico">${niv.icon}</span><span class="num">${i + 1}</span>${etoilesHTML}`
+                ? `${medailleHTML}<span class="ico">${niv.icon}</span><span class="num">${i + 1}</span>${etoilesHTML}`
                 : `<span class="ico">🔒</span><span class="num">${i + 1}</span>`;
             if (debloque) {
                 tile.addEventListener('click', () => {
@@ -191,6 +197,50 @@ function init() {
     });
     document.getElementById('btn-levels-back').addEventListener('click', () => {
         document.getElementById('levels-screen').classList.remove('show');
+    });
+
+    // --- SAUVEGARDE : export / import ---
+    document.getElementById('btn-save').addEventListener('click', () => {
+        document.getElementById('save-screen').classList.add('show');
+    });
+    document.getElementById('btn-save-back').addEventListener('click', () => {
+        document.getElementById('save-screen').classList.remove('show');
+    });
+    document.getElementById('btn-save-export').addEventListener('click', () => {
+        try {
+            const json = exporterSauvegarde();
+            const date = new Date().toISOString().slice(0, 10);
+            const blob = new Blob([json], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `super-carre-sauvegarde-${date}.json`;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+            afficherToast('💾 Sauvegarde exportée !');
+        } catch (e) {
+            afficherToast('❌ Export impossible : ' + e.message);
+        }
+    });
+    document.getElementById('btn-save-import').addEventListener('click', () => {
+        document.getElementById('save-file').click();
+    });
+    document.getElementById('save-file').addEventListener('change', (ev) => {
+        const file = ev.target.files && ev.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const n = importerSauvegarde(reader.result);
+                afficherToast(`✅ ${n} éléments restaurés — rechargement…`);
+                setTimeout(() => location.reload(), 1400);
+            } catch (e) {
+                afficherToast('❌ ' + e.message);
+            }
+        };
+        reader.onerror = () => afficherToast('❌ Lecture du fichier impossible.');
+        reader.readAsText(file);
+        ev.target.value = ''; // permet de réimporter le même fichier
     });
     // Hall of Fame (après enregistrement du score → retour menu)
     document.getElementById('btn-scores-replay').addEventListener('click', () => {

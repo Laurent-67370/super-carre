@@ -178,6 +178,15 @@ Le jeu utilise le stockage local du navigateur (`localStorage`) :
 | Niveaux de l'éditeur | `supercarre_editor_levels` |
 | Musique coupée ou non | `supercarre_muet` |
 | Ambiance musicale choisie | `supercarre_piste` |
+| Meilleurs temps par niveau (contre-la-montre) | `supercarre_temps` |
+
+### 📤 Sauvegarde exportable (v30)
+
+Le bouton **💾 SAUVEGARDE** du menu principal permet :
+- **📤 EXPORTER** : télécharge un fichier `super-carre-sauvegarde-AAAA-MM-JJ.json` contenant toute la progression (niveaux, étoiles, chronos, Hall of Fame, niveaux créés dans l'éditeur, préférences) ;
+- **📥 IMPORTER** : restaure ce fichier — sur le même appareil après un nettoyage du navigateur, ou sur un autre appareil pour migrer sa progression.
+
+L'import valide le fichier (en-tête `_app: super-carre`) et ne touche qu'aux clés `supercarre_*`, puis recharge le jeu.
 
 Au lancement, si une progression existe, le menu propose **▶ CONTINUER** (reprendre au niveau débloqué) en plus de **🔄 NOUVELLE PARTIE** (repartir de zéro, ce qui efface la progression). Terminer un niveau débloque le suivant ; un Game Over ne fait pas perdre les niveaux déjà débloqués.
 
@@ -227,6 +236,12 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### ⏱️ v30 — contre-la-montre + sauvegarde exportable
+
+- **Contre-la-montre** : le meilleur temps de chaque niveau est mémorisé (`supercarre_temps`, ne régresse jamais). Des médailles 🥇🥈🥉 récompensent les temps rapides — les seuils sont calculés automatiquement selon la taille du monde, le nombre de pièces et la présence d'un boss (argent = or×1,6, bronze = or×2,4). L'écran de fin de niveau affiche le chrono, la médaille, la mention **🔥 RECORD !** et le prochain objectif à battre ; le sélecteur de niveaux affiche la médaille en haut à droite de chaque tuile.
+- **Sauvegarde exportable** : bouton 💾 SAUVEGARDE au menu (export JSON téléchargé / import avec validation) — voir la section Sauvegarde ci-dessus.
+- Le **coyote time** (6 frames) et le **jump buffer** (6 frames) étaient déjà en place dans `player.js` depuis la refonte — vérifiés, aucun changement nécessaire.
 
 ### 🔧 Correctif v29 — sélecteur de niveaux cassé (régression v28)
 

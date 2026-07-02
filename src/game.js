@@ -1,7 +1,7 @@
 import { Player } from './player.js';
 import { Boss } from './entities.js';
 import { AudioManager } from './audio.js';
-import { NIVEAUX } from './levels.js';
+import { NIVEAUX, medaillePour, seuilsMedailles, MEDAILLE_EMOJI } from './levels.js';
 import { HighScoreManager, ProgressManager } from './storage.js';
 import { afficherHallOfFame } from './ui.js';
 /* Game — moteur de jeu (boucle, physique, rendu) */
@@ -676,6 +676,10 @@ export class Game {
         else if (this.mortsNiveau <= 1) etoiles = 2;
         this.progress.enregistrerEtoiles(this.niveauActuel, etoiles);
         this._dernieresEtoiles = etoiles;
+        // --- CONTRE-LA-MONTRE : meilleur temps + médaille 🥇🥈🥉 ---
+        const nouveauRecord = this.progress.enregistrerTemps(this.niveauActuel, this.tempsNiveau);
+        const medaille = medaillePour(this.niveauActuel, this.progress.tempsDe(this.niveauActuel));
+        this._chronoInfo = { temps: this.tempsNiveau, record: nouveauRecord, medaille };
         // Bonus : +1 vie tous les 4 niveaux atteints (4, 8, 12, 16, 20, 24)
         const niveauAtteint = this.niveauActuel + 1;
         let bonusVie = false;
@@ -691,6 +695,23 @@ export class Game {
                 : `Prochain : ${NIVEAUX[this.niveauActuel+1].nom}`;
             document.getElementById('trans-coins').textContent=this.scoreTotal;
             document.getElementById('trans-time').textContent=this.tempsTotal.toFixed(1)+'s';
+            // Chrono du niveau : temps + médaille + mention record + objectif suivant
+            const ci = this._chronoInfo;
+            const chronoEl = document.getElementById('trans-chrono');
+            if (chronoEl && ci) {
+                const s = seuilsMedailles(this.niveauActuel);
+                let txt = `⏱️ Niveau : ${ci.temps.toFixed(1)}s`;
+                if (ci.medaille) txt += `  ${MEDAILLE_EMOJI[ci.medaille]}`;
+                if (ci.record) txt += `  🔥 RECORD !`;
+                // Prochain objectif de médaille
+                const best = this.progress.tempsDe(this.niveauActuel);
+                if (ci.medaille !== 'or' && s) {
+                    const cible = ci.medaille === 'argent' ? s.or : (ci.medaille === 'bronze' ? s.argent : s.bronze);
+                    const emoji = ci.medaille === 'argent' ? '🥇' : (ci.medaille === 'bronze' ? '🥈' : '🥉');
+                    txt += `<br><span style="opacity:.65;font-size:.85em">${emoji} à battre : ${cible}s (record : ${best.toFixed(1)}s)</span>`;
+                }
+                chronoEl.innerHTML = txt;
+            }
             document.getElementById('transition-screen').classList.add('show');
         },500)}
     }
