@@ -3,6 +3,7 @@ import { Boss } from './entities.js';
 import { AudioManager } from './audio.js';
 import { NIVEAUX, medaillePour, seuilsMedailles, MEDAILLE_EMOJI } from './levels.js';
 import { HighScoreManager, ProgressManager } from './storage.js';
+import { DemoBot } from './demo.js';
 import { afficherHallOfFame } from './ui.js';
 /* Game — moteur de jeu (boucle, physique, rendu) */
 
@@ -17,6 +18,7 @@ export class Game {
         this.audio = new AudioManager();
         window._gameAudio = this.audio;
         this.touches = { left:false, right:false, jump:false };
+        this.modeDemo = false; // « attract mode » : le jeu se joue tout seul
         this.hs = new HighScoreManager();
         this.progress = new ProgressManager(NIVEAUX.length);
         this.niveauActuel = 0; this.scoreTotal = 0; this.tempsTotal = 0;
@@ -159,7 +161,7 @@ export class Game {
 
         // --- Tutoriel niveau 1 (première fois uniquement) ---
         this.tutoHints = [];
-        if (!this.tutoVu && this.niveauActuel === 0 && !this.modeTest) {
+        if (!this.tutoVu && this.niveauActuel === 0 && !this.modeTest && !this.modeDemo) {
             this.tutoHints = [
                 { text: '◀ ▶ pour bouger', triggerX: 80, vu: false, fade: 0, y: 400 },
                 { text: '🦘 pour sauter !', triggerX: 250, vu: false, fade: 0, y: 340 },
@@ -199,6 +201,12 @@ export class Game {
             return;
         }
         if (this.etat !== 'playing') return;
+        // --- MODE DÉMO : pilote automatique + passage au niveau suivant après 60 s ---
+        if (this.modeDemo) {
+            this._demoBot.piloter(this);
+            const inactif = this.frameCount - (this._demoDernierePiece || 0) > 15 * 60;
+            if (this.frameCount > 60 * 60 || (inactif && this.frameCount > 18 * 60)) { this._demoSuivant(); return; }
+        }
         this.frameCount++;
         if (this.frameCount%6===0){this.tempsNiveau=Math.round((this.frameCount/60)*10)/10}
         for(const p of this.niveau){if(p.update&&p.axe)p.update()}
@@ -246,7 +254,7 @@ export class Game {
                 } else if (b.invincible <= 0 && p.invincible <= 0 && p.powerUpTimer.shield <= 0) {
                     // touché par le boss sur le côté → dégât
                     this.audio.degat(); if(navigator.vibrate)navigator.vibrate(200);
-                    this.vies--; this.updateHearts(); this.shakeFrames=8; this.mortsNiveau++;
+                    if(!this.modeDemo){this.vies--;} this.updateHearts(); this.shakeFrames=8; this.mortsNiveau++;
                     if(this.vies<=0){ this._spawnDebris(p.x+15,p.y+15); this.etat='mort'; this.mortFrame=0; return; }
                     p.subirDegat();
                     this.recalculerCamera(true);
@@ -292,7 +300,7 @@ export class Game {
         }
         if(result==='degat'||result==='trou'){
             this.audio.degat(); if(navigator.vibrate)navigator.vibrate(200);
-            this.vies--; this.updateHearts(); this.shakeFrames=8; this.mortsNiveau++;
+            if(!this.modeDemo){this.vies--;} this.updateHearts(); this.shakeFrames=8; this.mortsNiveau++;
             if(this.vies<=0){
                 // Sur une chute dans un trou, le joueur est déjà sorti de l'écran par le bas :
                 // on fait apparaître les débris en bas de la zone visible (caméra) pour que
@@ -311,6 +319,7 @@ export class Game {
             piece.update();
             if(piece.testerCollecte(this.player)){
                 this.scoreNiveau++; this.audio.piece();
+                if (this.modeDemo) this._demoDernierePiece = this.frameCount;
                 this.scoreCumul += 100; this.piecesTotal++;
                 if(navigator.vibrate)navigator.vibrate(30);
                 // Popup de score flottant sur le canvas
@@ -509,6 +518,26 @@ export class Game {
         // --- HUD DESSINÉ SUR CANVAS (zéro clignotement, zéro composition DOM) ---
         this.dessinerHUD(ctx);
 
+        // --- BANDEAU MODE DÉMO ---
+        if (this.modeDemo) {
+            ctx.save();
+            const alpha = 0.65 + Math.sin(this.frameCount * 0.06) * 0.3;
+            ctx.font = '700 20px -apple-system, "Segoe UI", system-ui, sans-serif';
+            ctx.textAlign = 'center';
+            const txt = '🎬 MODE DÉMO';
+            const w = ctx.measureText(txt).width + 36;
+            ctx.fillStyle = 'rgba(0,0,0,.55)';
+            ctx.beginPath(); ctx.roundRect(this.W/2 - w/2, 46, w, 34, 17); ctx.fill();
+            ctx.globalAlpha = alpha;
+            ctx.fillStyle = '#FFD700';
+            ctx.fillText(txt, this.W/2, 70);
+            ctx.globalAlpha = .8;
+            ctx.font = '600 13px -apple-system, "Segoe UI", system-ui, sans-serif';
+            ctx.fillStyle = '#fff';
+            ctx.fillText('Touche l\'écran pour reprendre la main', this.W/2, 96);
+            ctx.restore();
+        }
+
         // --- BULLES TUTORIEL ---
         this.dessinerTuto(ctx);
     }
@@ -665,6 +694,7 @@ export class Game {
     }
     niveauTermine() {
         this.audio.victoire();
+        if (this.modeDemo) { setTimeout(() => { if (this.modeDemo) this._demoSuivant(); }, 900); this.etat = 'transition'; return; }
         if (this.modeTest) { if (navigator.vibrate) navigator.vibrate([100,50,100]); if (this._onTestFini) this._onTestFini(true); return; }
         this.etat='transition';
         this.scoreTotal+=this.scoreNiveau; this.tempsTotal+=this.tempsNiveau;
@@ -790,6 +820,31 @@ export class Game {
         this._lastTime = undefined; this._accumulateur = 0;
         this._resetPartie(idx);
         if (!this._boucleLancee) { this._boucleLancee = true; requestAnimationFrame((t) => this.boucle(t)); }
+    }
+    // ── MODE DÉMO (« attract mode ») ─────────────────────────
+    // Le jeu se joue tout seul sur une playlist de niveaux, avec
+    // invincibilité (aucun impact sur la progression sauvegardée).
+    demarrerDemo(playlist) {
+        this.modeDemo = true;
+        this._demoPlaylist = playlist;
+        this._demoIdx = 0;
+        this._demoBot = new DemoBot();
+        this._demoDernierePiece = 0;
+        this.demarrerAuNiveau(playlist[0]);
+    }
+    // Niveau de démo suivant (ou fin de la démo)
+    _demoSuivant() {
+        this._demoIdx++;
+        if (this._demoIdx >= this._demoPlaylist.length) { this.quitterDemo(); return; }
+        this._demoBot.reset();
+        this._demoDernierePiece = 0;
+        this._lastTime = undefined; this._accumulateur = 0;
+        this.chargerNiveau(this._demoPlaylist[this._demoIdx]);
+    }
+    quitterDemo() {
+        if (!this.modeDemo) return;
+        this.modeDemo = false;
+        this.retourMenu();
     }
     // Nouvelle partie depuis le menu : efface la progression sauvegardée
     nouvellePartie() {

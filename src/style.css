@@ -185,9 +185,10 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 
 @media(orientation:landscape) and (max-height:500px){.touch-btn{width:clamp(66px,18vw,86px);height:clamp(66px,18vw,86px)}.btn-jump{width:clamp(76px,21vw,96px);height:clamp(76px,21vw,96px)}}
 /* ===================== ÉDITEUR DE NIVEAUX ===================== */
-#btn-editor,#btn-levels,#btn-music,#btn-save{margin-top:12px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:600;border-radius:50px;cursor:pointer;transition:transform .1s}
+#btn-editor,#btn-levels,#btn-music,#btn-save,#btn-demo{margin-top:12px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:600;border-radius:50px;cursor:pointer;transition:transform .1s}
 #btn-music:active{transform:scale(.93)}
 #btn-save:active{transform:scale(.93)}
+#btn-demo:active{transform:scale(.93)}
 #btn-levels:active{transform:scale(.93)}
 #btn-install{margin-top:12px;background:rgba(26,188,156,.15);color:#1ABC9C;border:2px solid rgba(26,188,156,.5);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:700;border-radius:50px;cursor:pointer;transition:transform .1s}
 #btn-install:active{transform:scale(.93)}

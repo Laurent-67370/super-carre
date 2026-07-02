@@ -237,6 +237,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 🤖 v33 — mode démo (« attract mode »)
+
+Le bouton **🎬 DÉMO** du menu lance le jeu en pilote automatique sur une playlist de 4 niveaux : L'Éveil, Invasion (écrasement d'ennemis), La Grande Traversée (grand monde + caméra) et **La Nuit des Pics avec son 👑 boss en final**. Le bot (`src/demo.js`) vise le boss ou la pièce la plus proche, grimpe par plateformes relais, contourne les plateformes au lieu de se cogner la tête dessous (point de passage avec hystérésis anti-oscillation), saute les trous et les pics avec élan, et écrase les ennemis sur son passage. Pixou est invincible en démo (aucun impact sur la progression sauvegardée), un bandeau 🎬 clignote à l'écran, et chaque niveau dure au plus 60 s (passage anticipé après 15 s sans pièce). **Le moindre toucher ou touche clavier rend la main** et ramène au menu — comme une borne d'arcade. Validé par simulation headless Node : boss vaincu en 1,6 s, 10/10 pièces sur La Grande Traversée.
+
 ### 🎬 v32 — aide à jour + générique façon Star Wars
 
 - **Aide intégrée (❓) mise à jour** : nouvelle carte **⏱️ Contre-la-montre** (médailles, records, affichage sur les tuiles) et nouvelle carte **💾 Sauvegarde** (export/import).

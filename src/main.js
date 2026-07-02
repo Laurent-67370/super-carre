@@ -83,6 +83,27 @@ function init() {
         game.audio.changerPiste(pisteCourante);
     });
 
+    // --- MODE DÉMO (« attract mode ») ---
+    // Playlist : L'Éveil (bases), Invasion (ennemis à écraser), La Grande Traversée
+    // (grand monde + caméra), puis La Nuit des Pics et son 👑 BOSS en final.
+    const DEMO_PLAYLIST = [0, 3, 8, 5];
+    function quitterDemoUtilisateur(e) {
+        if (!game.modeDemo) return;
+        e.preventDefault(); e.stopPropagation();
+        window.removeEventListener('pointerdown', quitterDemoUtilisateur, true);
+        window.removeEventListener('keydown', quitterDemoUtilisateur, true);
+        game.quitterDemo();
+    }
+    document.getElementById('btn-demo').addEventListener('click', () => {
+        game.audio.init(); game.audio.resume();
+        entrerEnJeu(() => game.demarrerDemo(DEMO_PLAYLIST));
+        // Le moindre toucher / touche clavier rend la main (attaché après ce clic)
+        setTimeout(() => {
+            window.addEventListener('pointerdown', quitterDemoUtilisateur, true);
+            window.addEventListener('keydown', quitterDemoUtilisateur, true);
+        }, 400);
+    });
+
     // Bouton AIDE
     document.getElementById('btn-help').addEventListener('click', () => {
         game.audio.init(); game.audio.resume();
