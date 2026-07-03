@@ -45,6 +45,13 @@ export const CATALOGUE = {
         { id: 'sac',      nom: 'Aventurier',   prix: 150, emoji: '🎒' },
         { id: 'jetpack',  nom: 'Jetpack',      prix: 250, emoji: '🚀' }
     ],
+    chaussures: [
+        { id: 'basiques', nom: 'Basiques', prix: 0,   emoji: '🟨' },
+        { id: 'baskets',  nom: 'Baskets',  prix: 100, emoji: '👟' },
+        { id: 'santiags', nom: 'Santiags', prix: 120, emoji: '👢' },
+        { id: 'palmes',   nom: 'Palmes',   prix: 150, emoji: '🐸' },
+        { id: 'rollers',  nom: 'Rollers',  prix: 200, emoji: '🛼' }
+    ],
     lunettes: [
         { id: 'aucune',  nom: 'Aucune',  prix: 0,   emoji: '🙂' },
         { id: 'rondes',  nom: 'Savant',  prix: 80,  emoji: '🤓' },
@@ -54,7 +61,7 @@ export const CATALOGUE = {
     ]
 };
 
-const DEFAUTS = { corps: 'rouge', chapeau: 'casquette', lunettes: 'aucune', costume: 'aucun' };
+const DEFAUTS = { corps: 'rouge', chapeau: 'casquette', lunettes: 'aucune', costume: 'aucun', chaussures: 'basiques' };
 const CUSTOM_DEFAUTS = { corps: '#E74C3C', casquette: '#16A085', pieds: '#F1C40F' };
 
 // --- Aides couleur : éclaircir/assombrir un hex (#RRGGBB) ---
@@ -152,6 +159,7 @@ export class SkinManager {
             haut, bas, bord,
             chapeau: this.equipes.chapeau,
             costume: this.equipes.costume,
+            chaussures: this.equipes.chaussures,
             lunettes: this.equipes.lunettes
         };
         // Couleurs de tenue (casquette, pieds) — libres si le Studio est débloqué

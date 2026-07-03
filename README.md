@@ -107,6 +107,7 @@ Chaque pièce ramassée en partie normale (ni démo, ni test de l'éditeur) alim
 - **9 chapeaux** : Casquette turquoise (défaut), Tête nue (gratuit), cône de Fête (80), Bandana de pirate à pois (100), Cowboy (120), Magicien étoilé (120), Mortier de diplômé avec pompon (150), Casque de viking à cornes (180), Couronne à joyaux (200) ;
 - **8 costumes** : Nœud papillon (80), Étoile de shérif (100 — assortie au chapeau cowboy !), Écharpe avec pan flottant (120), Collier hawaïen à 6 fleurs (120), Ceinture de karatéka (150), Sac à dos d'aventurier (150), **Cape de héros** (200) — dessinée derrière Pixou, elle **ondule selon sa vitesse de course** —, et le **Jetpack** (250) dont les **flammes ne s'allument qu'en pleine ascension** ;
 - **4 paires de lunettes** : rondes de Savant (80), de Soleil avec reflet (100), 3D rétro rouge/cyan (100), Étoiles de star dorées (150) ;
+- **4 paires de chaussures** (en plus des pieds Basiques recolorables) : Baskets blanches à bande rouge et semelle grise (100), Santiags à tige, talon et surpiqûre dorée (120), Palmes de plongée striées orientées dans le sens de la course (150), Rollers violets à roues turquoise (200) — l'animation de balancement des pieds est conservée pour chaque modèle ;
 - **🌈 Studio de couleurs** (300) : des **sélecteurs de couleur libres** pour le corps (dégradé et contour dérivés automatiquement de la teinte choisie), la **casquette** (visière et pompon nuancés) et les **pieds** — appliqués en jeu comme sur la mascotte, avec bouton ↺ retour aux couleurs d'origine.
 
 Acheter équipe automatiquement ; taper un article possédé l'équipe. Le skin s'applique **partout** : en jeu (avec toutes les expressions et animations de Pixou), et la mascotte de l'accueil prend la couleur choisie. Les joueurs existants reçoivent un **bonus de bienvenue** de 30 🪙 par niveau déjà débloqué. Le tout est couvert par la sauvegarde exportable (clés `supercarre_skins` et `supercarre_portefeuille`).
@@ -256,6 +257,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 👟 v50 — catégorie Chaussures
+
+**43 articles !** Nouvelle catégorie 👟 avec 4 modèles dessinés autour de l'animation de balancement des pieds (préservée) : Baskets blanches à bande rouge, Santiags à tige et surpiqûre dorée avec talon orienté selon la direction, Palmes de plongée striées qui pointent dans le sens de la course, et Rollers violets à roues turquoise. Les pieds Basiques restent gratuits et recolorables via le Studio 🌈 ; sur la mascotte, les pieds de base se masquent quand un modèle est porté. Validation : 90 rendus chaussures × costumes × directions + rétro-compatibilité des anciennes sauvegardes.
 
 ### 🚀 v49 — encore plus de costumes et de lunettes
 

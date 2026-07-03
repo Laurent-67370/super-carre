@@ -117,7 +117,7 @@ function init() {
     });
 
     // --- 🎨 BOUTIQUE DE SKINS ---
-    const CAT_TITRES = { corps: '🎨 Couleur de Pixou', chapeau: '🧢 Chapeaux', costume: '🦸 Costumes', lunettes: '🕶️ Lunettes', studio: '🌈 Studio de couleurs' };
+    const CAT_TITRES = { corps: '🎨 Couleur de Pixou', chapeau: '🧢 Chapeaux', costume: '🦸 Costumes', chaussures: '👟 Chaussures', lunettes: '🕶️ Lunettes', studio: '🌈 Studio de couleurs' };
     function majMascotte() {
         // La mascotte de l'accueil porte le skin complet : couleur,
         // chapeau (casquette/couronne/fête/magicien/tête nue) et lunettes.
@@ -152,6 +152,14 @@ function init() {
             if (rects[1]) rects[1].setAttribute('fill', cfg.casq ? visiere : '#138D75');
             const cercle = casq.querySelector('circle');
             if (cercle) cercle.setAttribute('fill', cfg.casq ? pompon : '#1ABC9C');
+        }
+        // Chaussures : masquer les pieds de base quand un modèle est porté
+        const modele = cfg.chaussures || 'basiques';
+        const pixouFeet = svg.querySelector('.pixou-feet');
+        if (pixouFeet) pixouFeet.style.display = modele === 'basiques' ? '' : 'none';
+        for (const id of ['baskets', 'santiags', 'palmes', 'rollers']) {
+            const g = svg.querySelector('#mascotte-shoe-' + id);
+            if (g) g.style.display = modele === id ? '' : 'none';
         }
         for (const pied of svg.querySelectorAll('.pixou-feet rect')) {
             pied.setAttribute('fill', cfg.pieds || '#F1C40F');

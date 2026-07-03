@@ -225,16 +225,13 @@ export class Player {
         ctx.scale(this.sx, this.sy);
         ctx.translate(-cx, -cy);
 
-        // --- Petits pieds (jaunes) qui s'animent ---
-        ctx.fillStyle = skin.pieds || '#F1C40F';
-        if (enLair) {
-            // pieds repliés en saut
-            ctx.fillRect(x + 3, y + H - 3, 8, 4);
-            ctx.fillRect(x + L - 11, y + H - 3, 8, 4);
-        } else {
-            const f1 = phase * 3, f2 = -phase * 3;
-            ctx.fillRect(x + 3, y + H - 2 + f1, 9, 4);
-            ctx.fillRect(x + L - 12, y + H - 2 + f2, 9, 4);
+        // --- Pieds animés (chaussures 🎨 boutique) ---
+        {
+            const modele = skin.chaussures || 'basiques';
+            const baseY = enLair ? y + H - 3 : y + H - 2;
+            const f1 = enLair ? 0 : phase * 3, f2 = enLair ? 0 : -phase * 3;
+            this._dessinerPied(ctx, modele, x + 3, baseY + f1, dir, skin.pieds);
+            this._dessinerPied(ctx, modele, x + L - 12, baseY + f2, dir, skin.pieds);
         }
 
         // --- Corps arrondi (rouge, dégradé léger) ---
@@ -383,6 +380,66 @@ export class Player {
         ctx.restore();  // fin squash & stretch
 
         ctx.globalAlpha = 1;
+    }
+    // --- Chaussures (🎨 boutique) : un pied ~9×4 à (fx, fy) ---
+    _dessinerPied(ctx, modele, fx, fy, dir, couleur) {
+        if (modele === 'baskets') {
+            // Basket blanche : semelle grise, bande rouge
+            ctx.fillStyle = '#fff';
+            this._rr(ctx, fx - 0.5, fy - 1.5, 10, 5, 2); ctx.fill();
+            ctx.fillStyle = '#BDC3C7';
+            ctx.fillRect(fx - 0.5, fy + 2.4, 10, 1.4);
+            ctx.fillStyle = '#E74C3C';
+            ctx.beginPath(); ctx.moveTo(fx + 2, fy - 1.2); ctx.lineTo(fx + 5, fy - 1.2); ctx.lineTo(fx + 3.5, fy + 2); ctx.lineTo(fx + 1, fy + 2); ctx.closePath(); ctx.fill();
+            return;
+        }
+        if (modele === 'santiags') {
+            // Santiag brune : tige montante, talon, surpiqûre dorée
+            ctx.fillStyle = '#8E5B3A';
+            this._rr(ctx, fx + 0.5, fy - 5, 8, 6, 1.5); ctx.fill();       // tige
+            ctx.fillStyle = '#7A4A2B';
+            this._rr(ctx, fx - 1 + (dir > 0 ? 0 : 1), fy - 0.5, 11, 4, 1.5); ctx.fill(); // pied
+            ctx.fillStyle = '#4E342E';
+            ctx.fillRect(fx + (dir > 0 ? 0 : 7), fy + 2.6, 3, 1.6);        // talon
+            ctx.strokeStyle = '#F4D03F'; ctx.lineWidth = 0.9;
+            ctx.beginPath(); ctx.moveTo(fx + 2, fy - 3.4); ctx.lineTo(fx + 4.5, fy - 2); ctx.lineTo(fx + 7, fy - 3.4); ctx.stroke();
+            return;
+        }
+        if (modele === 'palmes') {
+            // Palme verte : longue nageoire orientée vers l'avant + striures
+            const av = dir > 0 ? 1 : -1;
+            ctx.fillStyle = '#28B463';
+            ctx.beginPath();
+            ctx.moveTo(fx + (av > 0 ? 0 : 9), fy - 1);
+            ctx.lineTo(fx + 4.5 + av * 11, fy - 0.5);
+            ctx.quadraticCurveTo(fx + 4.5 + av * 13, fy + 1.5, fx + 4.5 + av * 11, fy + 3.5);
+            ctx.lineTo(fx + (av > 0 ? 0 : 9), fy + 4);
+            ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#1D8348';
+            this._rr(ctx, fx, fy - 1, 9, 5, 2); ctx.fill();
+            ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 0.8;
+            for (const d2 of [4, 7, 10]) {
+                ctx.beginPath(); ctx.moveTo(fx + 4.5 + av * d2, fy); ctx.lineTo(fx + 4.5 + av * d2, fy + 3); ctx.stroke();
+            }
+            return;
+        }
+        if (modele === 'rollers') {
+            // Roller violet : botte + deux roues turquoise
+            ctx.fillStyle = '#8E44AD';
+            this._rr(ctx, fx, fy - 3.5, 9, 5.5, 2); ctx.fill();
+            ctx.fillStyle = '#6C3483';
+            ctx.fillRect(fx, fy + 0.8, 9, 1.4);
+            for (const wx of [fx + 2.2, fx + 6.8]) {
+                ctx.fillStyle = '#1ABC9C';
+                ctx.beginPath(); ctx.arc(wx, fy + 3.6, 1.9, 0, 6.28); ctx.fill();
+                ctx.fillStyle = '#0E6655';
+                ctx.beginPath(); ctx.arc(wx, fy + 3.6, 0.8, 0, 6.28); ctx.fill();
+            }
+            return;
+        }
+        // Basiques : le petit pied d'origine (couleur libre via le Studio 🌈)
+        ctx.fillStyle = couleur || '#F1C40F';
+        ctx.fillRect(fx, fy, 9, 4);
     }
     // --- Costumes (🎨 boutique) ---
     _dessinerCape(ctx, x, y, L, H, dir) {
