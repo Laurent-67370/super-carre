@@ -185,7 +185,7 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 
 @media(orientation:landscape) and (max-height:500px){.touch-btn{width:clamp(66px,18vw,86px);height:clamp(66px,18vw,86px)}.btn-jump{width:clamp(76px,21vw,96px);height:clamp(76px,21vw,96px)}}
 /* ===================== ÉDITEUR DE NIVEAUX ===================== */
-#btn-editor,#btn-levels,#btn-music,#btn-save,#btn-demo{margin-top:12px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:600;border-radius:50px;cursor:pointer;transition:transform .1s}
+#btn-editor,#btn-levels,#btn-music,#btn-save,#btn-demo,#btn-crawl{margin-top:12px;background:rgba(255,255,255,.12);color:#fff;border:2px solid rgba(255,255,255,.3);padding:10px 30px;font-size:clamp(13px,4vw,16px);font-weight:600;border-radius:50px;cursor:pointer;transition:transform .1s}
 #btn-music:active{transform:scale(.93)}
 #btn-save:active{transform:scale(.93)}
 #btn-demo:active{transform:scale(.93)}
@@ -256,7 +256,6 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 /* ===================== OVERLAY AIDE ===================== */
 #help-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#1a1a3e,#0f0f1e);display:none;flex-direction:column;z-index:120;overflow-y:auto;-webkit-overflow-scrolling:touch}
 #help-screen.show{display:flex}
-#btn-crawl{background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a1a2e;border:none;padding:8px 14px;font-size:clamp(11px,3.2vw,14px);font-weight:700;border-radius:50px;cursor:pointer;transition:transform .1s;box-shadow:0 3px 12px rgba(255,165,0,.35)}
 #btn-crawl:active{transform:scale(.93)}
 /* ── GÉNÉRIQUE STAR WARS ── */
 #crawl-screen{position:fixed;inset:0;background:#000;overflow:hidden;z-index:130;display:none}
@@ -266,6 +265,10 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 @keyframes twinkle{0%,100%{opacity:.85}50%{opacity:.25}}
 #crawl-intro{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;color:#4BD5EE;font-size:clamp(18px,5.5vw,30px);font-weight:600;opacity:0;animation:crawlIntro 6s ease-in-out forwards}
 @keyframes crawlIntro{0%{opacity:0}12%{opacity:1}80%{opacity:1}100%{opacity:0}}
+#crawl-pixou{position:absolute;left:-90px;top:70%;z-index:2;opacity:0;filter:drop-shadow(0 0 18px rgba(231,76,60,.55));animation:pixouSpace 26s linear 6s infinite}
+#crawl-pixou svg{display:block;animation:pixouSpin 9s ease-in-out infinite}
+@keyframes pixouSpace{0%{transform:translate(0,0);opacity:0}6%{opacity:1}94%{opacity:1}100%{transform:translate(calc(100vw + 180px),-52vh);opacity:0}}
+@keyframes pixouSpin{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(14deg)}}
 #crawl-persp{position:absolute;inset:0;perspective:min(55vh,380px);perspective-origin:50% 30%;overflow:hidden}
 #crawl-text{position:absolute;left:50%;top:100%;width:min(84vw,540px);margin-left:calc(min(84vw,540px)/-2);transform-origin:50% 0%;transform:rotateX(56deg);color:#FFD700;font-weight:700;text-align:justify;font-size:clamp(16px,4.6vw,26px);line-height:1.55;animation:crawlUp 55s linear 5.5s forwards}
 #crawl-text p{margin-bottom:1.3em}
