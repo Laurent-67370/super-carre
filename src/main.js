@@ -132,9 +132,14 @@ function init() {
             const g = svg.querySelector('#mascotte-chap-' + id);
             if (g) g.style.display = cfg.chapeau === id ? '' : 'none';
         }
+        const typeLun = cfg.lunettes === true ? 'soleil' : (cfg.lunettes || 'aucune');
         const lun = svg.querySelector('#mascotte-lunettes');
-        if (lun) lun.style.display = cfg.lunettes ? '' : 'none';
-        for (const id of ['noeud', 'echarpe', 'ceinture', 'cape']) {
+        if (lun) lun.style.display = typeLun === 'soleil' ? '' : 'none';
+        for (const id of ['rondes', '3d', 'etoiles']) {
+            const g = svg.querySelector('#mascotte-lun-' + id);
+            if (g) g.style.display = (typeLun === id || (id === '3d' && typeLun === 'troisD')) ? '' : 'none';
+        }
+        for (const id of ['noeud', 'echarpe', 'ceinture', 'cape', 'sherif', 'hawai', 'sac', 'jetpack']) {
             const g = svg.querySelector('#mascotte-cost-' + id);
             if (g) g.style.display = cfg.costume === id ? '' : 'none';
         }

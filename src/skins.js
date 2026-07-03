@@ -39,11 +39,18 @@ export const CATALOGUE = {
         { id: 'noeud',    nom: 'Nœud pap.',    prix: 80,  emoji: '🎀' },
         { id: 'echarpe',  nom: 'Écharpe',      prix: 120, emoji: '🧣' },
         { id: 'ceinture', nom: 'Karatéka',     prix: 150, emoji: '🥋' },
-        { id: 'cape',     nom: 'Cape de héros', prix: 200, emoji: '🦸' }
+        { id: 'cape',     nom: 'Cape de héros', prix: 200, emoji: '🦸' },
+        { id: 'sherif',   nom: 'Shérif',       prix: 100, emoji: '⭐' },
+        { id: 'hawai',    nom: 'Hawaïen',      prix: 120, emoji: '🌺' },
+        { id: 'sac',      nom: 'Aventurier',   prix: 150, emoji: '🎒' },
+        { id: 'jetpack',  nom: 'Jetpack',      prix: 250, emoji: '🚀' }
     ],
     lunettes: [
-        { id: 'aucune', nom: 'Aucune', prix: 0,   emoji: '🙂' },
-        { id: 'soleil', nom: 'Soleil', prix: 100, emoji: '🕶️' }
+        { id: 'aucune',  nom: 'Aucune',  prix: 0,   emoji: '🙂' },
+        { id: 'rondes',  nom: 'Savant',  prix: 80,  emoji: '🤓' },
+        { id: 'soleil',  nom: 'Soleil',  prix: 100, emoji: '🕶️' },
+        { id: 'troisD',  nom: '3D rétro', prix: 100, emoji: '🎬' },
+        { id: 'etoiles', nom: 'Star',    prix: 150, emoji: '🤩' }
     ]
 };
 
@@ -145,7 +152,7 @@ export class SkinManager {
             haut, bas, bord,
             chapeau: this.equipes.chapeau,
             costume: this.equipes.costume,
-            lunettes: this.equipes.lunettes === 'soleil'
+            lunettes: this.equipes.lunettes
         };
         // Couleurs de tenue (casquette, pieds) — libres si le Studio est débloqué
         if (this.studioActif()) {

@@ -240,9 +240,11 @@ export class Player {
         // --- Corps arrondi (rouge, dégradé léger) ---
         // --- Skin (🎨 boutique) : couleurs du corps équipées ---
         const cHaut = skin.haut || '#FF6B5C', cBas = skin.bas || '#E74C3C', cBord = skin.bord || '#C0392B';
-        // Cape de héros : DERRIÈRE le corps, ondule avec le temps et la course
+        // Costumes ARRIÈRE (cape, sac, jetpack) : derrière le corps
         this._animT = (this._animT || 0) + 1;
         if (skin.costume === 'cape') this._dessinerCape(ctx, x, y, L, H, dir);
+        else if (skin.costume === 'sac') this._dessinerSac(ctx, x, y, L, H, dir);
+        else if (skin.costume === 'jetpack') this._dessinerJetpack(ctx, x, y, L, H, dir);
         const bodyGrad = ctx.createLinearGradient(x, y, x, y + H);
         bodyGrad.addColorStop(0, cHaut);
         bodyGrad.addColorStop(1, cBas);
@@ -323,8 +325,9 @@ export class Player {
         // --- Costume (🎨 boutique) : nœud, écharpe, ceinture ---
         this._dessinerCostume(ctx, skin.costume, x, y, L, H, cx, dir);
 
-        // --- Lunettes de soleil 🕶️ (skin) : par-dessus les yeux ---
-        if (skin.lunettes) {
+        // --- Lunettes (skin) : par-dessus les yeux ---
+        const lun = skin.lunettes === true ? 'soleil' : (skin.lunettes || 'aucune');
+        if (lun === 'soleil') {
             ctx.fillStyle = '#1a1a2e';
             this._rr(ctx, cx - 10, eyeY, 8.5, 6.5, 2.5); ctx.fill();
             this._rr(ctx, cx + 1.5, eyeY, 8.5, 6.5, 2.5); ctx.fill();
@@ -336,6 +339,45 @@ export class Player {
             ctx.fillStyle = 'rgba(255,255,255,.35)';
             ctx.fillRect(cx - 8.5, eyeY + 1.5, 2.5, 1.5);
             ctx.fillRect(cx + 3, eyeY + 1.5, 2.5, 1.5);
+        } else if (lun === 'rondes') {
+            // Lunettes rondes de savant : fine monture métallique
+            ctx.strokeStyle = '#2C3E50'; ctx.lineWidth = 1.6;
+            ctx.beginPath(); ctx.arc(cx - 5.5, eyeY + 3, 4.6, 0, 6.28); ctx.stroke();
+            ctx.beginPath(); ctx.arc(cx + 5.5, eyeY + 3, 4.6, 0, 6.28); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx - 1, eyeY + 2); ctx.quadraticCurveTo(cx, eyeY + 0.5, cx + 1, eyeY + 2); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx - 10, eyeY + 2.5); ctx.lineTo(x - 1, eyeY + 1.5); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx + 10, eyeY + 2.5); ctx.lineTo(x + L + 1, eyeY + 1.5); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,.18)';
+            ctx.beginPath(); ctx.arc(cx - 5.5, eyeY + 3, 4, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 5.5, eyeY + 3, 4, 0, 6.28); ctx.fill();
+        } else if (lun === 'troisD') {
+            // Lunettes 3D rétro : monture blanche, verres rouge et cyan
+            ctx.fillStyle = '#fff';
+            this._rr(ctx, cx - 11, eyeY - 0.5, 22, 8, 2); ctx.fill();
+            ctx.fillStyle = 'rgba(231,76,60,.75)';
+            this._rr(ctx, cx - 9.5, eyeY + 1, 8, 5, 1.5); ctx.fill();
+            ctx.fillStyle = 'rgba(52,152,219,.75)';
+            this._rr(ctx, cx + 1.5, eyeY + 1, 8, 5, 1.5); ctx.fill();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.6;
+            ctx.beginPath(); ctx.moveTo(cx - 11, eyeY + 2); ctx.lineTo(x - 1, eyeY + 1); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx + 11, eyeY + 2); ctx.lineTo(x + L + 1, eyeY + 1); ctx.stroke();
+        } else if (lun === 'etoiles') {
+            // Lunettes étoiles de star : montures en étoile dorées
+            const etoile = (ex, ey, r) => {
+                ctx.beginPath();
+                for (let i = 0; i < 10; i++) {
+                    const a = -Math.PI / 2 + i * Math.PI / 5;
+                    const rr2 = i % 2 === 0 ? r : r * 0.45;
+                    ctx.lineTo(ex + Math.cos(a) * rr2, ey + Math.sin(a) * rr2);
+                }
+                ctx.closePath(); ctx.fill(); ctx.stroke();
+            };
+            ctx.fillStyle = '#F4D03F'; ctx.strokeStyle = '#B7950B'; ctx.lineWidth = 1;
+            etoile(cx - 5.5, eyeY + 3, 6.5);
+            etoile(cx + 5.5, eyeY + 3, 6.5);
+            ctx.fillStyle = 'rgba(26,26,46,.8)';
+            ctx.beginPath(); ctx.arc(cx - 5.5, eyeY + 3, 2.6, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 5.5, eyeY + 3, 2.6, 0, 6.28); ctx.fill();
         }
 
         ctx.restore();  // fin squash & stretch
@@ -359,6 +401,46 @@ export class Player {
         ctx.closePath(); ctx.fill();
         ctx.strokeStyle = '#922B21'; ctx.lineWidth = 1.4;
         ctx.stroke();
+    }
+    _dessinerSac(ctx, x, y, L, H, dir) {
+        // Sac à dos d'aventurier : dans le dos, côté opposé à la direction
+        const sx = dir > 0 ? x - 9 : x + L - 3;
+        ctx.fillStyle = '#8E5B3A';
+        this._rr(ctx, sx, y + 8, 12, 16, 4); ctx.fill();
+        ctx.strokeStyle = '#6E4428'; ctx.lineWidth = 1.4;
+        this._rr(ctx, sx, y + 8, 12, 16, 4); ctx.stroke();
+        // rabat + boucle
+        ctx.fillStyle = '#6E4428';
+        this._rr(ctx, sx + 1, y + 8, 10, 5.5, 3); ctx.fill();
+        ctx.fillStyle = '#F4D03F';
+        ctx.fillRect(sx + 5, y + 11, 2.4, 3.4);
+        // sangle sur l'épaule
+        ctx.strokeStyle = '#6E4428'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(sx + (dir > 0 ? 11 : 1), y + 10); ctx.lineTo(dir > 0 ? x + 8 : x + L - 8, y + 6); ctx.stroke();
+    }
+    _dessinerJetpack(ctx, x, y, L, H, dir) {
+        // Jetpack : réservoir métallique dans le dos + flammes en pleine montée 🚀
+        const jx = dir > 0 ? x - 10 : x + L - 3;
+        ctx.fillStyle = '#95A5A6';
+        this._rr(ctx, jx, y + 6, 13, 17, 5); ctx.fill();
+        ctx.strokeStyle = '#707B7C'; ctx.lineWidth = 1.4;
+        this._rr(ctx, jx, y + 6, 13, 17, 5); ctx.stroke();
+        ctx.fillStyle = '#E74C3C';
+        ctx.fillRect(jx + 2, y + 9, 9, 2.6);
+        // tuyères
+        ctx.fillStyle = '#707B7C';
+        ctx.fillRect(jx + 1.5, y + 22.5, 4, 3.5);
+        ctx.fillRect(jx + 7.5, y + 22.5, 4, 3.5);
+        // flammes uniquement quand Pixou s'élève (saut / ressort)
+        if (!this.onGround && this.vy < -1) {
+            const f = 5 + (this._animT % 4) * 1.6;
+            for (const tx of [jx + 3.5, jx + 9.5]) {
+                ctx.fillStyle = '#E67E22';
+                ctx.beginPath(); ctx.moveTo(tx - 2.2, y + 26); ctx.lineTo(tx + 2.2, y + 26); ctx.lineTo(tx, y + 26 + f); ctx.closePath(); ctx.fill();
+                ctx.fillStyle = '#F4D03F';
+                ctx.beginPath(); ctx.moveTo(tx - 1.1, y + 26); ctx.lineTo(tx + 1.1, y + 26); ctx.lineTo(tx, y + 26 + f * 0.55); ctx.closePath(); ctx.fill();
+            }
+        }
     }
     _dessinerCostume(ctx, type, x, y, L, H, cx, dir) {
         if (!type || type === 'aucun' || type === 'cape') return;
@@ -387,6 +469,37 @@ export class Player {
             ctx.closePath(); ctx.fill();
             ctx.strokeStyle = '#C0392B'; ctx.lineWidth = 1;
             ctx.beginPath(); ctx.moveTo(x - 1, ey + 3); ctx.lineTo(x + L + 1, ey + 3); ctx.stroke();
+            return;
+        }
+        if (type === 'sherif') {
+            // Étoile de shérif dorée sur la poitrine
+            const ex = cx - 8, ey = y + H - 13;
+            ctx.fillStyle = '#F4D03F'; ctx.strokeStyle = '#B7950B'; ctx.lineWidth = 1;
+            ctx.beginPath();
+            for (let i = 0; i < 10; i++) {
+                const a = -Math.PI / 2 + i * Math.PI / 5;
+                const r = i % 2 === 0 ? 5.5 : 2.4;
+                ctx.lineTo(ex + Math.cos(a) * r, ey + Math.sin(a) * r);
+            }
+            ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#B7950B';
+            ctx.beginPath(); ctx.arc(ex, ey, 1.4, 0, 6.28); ctx.fill();
+            return;
+        }
+        if (type === 'hawai') {
+            // Collier de fleurs hawaïen sur la poitrine
+            const couleurs = ['#E74C3C', '#F4D03F', '#9B59B6', '#E67E22', '#3498DB', '#E91E63'];
+            for (let i = 0; i < 6; i++) {
+                const fx = x + 3 + i * (L - 6) / 5;
+                const fy = y + H - 12 + Math.sin(i / 5 * Math.PI) * 3.5;
+                ctx.fillStyle = couleurs[i];
+                for (let p2 = 0; p2 < 5; p2++) {
+                    const a = p2 * 2 * Math.PI / 5 + i;
+                    ctx.beginPath(); ctx.arc(fx + Math.cos(a) * 1.7, fy + Math.sin(a) * 1.7, 1.4, 0, 6.28); ctx.fill();
+                }
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(fx, fy, 1, 0, 6.28); ctx.fill();
+            }
             return;
         }
         if (type === 'ceinture') {
