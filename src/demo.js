@@ -15,6 +15,8 @@ export class DemoBot {
         this.cible = null;         // pièce actuellement visée
         this.cibleFrames = 0;      // depuis combien de frames on la vise
         this.blacklist = new Map();// pièces temporairement abandonnées → frame de fin
+        this.recul = 0;            // frames de marche arrière (pics infranchissables sous plafond)
+        this.reculDir = 0;         // direction du recul
         this.waypoint = null;      // point de passage engagé (hystérésis anti-oscillation)
         this.waypointFin = 0;      // frame limite d'engagement
         this.frame = 0;
@@ -126,6 +128,35 @@ export class DemoBot {
             if (detour) { this.waypoint = { x: cx, y: cy }; this.waypointFin = this.frame + 180; }
         }
 
+        // ── Plafond : une plateforme (n'importe laquelle) est-elle
+        //    juste au-dessus de la tête ? Si oui, tout saut vers une
+        //    cible haute se solderait par un cognement en boucle :
+        //    on se décale d'abord latéralement pour s'en dégager.
+        let plafond = null;
+        for (const pl of game.niveau) {
+            if (pl.type === 'mur') continue;
+            const bas = pl.y + pl.hauteur;
+            if (bas <= p.y + 2 && bas > p.y - 150 &&
+                p.x + p.largeur > pl.x - 2 && p.x < pl.x + pl.largeur + 2) {
+                if (!plafond || bas > plafond.y + plafond.hauteur) plafond = pl;
+            }
+        }
+        if (plafond && cy < py - 24) {
+            // Sortir de sous le plafond par le bord qui rapproche de la cible
+            const gauche = plafond.x - 26, droite = plafond.x + plafond.largeur + 26;
+            cx = Math.abs(gauche - cx) < Math.abs(droite - cx) ? gauche : droite;
+            cx = Math.max(20, Math.min(cx, (p.mondeW || 800) - 50));
+            cy = py; // pas d'incitation à sauter tant qu'on est dessous
+        }
+
+        // ── Recul prioritaire (échappement pics sous plafond) ──
+        if (this.recul > 0) {
+            this.recul--;
+            t.left = this.reculDir < 0; t.right = this.reculDir > 0;
+            this.lastX = p.x;
+            return;
+        }
+
         // ── Déplacement horizontal ────────────────────────────
         const dx = cx - px, dy = cy - py;
         const dir = dx > 6 ? 1 : (dx < -6 ? -1 : 0);
@@ -141,7 +172,7 @@ export class DemoBot {
         let sauter = false;
         if (p.onGround) {
             // Cible nettement au-dessus et pas trop loin (jamais sous une plateforme !)
-            if (!sousPlafond && dy < -24 && Math.abs(dx) < 180) sauter = true;
+            if (!sousPlafond && !plafond && dy < -24 && Math.abs(dx) < 180) sauter = true;
             // Coincé contre un obstacle
             if (this.blocage > 24) sauter = true;
             // Trou devant : aucune plateforme sous le pas suivant
@@ -163,12 +194,20 @@ export class DemoBot {
                     if (ex * dir > 0 && ex * dir < 90 && Math.abs(ey) < 42) { sauter = true; break; }
                 }
             }
-            // Pics droit devant au niveau des pieds → sauter par-dessus
+            // Pics droit devant au niveau des pieds → sauter par-dessus.
+            // MAIS sous un plafond, le saut se cogne et retombe SUR les pics :
+            // dans ce cas, demi-tour (une route par les plateformes existe ailleurs).
             if (dir !== 0 && !sauter && game.pics) {
                 for (const s of game.pics) {
                     const bord = dir > 0 ? s.x : s.x + s.largeur;
                     const dist = (bord - px) * dir;
-                    if (dist > 0 && dist < 55 && Math.abs(s.y - piedsY) < 40) { sauter = true; break; }
+                    if (dist > 0 && dist < 60 && Math.abs(s.y - piedsY) < 40) {
+                        // Sous un plafond on continue d avancer (il se termine souvent
+                        // avant les pics) ; on ne recule qu au contact imminent.
+                        if (!plafond) sauter = true;
+                        else if (dist < 22) { this.recul = 30; this.reculDir = -dir; }
+                        break;
+                    }
                 }
             }
             // Boss proche → sauter pour retomber sur sa tête
