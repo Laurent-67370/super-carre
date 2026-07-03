@@ -240,8 +240,6 @@ function init() {
         document.getElementById('shop-screen').classList.remove('show');
     });
     majMascotte();
-    // Solde 🪙 visible sur le bouton dès l'accueil
-    { const sb = document.getElementById('btn-shop-solde'); if (sb) sb.textContent = '· 🪙 ' + game.skins.solde(); }
 
     // Bouton AIDE
     document.getElementById('btn-help').addEventListener('click', () => {
@@ -327,6 +325,9 @@ function init() {
 
     // Affiche/masque CONTINUER selon la progression sauvegardée
     function rafraichirMenu() {
+        // Solde 🪙 du bouton BOUTIQUE : toujours à jour au retour du jeu
+        const sb = document.getElementById('btn-shop-solde');
+        if (sb) sb.textContent = '· 🪙 ' + game.skins.solde();
         if (game.progress.aProgression()) {
             const niv = game.progress.niveauDebloque + 1;
             btnContinue.innerHTML = `▶ CONTINUER <span class="lvl">niv. ${niv}</span>`;

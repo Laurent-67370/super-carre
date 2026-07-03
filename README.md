@@ -257,6 +257,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 🔧 Correctif v48 — solde 🪙 du bouton Boutique rafraîchi au retour du jeu
+
+Les pièces gagnées créditaient bien le portefeuille (sauvegarde immédiate à chaque pièce), mais le solde affiché sur le bouton 🎨 BOUTIQUE ne se rafraîchissait qu à l ouverture de la boutique : il est désormais mis à jour dans rafraichirMenu(), donc à chaque retour au menu.
+
 ### 🪞 v47 — l intro et la démo respectent la personnalisation
 
 Le Pixou en apesanteur du générique est désormais un **clone en direct de la mascotte personnalisée** (couleur — y compris Studio 🌈 —, chapeau, costume, lunettes), avec renommage des ids SVG clonés (dégradé, clipPath) pour rester valides. Le texte du générique devient neutre (« courageux petit carré dans sa tenue du jour »). La **démo utilisait déjà le skin** (le joueur est créé à un seul endroit du moteur) — vérifié.
