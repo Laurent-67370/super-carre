@@ -258,6 +258,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 🎺 v51 — fanfare orchestrale dans l'intro
+
+Le générique a désormais sa musique : une **fanfare épique 100 % originale** générée par le moteur WebAudio du jeu (aucun fichier audio, aucune œuvre existante reproduite — le thème de Star Wars étant protégé, la composition est propre au jeu). Appel de timbales en roulement montant, cuivres héroïques en dents de scie doublés à l'octave, nappes de quintes sinusoïdales, structure élan → réponse → sommet → résolution (~19 s en boucle). La fanfare respecte le réglage muet 🔇, démarre avec le générique et se coupe en fondu à la fermeture (✕ PASSER, toucher ou fin du défilement).
+
 ### 👟 v50 — catégorie Chaussures
 
 **43 articles !** Nouvelle catégorie 👟 avec 4 modèles dessinés autour de l'animation de balancement des pieds (préservée) : Baskets blanches à bande rouge, Santiags à tige et surpiqûre dorée avec talon orienté selon la direction, Palmes de plongée striées qui pointent dans le sens de la course, et Rollers violets à roues turquoise. Les pieds Basiques restent gratuits et recolorables via le Studio 🌈 ; sur la mascotte, les pieds de base se masquent quand un modèle est porté. Validation : 90 rendus chaussures × costumes × directions + rétro-compatibilité des anciennes sauvegardes.

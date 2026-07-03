@@ -265,6 +265,7 @@ function init() {
 
     // --- GÉNÉRIQUE STAR WARS (🎬 INTRO dans l'aide) ---
     function fermerCrawl() {
+        game.audio.arreterFanfare(); // couper la fanfare
         const scr = document.getElementById('crawl-screen');
         scr.classList.remove('show');
         // Réinitialise les animations (retire/remet les éléments animés)
@@ -312,6 +313,8 @@ function init() {
             }
         }
         scr.classList.add('show');
+        game.audio.init(); game.audio.resume();
+        game.audio.jouerFanfare(); // 🎺 fanfare orchestrale originale
         if (navigator.vibrate) navigator.vibrate(30);
         // Fin du défilement → fermeture automatique
         document.getElementById('crawl-text').addEventListener('animationend', fermerCrawl, { once: true });

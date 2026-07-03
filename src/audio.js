@@ -27,6 +27,104 @@ export class AudioManager {
     victoire() { [523,659,784,1047].forEach((f,i)=>setTimeout(()=>this.beep(f,f,0.18,'square',0.12),i*130)); }
     transition() { this.beep(440, 880, 0.2, 'sine', 0.08); }
 
+    // ============================================================
+    //  FANFARE D'INTRO (🍿 générique) — composition ORIGINALE
+    //  dans l'esprit des grands génériques spatiaux : timbales,
+    //  cuivres héroïques et nappes en quintes. Aucune œuvre
+    //  existante n'est reproduite.
+    // ============================================================
+    jouerFanfare() {
+        if (!this.ctx) return;
+        this.arreterFanfare();
+        this.fanfareGain = this.ctx.createGain();
+        this.fanfareGain.gain.value = this.musiqueMuet ? 0 : 0.1;
+        this.fanfareGain.connect(this.ctx.destination);
+        this._fanfareActive = true;
+        this._boucleFanfare();
+    }
+    arreterFanfare() {
+        this._fanfareActive = false;
+        if (this._fanfareTimer) { clearTimeout(this._fanfareTimer); this._fanfareTimer = null; }
+        if (this.fanfareGain) {
+            try {
+                const t = this.ctx.currentTime;
+                this.fanfareGain.gain.cancelScheduledValues(t);
+                this.fanfareGain.gain.setValueAtTime(this.fanfareGain.gain.value, t);
+                this.fanfareGain.gain.linearRampToValueAtTime(0, t + 0.25);
+                const g = this.fanfareGain;
+                setTimeout(() => { try { g.disconnect(); } catch (e) {} }, 400);
+            } catch (e) {}
+            this.fanfareGain = null;
+        }
+    }
+    // Une note vers le bus fanfare (enveloppe attaque/relâche douce)
+    _noteFanfare(freq, t, dur, type = 'sawtooth', vol = 0.5) {
+        if (!this.ctx || !this.fanfareGain || !freq) return;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = type;
+        o.frequency.setValueAtTime(freq, t);
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.linearRampToValueAtTime(vol, t + 0.04);
+        g.gain.setValueAtTime(vol, t + Math.max(0.05, dur - 0.12));
+        g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+        o.connect(g); g.connect(this.fanfareGain);
+        o.start(t); o.stop(t + dur + 0.05);
+    }
+    // Coup de timbale (basse triangle percussive)
+    _timbale(freq, t, vol = 0.9) {
+        if (!this.ctx || !this.fanfareGain) return;
+        const o = this.ctx.createOscillator();
+        const g = this.ctx.createGain();
+        o.type = 'triangle';
+        o.frequency.setValueAtTime(freq, t);
+        o.frequency.exponentialRampToValueAtTime(Math.max(30, freq * 0.6), t + 0.28);
+        g.gain.setValueAtTime(vol, t);
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.32);
+        o.connect(g); g.connect(this.fanfareGain);
+        o.start(t); o.stop(t + 0.36);
+    }
+    _boucleFanfare() {
+        if (!this._fanfareActive || !this.ctx || !this.fanfareGain) return;
+        const t0 = this.ctx.currentTime + 0.06;
+        const T = 0.44; // pulsation
+        const DO2 = 65.41, SOL2 = 98.0;
+        // --- Appel de timbales (roulement montant) ---
+        [0, 0.5, 1, 1.4, 1.7, 1.9, 2.05, 2.2].forEach((d, i) => {
+            this._timbale(i % 2 ? SOL2 : DO2, t0 + d, 0.55 + i * 0.05);
+        });
+        const debut = t0 + 2.6;
+        // --- Mélodie de cuivres (originale) : élan, réponse, sommet, résolution ---
+        // [fréquence, durée en pulsations]
+        const phrases = [
+            [[392, .5], [392, .5], [523, 2.6], [659, 1], [587, 1], [523, 1], [587, 2.4]],   // élan
+            [[349, .5], [349, .5], [440, 2.6], [523, 1], [494, 1], [440, 1], [494, 2.4]],   // réponse
+            [[392, .5], [440, .5], [523, 1.6], [659, 1], [698, 1], [784, 3]],               // sommet
+            [[659, 1], [587, 1], [523, 1], [494, 1.2], [523, 3.4]]                          // résolution
+        ];
+        // Nappes en quintes sous chaque phrase (cordes sinusoïdales)
+        const nappes = [[130.8, 196.0], [174.6, 261.6], [130.8, 196.0], [130.8, 196.0]];
+        let t = debut;
+        phrases.forEach((phrase, i) => {
+            const dureePhrase = phrase.reduce((s, n) => s + n[1], 0) * T;
+            for (const f of nappes[i]) this._noteFanfare(f, t, dureePhrase + 0.2, 'sine', 0.28);
+            // pulsation de timbales sous la phrase
+            for (let b = 0; b < Math.floor(dureePhrase / (T * 2)); b++) {
+                this._timbale(b % 2 ? SOL2 : DO2, t + b * T * 2, 0.5);
+            }
+            for (const [freq, beats] of phrase) {
+                const dur = beats * T;
+                // cuivre principal + doublure à l'octave, léger désaccord chaleureux
+                this._noteFanfare(freq, t, dur, 'sawtooth', 0.42);
+                this._noteFanfare(freq * 2.003, t, dur, 'square', 0.1);
+                t += dur;
+            }
+        });
+        // Boucle : relance juste avant la fin
+        const total = (t - t0 + 0.6) * 1000;
+        this._fanfareTimer = setTimeout(() => this._boucleFanfare(), total);
+    }
+
     // === MUSIQUE DE FOND ===
     // Mélodie chiptune générée en boucle. Programmée par petits blocs pour
     // rester fluide. Coupable via muet (n'affecte pas les bruitages).
