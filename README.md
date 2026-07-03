@@ -66,7 +66,8 @@ Tu incarnes **Pixou**, un petit personnage rouge à casquette turquoise, au desi
 
 ### 🎬 Démo & 🍿 Intro
 - **🎬 DÉMO** : le jeu se joue tout seul (« attract mode ») sur 4 niveaux — dont le 👑 boss en final — grâce à un pilote automatique qui planifie ses routes (graphe des plateformes + BFS), dose ses sauts et utilise les ressorts. Pixou y est invincible et la progression sauvegardée n'est jamais touchée. **Le moindre toucher rend la main** et ramène au menu.
-- **🍿 INTRO** : un générique façon Star Wars — « Il y a bien longtemps, dans un navigateur lointain… » puis l'histoire de Pixou défile en perspective vers un champ d'étoiles, mascotte en apesanteur comprise. ✕ PASSER ou un simple toucher pour sortir.
+- **🍿 INTRO** : un générique façon Star Wars — « Il y a bien longtemps, dans un navigateur lointain… » puis l'histoire de Pixou défile en perspective vers un champ d'étoiles, au son d'une **fanfare orchestrale originale** (timbales, cuivres, nappes — générée par le moteur WebAudio). La mascotte en apesanteur est un **clone en direct du Pixou personnalisé** (couleur, chapeau, costume, lunettes, chaussures). ✕ PASSER ou un simple toucher pour sortir.
+- La **démo comme l'intro respectent la personnalisation** équipée dans la 🎨 Boutique.
 
 ---
 
@@ -92,6 +93,8 @@ Chaque power-up dure environ 10 secondes (visible via l'aura autour du joueur).
 | Vaincre un boss | +1000 |
 
 Le score final ajoute un bonus pour les vies restantes et les niveaux franchis, moins une légère pénalité de temps. Les meilleurs scores sont enregistrés dans le **Hall of Fame** (avec saisie d'un pseudo).
+
+Sur ordinateur, le nom du Hall of Fame se saisit aussi **au clavier** : ↑/↓ fait défiler la lettre, ←/→ change de position, frappe directe A-Z/0-9 (avancée automatique), Entrée valide.
 
 ### ⏱️ Contre-la-montre & médailles
 Le **meilleur temps** de chaque niveau est mémorisé (il ne peut que s'améliorer). Trois médailles récompensent la vitesse — 🥇 or, 🥈 argent, 🥉 bronze — avec des seuils calculés automatiquement selon la taille du monde, le nombre de pièces et la présence d'un boss. L'écran de fin de niveau affiche ton chrono, ta médaille, la mention **🔥 RECORD !** et le temps à battre pour la médaille supérieure ; le sélecteur « 🎯 NIVEAUX » affiche ta médaille en haut à droite de chaque tuile. Étoiles et médailles sont indépendantes : les ⭐ récompensent la prudence, les 🥇 la vitesse.
@@ -242,21 +245,28 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 ## 🛠️ Caractéristiques techniques
 
-- **Source modulaire** (`src/` : entités, niveaux, audio, jeu, éditeur, contrôles, UI) assemblée par **Vite** ; build = **`index.html` unique** (JS + CSS inlinés et minifiés, ~46 ko gzip).
+- **Source modulaire** (`src/` : entités, joueur, niveaux, audio, jeu, éditeur, bot de démo, skins, stockage, contrôles, UI) assemblée par **Vite** ; build = **`index.html` unique** (JS + CSS inlinés et minifiés, ~65 ko gzip).
 - **PWA** installable et jouable hors-ligne (manifest + Service Worker réseau-d'abord + `updateViaCache:'none'`).
 - Boucle de jeu à **pas de temps fixe (60 Hz)** : vitesse identique quel que soit le taux de rafraîchissement de l'écran.
 - Rendu adapté à la **densité de pixels** (`devicePixelRatio`) : net sur écrans Retina / haute résolution.
 - **Caméra avec scrolling** fluide et parallaxe, bornée aux limites du monde.
-- Personnage **animé** dessiné au canvas (yeux, casquette, animation de course et de saut).
+- Personnage **animé** dessiné au canvas (yeux, expressions, animation de course et de saut) et **entièrement personnalisable** : 43 articles de boutique (couleurs, Studio 🌈 libre, chapeaux, costumes — dont cape et jetpack animés —, lunettes, chaussures) rendus en canvas (jeu) et SVG (mascotte).
 - Pause (avec auto-pause quand l'onglet passe en arrière-plan).
-- Audio entièrement généré par la **Web Audio API** (bruitages et **4 ambiances musicales** au choix, aucun fichier son).
-- **Checkpoints** à mi-parcours dans les grands niveaux, et **système d'étoiles** (1 à 3 par niveau) avec progression sauvegardée.
+- Audio entièrement généré par la **Web Audio API** (bruitages, **4 ambiances musicales** au choix et **fanfare orchestrale d'intro**, aucun fichier son).
+- **Checkpoints** à mi-parcours dans les grands niveaux, **système d'étoiles** (1 à 3 par niveau) et **contre-la-montre** (meilleurs temps + médailles 🥇🥈🥉 à seuils automatiques), progression sauvegardée et **exportable/importable** (fichier JSON).
 - **Combats de boss** tous les 6 niveaux (boss à 3 points de vie, écrasable sur la tête).
-- Contrôles tactiles multi-points et clavier.
+- Contrôles tactiles multi-points et clavier (jeu ET saisie du nom).
+- **Mode démo** « attract mode » : pilote automatique planifié (graphe des plateformes + BFS, sauts dosés, ressorts), invincible, sortie au moindre toucher.
+- **Partage de niveaux** de l'éditeur par code compact `PIXOU1.…` (deflate + base64) via le partage natif du téléphone.
+- **Boutique** alimentée par un portefeuille 🪙 persistant (1 pièce ramassée = 1 pièce créditée, hors démo/test).
 
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 📖 v53 — documentation remise à niveau
+
+Les sections descriptives du README rattrapent les versions 50 à 52 : la présentation Démo & Intro mentionne la **fanfare orchestrale** et le **clone du Pixou personnalisé**, la section Score documente la **saisie du nom au clavier**, et les **Caractéristiques techniques** (figées à la v28) reflètent enfin l'état réel : build ~65 ko gzip, personnage personnalisable (43 articles canvas + SVG), contre-la-montre et sauvegarde exportable, mode démo planifié (graphe + BFS), partage de niveaux `PIXOU1`, portefeuille 🪙, fanfare WebAudio. L'aide intégrée (12 cartes) était déjà à jour.
 
 ### ⌨️👢 v52 — saisie du nom au clavier + chaussures bien visibles
 
