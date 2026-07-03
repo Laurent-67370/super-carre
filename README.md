@@ -62,7 +62,11 @@ Pour le vaincre, **saute-lui sur la tête 3 fois**. Après chaque coup il devien
 La condition de victoire d'un niveau à boss : **battre le boss, puis ramasser toutes les pièces**. Un bandeau « 👑 Bats le boss ! » affiche ses vies restantes tant qu'il est en vie. Le vaincre rapporte **+1000 points**.
 
 ### Le héros : Pixou
-Tu incarnes **Pixou**, un petit personnage rouge à casquette turquoise, au design original. Il est animé : ses yeux suivent la direction du regard, il cligne des yeux, ses pieds se balancent à la course et il fait une petite tête de surprise en plein saut.
+Tu incarnes **Pixou**, un petit personnage rouge à casquette turquoise, au design original. Il est animé : ses yeux suivent la direction du regard, il cligne des yeux, ses pieds se balancent à la course et il fait une petite tête de surprise en plein saut. Petit plus : **tape la mascotte sur l'écran d'accueil**, elle fait un bond cartoon avec son et vibration.
+
+### 🎬 Démo & 🍿 Intro
+- **🎬 DÉMO** : le jeu se joue tout seul (« attract mode ») sur 4 niveaux — dont le 👑 boss en final — grâce à un pilote automatique qui planifie ses routes (graphe des plateformes + BFS), dose ses sauts et utilise les ressorts. Pixou y est invincible et la progression sauvegardée n'est jamais touchée. **Le moindre toucher rend la main** et ramène au menu.
+- **🍿 INTRO** : un générique façon Star Wars — « Il y a bien longtemps, dans un navigateur lointain… » puis l'histoire de Pixou défile en perspective vers un champ d'étoiles, mascotte en apesanteur comprise. ✕ PASSER ou un simple toucher pour sortir.
 
 ---
 
@@ -88,6 +92,9 @@ Chaque power-up dure environ 10 secondes (visible via l'aura autour du joueur).
 | Vaincre un boss | +1000 |
 
 Le score final ajoute un bonus pour les vies restantes et les niveaux franchis, moins une légère pénalité de temps. Les meilleurs scores sont enregistrés dans le **Hall of Fame** (avec saisie d'un pseudo).
+
+### ⏱️ Contre-la-montre & médailles
+Le **meilleur temps** de chaque niveau est mémorisé (il ne peut que s'améliorer). Trois médailles récompensent la vitesse — 🥇 or, 🥈 argent, 🥉 bronze — avec des seuils calculés automatiquement selon la taille du monde, le nombre de pièces et la présence d'un boss. L'écran de fin de niveau affiche ton chrono, ta médaille, la mention **🔥 RECORD !** et le temps à battre pour la médaille supérieure ; le sélecteur « 🎯 NIVEAUX » affiche ta médaille en haut à droite de chaque tuile. Étoiles et médailles sont indépendantes : les ⭐ récompensent la prudence, les 🥇 la vitesse.
 
 📤 **Partage tes scores** : depuis le Hall of Fame, le bouton **« 📤 PARTAGER »** ouvre la feuille de partage native du système (Web Share API) avec le classement top 5 et un lien vers le jeu. Sur les navigateurs sans feuille de partage (ordinateur), le classement est copié dans le presse-papier d'un seul appui — plus qu'à le coller wherever tu veux.
 
@@ -159,10 +166,12 @@ Accessible via le bouton **« ✏️ ÉDITEUR DE NIVEAUX »** du menu d'accueil.
 - **🎲 Niveau aléatoire** : génère automatiquement un niveau **jouable** (course horizontale ou ascension verticale, tiré au hasard). Chaque plateforme est placée à portée de saut de la précédente, les pièces sont toujours accessibles et les dangers évitables. Confirmation demandée si le niveau courant n'est pas vide.
 - **▶ Tester** : jouer immédiatement son niveau, puis « ◀ Retour éditeur » pour revenir à l'édition.
 - **💾 Sauvegarder** et **📂 Mes niveaux** : enregistrer et recharger ses créations dans le navigateur.
-- **⤓ Export** / **📥 Importer** : copier-coller le code d'un niveau (format `NIVEAUX`).
+- **🔗 Partager** : génère un **code de partage compact `PIXOU1.…`** (niveau compressé, sans perte) et ouvre le partage natif du téléphone (WhatsApp, SMS, mail…) avec un message d'instructions prêt à l'emploi — c'est la façon recommandée d'échanger des niveaux.
+- **📥 Coller un code** : colle un code reçu — **le message entier fonctionne**, le code PIXOU est détecté automatiquement (l'ancien format texte reste accepté).
+- **⤓ Export** : copier-coller le code d'un niveau au format développeur (`NIVEAUX`).
 - **💾 Télécharger .json** / **📂 Charger .json** : exporter ou importer un niveau sous forme de **fichier `.json`**, pratique pour le sauvegarder hors du navigateur ou le partager. Le format JSON est sans perte (contrairement au copier-coller de code).
 
-Les niveaux créés sont stockés localement dans le navigateur. Le partage se fait soit par le code (Export/Importer), soit par fichier `.json` (Télécharger/Charger).
+Les niveaux créés sont stockés localement dans le navigateur. Pour les partager : **🔗 code de partage** (recommandé, un message suffit), fichier **`.json`** (archivage hors navigateur), ou code développeur (⤓ Export).
 
 ---
 
@@ -236,6 +245,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 📖 v40 — aide et documentation à jour
+
+L'aide intégrée (❓) gagne deux cartes : **✏️ Éditeur & partage** (création, niveau aléatoire, code 🔗 PIXOU, import du message entier) et **🎬 Démo & intro** (attract mode, sortie au toucher, générique — avec l'easter egg de la mascotte 🦘). Le README complète ses sections descriptives : contre-la-montre & médailles dans Score, boutons 🔗 Partager / 📥 Coller un code dans l'Éditeur, présentation Démo/Intro dans Comment jouer.
 
 ### 🔗 v39 — partage de niveaux créés
 
