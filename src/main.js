@@ -70,7 +70,7 @@ function init() {
     game.audio.pisteIndex = pisteCourante;
     function majLibelleMusique() {
         const p = PISTES[pisteCourante];
-        btnMusic.textContent = `${p.emoji} Musique : ${p.nom}`;
+        btnMusic.textContent = `🎵 ${p.nom}`;
     }
     majLibelleMusique();
     btnMusic.addEventListener('click', () => {
@@ -102,6 +102,17 @@ function init() {
             window.addEventListener('pointerdown', quitterDemoUtilisateur, true);
             window.addEventListener('keydown', quitterDemoUtilisateur, true);
         }, 400);
+    });
+
+    // --- PIXOU INTERACTIF : taper la mascotte la fait sauter ! ---
+    const logo = document.querySelector('#start-screen .logo');
+    if (logo) logo.addEventListener('click', () => {
+        game.audio.init(); game.audio.resume();
+        game.audio.saut();
+        if (navigator.vibrate) navigator.vibrate(20);
+        logo.classList.remove('hop');
+        void logo.offsetWidth; // relance l'animation même en tapotant vite
+        logo.classList.add('hop');
     });
 
     // Bouton AIDE

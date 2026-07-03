@@ -237,6 +237,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 🏠 v38 — accueil sur 2 colonnes + Pixou interactif
+
+Le menu tenait de moins en moins dans l'écran (9 boutons empilés). Les boutons secondaires passent en **grille 2 colonnes** (Nouvelle partie | Niveaux, Hall of Fame | Éditeur, Démo | Intro, Musique | Sauvegarde) : le menu tient d'un coup à l'écran et **▶ CONTINUER garde seul toute la largeur** — la hiérarchie saute aux yeux. Libellés raccourcis en conséquence (🎯 NIVEAUX, ✏️ ÉDITEUR, 🎵 nom de l'ambiance). Et pour la convivialité : **taper la mascotte Pixou la fait sauter** — petit bond cartoon écrase-étire, son de saut et vibration. Zéro utilité, 100 % plaisir.
+
 ### 🍿 v37 — l'intro s'installe à l'accueil, avec Pixou en apesanteur
 
 Le bouton **🍿 INTRO** quitte l'écran d'aide pour rejoindre le **menu d'accueil** (style pilule comme les autres). Et pour le fun : **la mascotte Pixou flotte en apesanteur** à travers le champ d'étoiles pendant le générique — traversée diagonale lente de l'écran en 26 s, rotation douce, halo rouge, yeux qui clignent, apparition après la phrase d'introduction. Pur SVG + CSS, aucune image téléchargée.
