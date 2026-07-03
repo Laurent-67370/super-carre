@@ -119,7 +119,8 @@ function init() {
     // --- 🎨 BOUTIQUE DE SKINS ---
     const CAT_TITRES = { corps: '🎨 Couleur de Pixou', chapeau: '🧢 Chapeaux', lunettes: '🕶️ Lunettes' };
     function majMascotte() {
-        // La mascotte de l'accueil prend la couleur équipée
+        // La mascotte de l'accueil porte le skin complet : couleur,
+        // chapeau (casquette/couronne/fête/magicien/tête nue) et lunettes.
         const cfg = game.skins.config();
         const svg = document.querySelector('#start-screen .logo svg');
         if (!svg) return;
@@ -127,6 +128,12 @@ function init() {
         if (stops.length >= 2) { stops[0].setAttribute('stop-color', cfg.haut); stops[1].setAttribute('stop-color', cfg.bas); }
         const corpsRect = svg.querySelector('rect[stroke]');
         if (corpsRect) corpsRect.setAttribute('stroke', cfg.bord);
+        for (const id of ['casquette', 'couronne', 'fete', 'magicien']) {
+            const g = svg.querySelector('#mascotte-chap-' + id);
+            if (g) g.style.display = cfg.chapeau === id ? '' : 'none';
+        }
+        const lun = svg.querySelector('#mascotte-lunettes');
+        if (lun) lun.style.display = cfg.lunettes ? '' : 'none';
     }
     function dessinerBoutique() {
         document.getElementById('shop-wallet').textContent = '🪙 ' + game.skins.solde();
