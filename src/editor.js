@@ -611,11 +611,10 @@ export class LevelEditor {
     }
 
     // ---------- Export / Import fichier .json (lossless) ----------
-    // Télécharge le modèle complet du niveau dans un fichier .json.
-    telechargerJSON() {
-        // On exporte le modèle pur (sans propriétés internes éventuelles)
+    // Modèle pur du niveau (forme partagée par le fichier .json ET le code de partage)
+    _modeleJSON() {
         const m = this.modele;
-        const data = {
+        return {
             format: 'super-carre-niveau',
             version: 1,
             nom: m.nom,
@@ -631,6 +630,56 @@ export class LevelEditor {
                 return obj;
             })
         };
+    }
+
+    // ---------- CODE DE PARTAGE (🔗) ----------
+    // Un niveau tient dans un code texte « PIXOU1.xxxx » : JSON compact
+    // compressé (deflate) puis encodé en base64 — copiable dans WhatsApp,
+    // SMS, mail… PIXOU0 = variante non compressée (vieux navigateurs).
+    _b64DepuisOctets(bytes) {
+        let s = '';
+        for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
+        return btoa(s);
+    }
+    _octetsDepuisB64(b64) {
+        const s = atob(b64);
+        const bytes = new Uint8Array(s.length);
+        for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i);
+        return bytes;
+    }
+    async _viaStream(bytes, Stream, mode) {
+        const flux = new Blob([bytes]).stream().pipeThrough(new Stream(mode));
+        return new Uint8Array(await new Response(flux).arrayBuffer());
+    }
+    async codePartage() {
+        const json = JSON.stringify(this._modeleJSON());
+        const octets = new TextEncoder().encode(json);
+        if (typeof CompressionStream !== 'undefined') {
+            const comp = await this._viaStream(octets, CompressionStream, 'deflate-raw');
+            return 'PIXOU1.' + this._b64DepuisOctets(comp);
+        }
+        return 'PIXOU0.' + this._b64DepuisOctets(octets);
+    }
+    // Accepte un code PIXOU même noyé dans un message copié-collé.
+    // Renvoie true si un niveau valide a été chargé.
+    async chargerCode(texte) {
+        const m = String(texte).match(/PIXOU([01])\.([A-Za-z0-9+/=]+)/);
+        if (!m) return false;
+        try {
+            let octets = this._octetsDepuisB64(m[2]);
+            if (m[1] === '1') {
+                if (typeof DecompressionStream === 'undefined') return false;
+                octets = await this._viaStream(octets, DecompressionStream, 'deflate-raw');
+            }
+            const json = new TextDecoder().decode(octets);
+            return this.chargerJSON(json);
+        } catch (e) { return false; }
+    }
+
+    // Télécharge le modèle complet du niveau dans un fichier .json.
+    telechargerJSON() {
+        // On exporte le modèle pur (sans propriétés internes éventuelles)
+        const data = this._modeleJSON();
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -710,6 +759,22 @@ export class LevelEditor {
         document.getElementById('ed-undo').addEventListener('click', () => this.undo());
         document.getElementById('ed-redo').addEventListener('click', () => this.redo());
         document.getElementById('ed-test').addEventListener('click', () => this.tester());
+        document.getElementById('ed-share').addEventListener('click', async () => {
+            try {
+                const code = await this.codePartage();
+                const nom = this.modele.nom || 'Mon niveau';
+                const message = `\u{1F7E5} Super Pixou \u2014 je t'envoie mon niveau \u00AB ${nom} \u00BB !\n\nDans le jeu : \u270F\uFE0F \u00C9DITEUR \u2192 \uD83D\uDCE5 Coller un code, puis colle ce message entier :\n\n${code}\n\n\uD83C\uDFAE https://laurent-67370.github.io/super-carre/`;
+                if (navigator.share) {
+                    await navigator.share({ title: 'Super Pixou \u2014 ' + nom, text: message });
+                } else {
+                    await navigator.clipboard.writeText(message);
+                    alert('\uD83D\uDCCB Message copi\u00E9 ! Colle-le dans WhatsApp, SMS, mail\u2026');
+                }
+            } catch (e) {
+                if (e && e.name === 'AbortError') return; // partage annul\u00E9 par l'utilisateur
+                alert('Partage impossible : ' + (e && e.message ? e.message : e));
+            }
+        });
         document.getElementById('ed-export').addEventListener('click', () => {
             document.getElementById('ed-dropdown').classList.add('hidden');
             document.getElementById('ed-export-text').value = this.exporter();
@@ -775,9 +840,11 @@ export class LevelEditor {
             document.getElementById('ed-import-overlay').classList.remove('hidden');
         });
         document.getElementById('ed-import-close').addEventListener('click', () => document.getElementById('ed-import-overlay').classList.add('hidden'));
-        document.getElementById('ed-import-ok').addEventListener('click', () => {
+        document.getElementById('ed-import-ok').addEventListener('click', async () => {
             const txt = document.getElementById('ed-import-text').value;
-            if (this.importer(txt)) {
+            // Code de partage 🔗 (PIXOU1.… même noyé dans un message) ou ancien format
+            const ok = /PIXOU[01]\./.test(txt) ? await this.chargerCode(txt) : this.importer(txt);
+            if (ok) {
                 document.getElementById('ed-world-w').value = this.modele.largeurMonde;
                 document.getElementById('ed-world-h').value = this.modele.hauteurMonde;
                 document.getElementById('ed-name').value = this.modele.nom;
