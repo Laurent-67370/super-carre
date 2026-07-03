@@ -83,6 +83,46 @@ export class NameEntry {
         document.getElementById('btn-skip-name').addEventListener('click', (e) => {
             e.preventDefault(); this.lettres = ['?','?','?']; this.valider();
         });
+
+        // --- CLAVIER PHYSIQUE ---
+        // ↑/↓ : fait défiler la lettre • ←/→ : change de position
+        // A-Z / 0-9 : frappe directe (avance automatiquement)
+        // Entrée : valide • Retour arrière : efface et recule
+        this._surClavier = (e) => {
+            if (!this.container.classList.contains('show')) return;
+            const k = e.key;
+            if (k === 'ArrowUp')        { e.preventDefault(); this.changerLettre(1); }
+            else if (k === 'ArrowDown') { e.preventDefault(); this.changerLettre(-1); }
+            else if (k === 'ArrowRight'){ e.preventDefault(); this.selectionnerPosition(Math.min(2, this.positionActive + 1)); }
+            else if (k === 'ArrowLeft') { e.preventDefault(); this.selectionnerPosition(Math.max(0, this.positionActive - 1)); }
+            else if (k === 'Enter')     { e.preventDefault(); this.valider(); }
+            else if (k === 'Backspace') {
+                e.preventDefault();
+                this._poserLettre('A', false);
+                this.selectionnerPosition(Math.max(0, this.positionActive - 1));
+            }
+            else if (/^[a-zA-Z0-9]$/.test(k)) {
+                e.preventDefault();
+                this._poserLettre(k.toUpperCase(), true);
+            }
+        };
+        document.addEventListener('keydown', this._surClavier);
+    }
+
+    // Pose un caractère à la position active (frappe directe),
+    // avec l'animation de flip et l'avancée automatique.
+    _poserLettre(car, avancer) {
+        const idx = this.alphabet.indexOf(car);
+        if (idx < 0) return;
+        this.indexLettre[this.positionActive] = idx;
+        this.lettres[this.positionActive] = car;
+        this.rafraichir();
+        const el = this.lettersDisplay.querySelectorAll('.letter-3d')[this.positionActive];
+        el.classList.remove('flip-up', 'flip-down');
+        void el.offsetWidth;
+        el.classList.add('flip-up');
+        if (window._gameAudio) window._gameAudio.beep(300 + idx * 18, 300 + idx * 18, 0.04, 'square', 0.05);
+        if (avancer && this.positionActive < 2) this.selectionnerPosition(this.positionActive + 1);
     }
 
     afficher(pieces, temps) {

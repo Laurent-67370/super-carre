@@ -226,12 +226,15 @@ export class Player {
         ctx.translate(-cx, -cy);
 
         // --- Pieds animés (chaussures 🎨 boutique) ---
-        {
-            const modele = skin.chaussures || 'basiques';
-            const baseY = enLair ? y + H - 3 : y + H - 2;
-            const f1 = enLair ? 0 : phase * 3, f2 = enLair ? 0 : -phase * 3;
-            this._dessinerPied(ctx, modele, x + 3, baseY + f1, dir, skin.pieds);
-            this._dessinerPied(ctx, modele, x + L - 12, baseY + f2, dir, skin.pieds);
+        // Les pieds Basiques restent DERRIÈRE le corps (look d'origine).
+        // Les modèles à tige (santiags, rollers…) seront dessinés DEVANT
+        // le corps, sinon leur partie montante serait masquée.
+        const modelePied = skin.chaussures || 'basiques';
+        const piedsBaseY = enLair ? y + H - 3 : y + H - 2;
+        const piedsF1 = enLair ? 0 : phase * 3, piedsF2 = enLair ? 0 : -phase * 3;
+        if (modelePied === 'basiques') {
+            this._dessinerPied(ctx, modelePied, x + 3, piedsBaseY + piedsF1, dir, skin.pieds);
+            this._dessinerPied(ctx, modelePied, x + L - 12, piedsBaseY + piedsF2, dir, skin.pieds);
         }
 
         // --- Corps arrondi (rouge, dégradé léger) ---
@@ -249,6 +252,12 @@ export class Player {
         this._rr(ctx, x, y + 3, L, H - 4, 7); ctx.fill();
         ctx.strokeStyle = cBord; ctx.lineWidth = 2;
         this._rr(ctx, x, y + 3, L, H - 4, 7); ctx.stroke();
+
+        // Chaussures à modèle : DEVANT le corps (tiges visibles)
+        if (modelePied !== 'basiques') {
+            this._dessinerPied(ctx, modelePied, x + 3, piedsBaseY + piedsF1, dir, skin.pieds);
+            this._dessinerPied(ctx, modelePied, x + L - 12, piedsBaseY + piedsF2, dir, skin.pieds);
+        }
 
         // --- Chapeau selon le skin (casquette turquoise par défaut) ---
         this._casq = skin.casq;

@@ -30,6 +30,30 @@
                 <rect x="30" y="84" width="14" height="8" rx="3" fill="#F1C40F"/>
                 <rect x="56" y="84" width="14" height="8" rx="3" fill="#F1C40F"/>
             </g>
+            <!-- cape de héros 🦸 (derrière le corps) -->
+            <g id="mascotte-cost-cape" style="display:none">
+                <path d="M 30 40 Q 4 54 9 82 L 24 77 Q 19 58 32 50 Z" fill="#C0392B" stroke="#922B21" stroke-width="2"/>
+            </g>
+            <!-- sac d'aventurier 🎒 (derrière) -->
+            <g id="mascotte-cost-sac" style="display:none">
+                <rect x="2" y="40" width="22" height="30" rx="7" fill="#8E5B3A" stroke="#6E4428" stroke-width="2"/>
+                <rect x="4" y="40" width="18" height="11" rx="5" fill="#6E4428"/>
+                <rect x="11" y="46" width="5" height="7" fill="#F4D03F"/>
+                <line x1="22" y1="44" x2="34" y2="38" stroke="#6E4428" stroke-width="4"/>
+            </g>
+            <!-- jetpack 🚀 (derrière) -->
+            <g id="mascotte-cost-jetpack" style="display:none">
+                <rect x="0" y="36" width="24" height="32" rx="8" fill="#95A5A6" stroke="#707B7C" stroke-width="2"/>
+                <rect x="4" y="42" width="16" height="5" fill="#E74C3C"/>
+                <rect x="3" y="66" width="7" height="6" fill="#707B7C"/>
+                <rect x="14" y="66" width="7" height="6" fill="#707B7C"/>
+                <path d="M 4 72 L 9 72 L 6.5 82 Z" fill="#E67E22"/>
+                <path d="M 15 72 L 20 72 L 17.5 82 Z" fill="#E67E22"/>
+                <path d="M 5.3 72 L 7.7 72 L 6.5 77.5 Z" fill="#F4D03F"/>
+                <path d="M 16.3 72 L 18.7 72 L 17.5 77.5 Z" fill="#F4D03F"/>
+            </g>
+            <!-- corps -->
+            <rect x="22" y="28" width="56" height="60" rx="14" fill="url(#pixou-body)" stroke="#C0392B" stroke-width="3"/>
             <g id="mascotte-shoe-baskets" style="display:none">
                 <rect x="28" y="82" width="17" height="10" rx="4" fill="#fff"/><rect x="28" y="89" width="17" height="3" fill="#BDC3C7"/>
                 <path d="M 33 82 L 38 82 L 36 88 L 31 88 Z" fill="#E74C3C"/>
@@ -57,30 +81,6 @@
                 <circle cx="59" cy="92" r="3.4" fill="#1ABC9C"/><circle cx="59" cy="92" r="1.4" fill="#0E6655"/>
                 <circle cx="67" cy="92" r="3.4" fill="#1ABC9C"/><circle cx="67" cy="92" r="1.4" fill="#0E6655"/>
             </g>
-            <!-- cape de héros 🦸 (derrière le corps) -->
-            <g id="mascotte-cost-cape" style="display:none">
-                <path d="M 30 40 Q 4 54 9 82 L 24 77 Q 19 58 32 50 Z" fill="#C0392B" stroke="#922B21" stroke-width="2"/>
-            </g>
-            <!-- sac d'aventurier 🎒 (derrière) -->
-            <g id="mascotte-cost-sac" style="display:none">
-                <rect x="2" y="40" width="22" height="30" rx="7" fill="#8E5B3A" stroke="#6E4428" stroke-width="2"/>
-                <rect x="4" y="40" width="18" height="11" rx="5" fill="#6E4428"/>
-                <rect x="11" y="46" width="5" height="7" fill="#F4D03F"/>
-                <line x1="22" y1="44" x2="34" y2="38" stroke="#6E4428" stroke-width="4"/>
-            </g>
-            <!-- jetpack 🚀 (derrière) -->
-            <g id="mascotte-cost-jetpack" style="display:none">
-                <rect x="0" y="36" width="24" height="32" rx="8" fill="#95A5A6" stroke="#707B7C" stroke-width="2"/>
-                <rect x="4" y="42" width="16" height="5" fill="#E74C3C"/>
-                <rect x="3" y="66" width="7" height="6" fill="#707B7C"/>
-                <rect x="14" y="66" width="7" height="6" fill="#707B7C"/>
-                <path d="M 4 72 L 9 72 L 6.5 82 Z" fill="#E67E22"/>
-                <path d="M 15 72 L 20 72 L 17.5 82 Z" fill="#E67E22"/>
-                <path d="M 5.3 72 L 7.7 72 L 6.5 77.5 Z" fill="#F4D03F"/>
-                <path d="M 16.3 72 L 18.7 72 L 17.5 77.5 Z" fill="#F4D03F"/>
-            </g>
-            <!-- corps -->
-            <rect x="22" y="28" width="56" height="60" rx="14" fill="url(#pixou-body)" stroke="#C0392B" stroke-width="3"/>
             <!-- casquette turquoise (chapeau par défaut) -->
             <g id="mascotte-chap-casquette">
                 <rect x="20" y="20" width="60" height="16" rx="7" fill="#16A085"/>
@@ -235,7 +235,7 @@
     </div>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v51</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v52</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -386,6 +386,7 @@
             <div class="help-row"><span class="emoji">✨</span><span class="desc">Power-up ramassé</span><span class="kbd" style="color:#FFD700">+250</span></div>
             <div class="help-sep"></div>
             <div class="help-row"><span class="desc" style="opacity:.7">Bonus fin de partie : vies restantes × 500 + niveaux franchis × 200, moins une légère pénalité de temps. Les <strong>5 meilleurs scores</strong> sont sauvegardés !</span></div>
+            <div class="help-row"><span class="emoji">⌨️</span><span class="desc">Sur ordinateur, entre ton nom <strong>au clavier</strong> : ↑/↓ fait défiler les lettres, ←/→ change de position, les lettres se tapent directement, Entrée valide</span></div>
             <div class="help-row"><span class="emoji">📤</span><span class="desc">Dans le Hall of Fame, le bouton <strong>« 📤 PARTAGER »</strong> envoie ton classement vers l'app de ton choix (WhatsApp, SMS…) — ou le copie sur ordinateur</span></div>
         </div>
 
@@ -430,33 +431,6 @@
             <g class="pixou-feet">
                 <rect x="30" y="84" width="14" height="8" rx="3" fill="#F1C40F"/>
                 <rect x="56" y="84" width="14" height="8" rx="3" fill="#F1C40F"/>
-            </g>
-            <g id="mascotte-shoe-baskets" style="display:none">
-                <rect x="28" y="82" width="17" height="10" rx="4" fill="#fff"/><rect x="28" y="89" width="17" height="3" fill="#BDC3C7"/>
-                <path d="M 33 82 L 38 82 L 36 88 L 31 88 Z" fill="#E74C3C"/>
-                <rect x="55" y="82" width="17" height="10" rx="4" fill="#fff"/><rect x="55" y="89" width="17" height="3" fill="#BDC3C7"/>
-                <path d="M 60 82 L 65 82 L 63 88 L 58 88 Z" fill="#E74C3C"/>
-            </g>
-            <g id="mascotte-shoe-santiags" style="display:none">
-                <rect x="31" y="74" width="13" height="12" rx="2" fill="#8E5B3A"/><rect x="28" y="84" width="18" height="7" rx="2" fill="#7A4A2B"/><rect x="29" y="89" width="5" height="3" fill="#4E342E"/>
-                <path d="M 34 79 L 37.5 81.5 L 41 79" fill="none" stroke="#F4D03F" stroke-width="1.5"/>
-                <rect x="56" y="74" width="13" height="12" rx="2" fill="#8E5B3A"/><rect x="53" y="84" width="18" height="7" rx="2" fill="#7A4A2B"/><rect x="54" y="89" width="5" height="3" fill="#4E342E"/>
-                <path d="M 59 79 L 62.5 81.5 L 66 79" fill="none" stroke="#F4D03F" stroke-width="1.5"/>
-            </g>
-            <g id="mascotte-shoe-palmes" style="display:none">
-                <path d="M 30 84 L 12 85 Q 8 88 12 91 L 30 92 Z" fill="#28B463"/>
-                <rect x="29" y="83" width="15" height="9" rx="3" fill="#1D8348"/>
-                <path d="M 70 84 L 88 85 Q 92 88 88 91 L 70 92 Z" fill="#28B463"/>
-                <rect x="56" y="83" width="15" height="9" rx="3" fill="#1D8348"/>
-                <path d="M 20 85.5 L 20 91 M 25 85 L 25 91.5 M 80 85.5 L 80 91 M 75 85 L 75 91.5" stroke="rgba(255,255,255,.4)" stroke-width="1.4"/>
-            </g>
-            <g id="mascotte-shoe-rollers" style="display:none">
-                <rect x="29" y="78" width="16" height="10" rx="3" fill="#8E44AD"/><rect x="29" y="85" width="16" height="2.5" fill="#6C3483"/>
-                <circle cx="33" cy="92" r="3.4" fill="#1ABC9C"/><circle cx="33" cy="92" r="1.4" fill="#0E6655"/>
-                <circle cx="41" cy="92" r="3.4" fill="#1ABC9C"/><circle cx="41" cy="92" r="1.4" fill="#0E6655"/>
-                <rect x="55" y="78" width="16" height="10" rx="3" fill="#8E44AD"/><rect x="55" y="85" width="16" height="2.5" fill="#6C3483"/>
-                <circle cx="59" cy="92" r="3.4" fill="#1ABC9C"/><circle cx="59" cy="92" r="1.4" fill="#0E6655"/>
-                <circle cx="67" cy="92" r="3.4" fill="#1ABC9C"/><circle cx="67" cy="92" r="1.4" fill="#0E6655"/>
             </g>
             <rect x="22" y="28" width="56" height="60" rx="14" fill="url(#pixou-body-crawl)" stroke="#C0392B" stroke-width="3"/>
             <rect x="20" y="20" width="60" height="16" rx="7" fill="#16A085"/>
