@@ -1,4 +1,5 @@
 /* Player — Pixou */
+import { nuancer } from './skins.js';
 
 export class Player {
     constructor(x, y) {
@@ -172,6 +173,8 @@ export class Player {
                this.y < o.y + (o.hauteur||o.h) && this.y + this.hauteur > o.y;
     }
     dessiner(ctx) {
+        // Skin (🎨 boutique) en tête : utilisé par les pieds AVANT le corps
+        const skin = this.skin || {};
         // --- AURA BOUCLIER (si power-up shield actif) ---
         if (this.powerUpTimer.shield > 0) {
             const flicker = this.powerUpTimer.shield < 120 ? (Math.floor(this.powerUpTimer.shield / 8) % 2 === 0 ? 0.3 : 0.6) : 0.5;
@@ -223,7 +226,7 @@ export class Player {
         ctx.translate(-cx, -cy);
 
         // --- Petits pieds (jaunes) qui s'animent ---
-        ctx.fillStyle = '#F1C40F';
+        ctx.fillStyle = skin.pieds || '#F1C40F';
         if (enLair) {
             // pieds repliés en saut
             ctx.fillRect(x + 3, y + H - 3, 8, 4);
@@ -235,8 +238,7 @@ export class Player {
         }
 
         // --- Corps arrondi (rouge, dégradé léger) ---
-        // --- Skin (🎨 boutique) : couleurs et accessoires équipés ---
-        const skin = this.skin || {};
+        // --- Skin (🎨 boutique) : couleurs du corps équipées ---
         const cHaut = skin.haut || '#FF6B5C', cBas = skin.bas || '#E74C3C', cBord = skin.bord || '#C0392B';
         const bodyGrad = ctx.createLinearGradient(x, y, x, y + H);
         bodyGrad.addColorStop(0, cHaut);
@@ -247,6 +249,7 @@ export class Player {
         this._rr(ctx, x, y + 3, L, H - 4, 7); ctx.stroke();
 
         // --- Chapeau selon le skin (casquette turquoise par défaut) ---
+        this._casq = skin.casq;
         this._dessinerChapeau(ctx, skin.chapeau || 'casquette', x, y, L, cx, dir);
 
         // --- Yeux & bouche : expression contextuelle ---
@@ -378,15 +381,16 @@ export class Player {
             et(cx - 3, y - 4, 2.2); et(cx + 4, y - 9, 1.7);
             return;
         }
-        // Casquette turquoise (défaut — couleur d'identité de Pixou)
-        ctx.fillStyle = '#16A085';
+        // Casquette (turquoise par défaut — libre avec le Studio 🌈)
+        const casq = this._casq || '#16A085';
+        ctx.fillStyle = casq;
         this._rr(ctx, x - 1, y, L + 2, 9, 4); ctx.fill();
-        // visière orientée selon la direction
-        ctx.fillStyle = '#138D75';
+        // visière orientée selon la direction (nuance plus sombre)
+        ctx.fillStyle = nuancer(casq, -0.15);
         if (dir > 0) { this._rr(ctx, x + L - 4, y + 5, 9, 4, 2); ctx.fill(); }
         else { this._rr(ctx, x - 5, y + 5, 9, 4, 2); ctx.fill(); }
-        // pompon
-        ctx.fillStyle = '#1ABC9C';
+        // pompon (nuance plus claire)
+        ctx.fillStyle = nuancer(casq, 0.25);
         ctx.beginPath(); ctx.arc(cx, y, 2.5, 0, 6.28); ctx.fill();
     }
     // Helper : tracé d'un rectangle à coins arrondis

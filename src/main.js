@@ -6,7 +6,7 @@ import { NIVEAUX, medaillePour, MEDAILLE_EMOJI } from './levels.js';
 import { setupControls } from './controls.js';
 import { afficherHallOfFame, partagerScores, afficherToast } from './ui.js';
 import { exporterSauvegarde, importerSauvegarde } from './storage.js';
-import { CATALOGUE } from './skins.js';
+import { CATALOGUE, nuancer } from './skins.js';
 import './style.css';
 
 /* === Prologue : Service Worker (PWA) + invite d'installation === */
@@ -117,7 +117,7 @@ function init() {
     });
 
     // --- 🎨 BOUTIQUE DE SKINS ---
-    const CAT_TITRES = { corps: '🎨 Couleur de Pixou', chapeau: '🧢 Chapeaux', lunettes: '🕶️ Lunettes' };
+    const CAT_TITRES = { corps: '🎨 Couleur de Pixou', chapeau: '🧢 Chapeaux', lunettes: '🕶️ Lunettes', studio: '🌈 Studio de couleurs' };
     function majMascotte() {
         // La mascotte de l'accueil porte le skin complet : couleur,
         // chapeau (casquette/couronne/fête/magicien/tête nue) et lunettes.
@@ -134,6 +134,19 @@ function init() {
         }
         const lun = svg.querySelector('#mascotte-lunettes');
         if (lun) lun.style.display = cfg.lunettes ? '' : 'none';
+        // 🌈 Studio : casquette et pieds aux couleurs libres
+        const casq = svg.querySelector('#mascotte-chap-casquette');
+        if (casq) {
+            const [base, visiere, pompon] = [cfg.casq || '#16A085', nuancer(cfg.casq || '#16A085', -0.15), nuancer(cfg.casq || '#16A085', 0.25)];
+            const rects = casq.querySelectorAll('rect');
+            if (rects[0]) rects[0].setAttribute('fill', cfg.casq ? base : '#16A085');
+            if (rects[1]) rects[1].setAttribute('fill', cfg.casq ? visiere : '#138D75');
+            const cercle = casq.querySelector('circle');
+            if (cercle) cercle.setAttribute('fill', cfg.casq ? pompon : '#1ABC9C');
+        }
+        for (const pied of svg.querySelectorAll('.pixou-feet rect')) {
+            pied.setAttribute('fill', cfg.pieds || '#F1C40F');
+        }
     }
     function dessinerBoutique() {
         document.getElementById('shop-wallet').textContent = '🪙 ' + game.skins.solde();
@@ -148,6 +161,39 @@ function init() {
             grid.appendChild(titre);
             const rangee = document.createElement('div');
             rangee.className = 'shop-tiles';
+            // 🌈 Studio débloqué → sélecteurs de couleur libres (corps, casquette, pieds)
+            if (cat === 'studio' && game.skins.studioActif()) {
+                const champs = [
+                    { champ: 'corps', nom: 'Corps', note: game.skins.equipes.corps === 'studio' ? '✓ porté' : 'toucher = porter' },
+                    { champ: 'casquette', nom: 'Casquette', note: 'appliquée' },
+                    { champ: 'pieds', nom: 'Pieds', note: 'appliqués' }
+                ];
+                for (const c of champs) {
+                    const tile = document.createElement('label');
+                    tile.className = 'shop-tile shop-picker' + (c.champ === 'corps' && game.skins.equipes.corps === 'studio' ? ' porte' : '');
+                    tile.innerHTML = `<input type="color" value="${game.skins.custom[c.champ]}" aria-label="Couleur ${c.nom}">` +
+                        `<span class="shop-nom">${c.nom}</span><span class="shop-prix">${c.note}</span>`;
+                    tile.querySelector('input').addEventListener('input', (ev) => {
+                        game.skins.definirCustom(c.champ, ev.target.value);
+                        if (game.player) game.player.skin = game.skins.config();
+                        majMascotte();
+                    });
+                    tile.querySelector('input').addEventListener('change', () => dessinerBoutique());
+                    rangee.appendChild(tile);
+                }
+                const reset = document.createElement('button');
+                reset.className = 'shop-tile';
+                reset.innerHTML = `<span class="shop-preview" style="background:rgba(255,255,255,.08)">↺</span><span class="shop-nom">Origine</span><span class="shop-prix">réinitialiser</span>`;
+                reset.addEventListener('click', () => {
+                    game.skins.reinitialiserCustom();
+                    if (game.player) game.player.skin = game.skins.config();
+                    majMascotte();
+                    dessinerBoutique();
+                });
+                rangee.appendChild(reset);
+                grid.appendChild(rangee);
+                continue;
+            }
             for (const item of items) {
                 const possede = game.skins.possede(cat, item.id);
                 const porte = game.skins.equipes[cat] === item.id;
