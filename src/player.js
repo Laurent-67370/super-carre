@@ -235,31 +235,26 @@ export class Player {
         }
 
         // --- Corps arrondi (rouge, dégradé léger) ---
+        // --- Skin (🎨 boutique) : couleurs et accessoires équipés ---
+        const skin = this.skin || {};
+        const cHaut = skin.haut || '#FF6B5C', cBas = skin.bas || '#E74C3C', cBord = skin.bord || '#C0392B';
         const bodyGrad = ctx.createLinearGradient(x, y, x, y + H);
-        bodyGrad.addColorStop(0, '#FF6B5C');
-        bodyGrad.addColorStop(1, '#E74C3C');
+        bodyGrad.addColorStop(0, cHaut);
+        bodyGrad.addColorStop(1, cBas);
         ctx.fillStyle = bodyGrad;
         this._rr(ctx, x, y + 3, L, H - 4, 7); ctx.fill();
-        ctx.strokeStyle = '#C0392B'; ctx.lineWidth = 2;
+        ctx.strokeStyle = cBord; ctx.lineWidth = 2;
         this._rr(ctx, x, y + 3, L, H - 4, 7); ctx.stroke();
 
-        // --- Casquette (turquoise — couleur d'identité, pas rouge) ---
-        ctx.fillStyle = '#16A085';
-        this._rr(ctx, x - 1, y, L + 2, 9, 4); ctx.fill();
-        // visière orientée selon la direction
-        ctx.fillStyle = '#138D75';
-        if (dir > 0) { this._rr(ctx, x + L - 4, y + 5, 9, 4, 2); ctx.fill(); }
-        else { this._rr(ctx, x - 5, y + 5, 9, 4, 2); ctx.fill(); }
-        // pompon
-        ctx.fillStyle = '#1ABC9C';
-        ctx.beginPath(); ctx.arc(cx, y, 2.5, 0, 6.28); ctx.fill();
+        // --- Chapeau selon le skin (casquette turquoise par défaut) ---
+        this._dessinerChapeau(ctx, skin.chapeau || 'casquette', x, y, L, cx, dir);
 
         // --- Yeux & bouche : expression contextuelle ---
         const eyeY = y + 13;
         const e1 = cx - 7, e2 = cx + 1; // base des deux yeux
         const cligne = (this.frameAnim % 200) < 6;
         const pdx = dir * 1.6;
-        ctx.strokeStyle = '#C0392B'; ctx.lineWidth = 1.5; ctx.fillStyle = '#C0392B';
+        ctx.strokeStyle = cBord; ctx.lineWidth = 1.5; ctx.fillStyle = cBord;
         if (expr === 'hurt') {
             // Yeux en X (deux traits croisés par œil)
             ctx.lineWidth = 1.6;
@@ -319,9 +314,80 @@ export class Player {
         ctx.beginPath(); ctx.arc(cx - 9, y + H - 9, 2, 0, 6.28); ctx.fill();
         ctx.beginPath(); ctx.arc(cx + 9, y + H - 9, 2, 0, 6.28); ctx.fill();
 
+        // --- Lunettes de soleil 🕶️ (skin) : par-dessus les yeux ---
+        if (skin.lunettes) {
+            ctx.fillStyle = '#1a1a2e';
+            this._rr(ctx, cx - 10, eyeY, 8.5, 6.5, 2.5); ctx.fill();
+            this._rr(ctx, cx + 1.5, eyeY, 8.5, 6.5, 2.5); ctx.fill();
+            ctx.strokeStyle = '#1a1a2e'; ctx.lineWidth = 1.6;
+            ctx.beginPath(); ctx.moveTo(cx - 1.5, eyeY + 2.5); ctx.lineTo(cx + 1.5, eyeY + 2.5); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx - 10, eyeY + 2); ctx.lineTo(x - 1, eyeY + 1); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx + 10, eyeY + 2); ctx.lineTo(x + L + 1, eyeY + 1); ctx.stroke();
+            // reflet
+            ctx.fillStyle = 'rgba(255,255,255,.35)';
+            ctx.fillRect(cx - 8.5, eyeY + 1.5, 2.5, 1.5);
+            ctx.fillRect(cx + 3, eyeY + 1.5, 2.5, 1.5);
+        }
+
         ctx.restore();  // fin squash & stretch
 
         ctx.globalAlpha = 1;
+    }
+    // --- Chapeaux (🎨 boutique) ---
+    _dessinerChapeau(ctx, type, x, y, L, cx, dir) {
+        if (type === 'aucun') return;
+        if (type === 'couronne') {
+            // Couronne dorée : bandeau + 3 pointes + joyaux
+            ctx.fillStyle = '#F1C40F';
+            ctx.fillRect(x + 3, y + 1, L - 6, 6);
+            ctx.beginPath();
+            ctx.moveTo(x + 3, y + 1); ctx.lineTo(x + 6.5, y - 6); ctx.lineTo(x + 10, y + 1);
+            ctx.lineTo(cx - 3, y + 1); ctx.lineTo(cx, y - 8); ctx.lineTo(cx + 3, y + 1);
+            ctx.lineTo(x + L - 10, y + 1); ctx.lineTo(x + L - 6.5, y - 6); ctx.lineTo(x + L - 3, y + 1);
+            ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = '#B7950B'; ctx.lineWidth = 1;
+            ctx.strokeRect(x + 3, y + 1, L - 6, 6);
+            ctx.fillStyle = '#E74C3C';
+            ctx.beginPath(); ctx.arc(cx, y + 4, 1.6, 0, 6.28); ctx.fill();
+            ctx.fillStyle = '#3498DB';
+            ctx.beginPath(); ctx.arc(x + 8, y + 4, 1.3, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(x + L - 8, y + 4, 1.3, 0, 6.28); ctx.fill();
+            return;
+        }
+        if (type === 'fete') {
+            // Cône de fête rayé + pompon
+            ctx.fillStyle = '#E67E22';
+            ctx.beginPath(); ctx.moveTo(cx - 8, y + 3); ctx.lineTo(cx + 8, y + 3); ctx.lineTo(cx, y - 13); ctx.closePath(); ctx.fill();
+            ctx.save();
+            ctx.beginPath(); ctx.moveTo(cx - 8, y + 3); ctx.lineTo(cx + 8, y + 3); ctx.lineTo(cx, y - 13); ctx.closePath(); ctx.clip();
+            ctx.fillStyle = '#F4D03F';
+            ctx.fillRect(cx - 9, y - 4, 18, 3.5);
+            ctx.fillRect(cx - 9, y - 11, 18, 3.5);
+            ctx.restore();
+            ctx.fillStyle = '#E74C3C';
+            ctx.beginPath(); ctx.arc(cx, y - 13, 2.5, 0, 6.28); ctx.fill();
+            return;
+        }
+        if (type === 'magicien') {
+            // Chapeau de magicien : large bord + cône bleu nuit étoilé
+            ctx.fillStyle = '#2C3E50';
+            this._rr(ctx, x - 4, y + 2, L + 8, 5, 2.5); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(cx - 9, y + 3); ctx.lineTo(cx + 9, y + 3); ctx.lineTo(cx + 2 * dir, y - 14); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#F4D03F';
+            const et = (ex, ey, r) => { ctx.beginPath(); for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 4 * Math.PI / 5; ctx.lineTo(ex + Math.cos(a) * r, ey + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); };
+            et(cx - 3, y - 4, 2.2); et(cx + 4, y - 9, 1.7);
+            return;
+        }
+        // Casquette turquoise (défaut — couleur d'identité de Pixou)
+        ctx.fillStyle = '#16A085';
+        this._rr(ctx, x - 1, y, L + 2, 9, 4); ctx.fill();
+        // visière orientée selon la direction
+        ctx.fillStyle = '#138D75';
+        if (dir > 0) { this._rr(ctx, x + L - 4, y + 5, 9, 4, 2); ctx.fill(); }
+        else { this._rr(ctx, x - 5, y + 5, 9, 4, 2); ctx.fill(); }
+        // pompon
+        ctx.fillStyle = '#1ABC9C';
+        ctx.beginPath(); ctx.arc(cx, y, 2.5, 0, 6.28); ctx.fill();
     }
     // Helper : tracé d'un rectangle à coins arrondis
     _rr(ctx, x, y, w, h, r) {

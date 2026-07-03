@@ -4,6 +4,7 @@ import { AudioManager } from './audio.js';
 import { NIVEAUX, medaillePour, seuilsMedailles, MEDAILLE_EMOJI } from './levels.js';
 import { HighScoreManager, ProgressManager } from './storage.js';
 import { DemoBot } from './demo.js';
+import { SkinManager } from './skins.js';
 import { afficherHallOfFame } from './ui.js';
 /* Game — moteur de jeu (boucle, physique, rendu) */
 
@@ -21,6 +22,12 @@ export class Game {
         this.modeDemo = false; // « attract mode » : le jeu se joue tout seul
         this.hs = new HighScoreManager();
         this.progress = new ProgressManager(NIVEAUX.length);
+        // 🎨 Boutique : portefeuille + skins. Bonus de bienvenue pour les
+        // joueurs existants (30 🪙 par niveau déjà débloqué).
+        this.skins = new SkinManager();
+        if (this.skins.premierLancement && this.progress.niveauDebloque > 0) {
+            this.skins.crediter(this.progress.niveauDebloque * 30);
+        }
         this.niveauActuel = 0; this.scoreTotal = 0; this.tempsTotal = 0;
         this.tempsNiveau = 0; this.frameCount = 0; this.vies = 5;
         this.scoreCumul = 0; // Score total affiché pendant le jeu (pièces + ennemis + power-ups)
@@ -84,6 +91,7 @@ export class Game {
         this.boss = null;
         this.bossVaincu = false;
         this.player = new Player(spawn.x, spawn.y);
+        this.player.skin = this.skins.config();
         this.player.checkpointX = spawn.x; this.player.checkpointY = spawn.y;
         this.player.mondeW = this.mondeW; this.player.mondeH = this.mondeH;
         const platSafe = this.niveau.filter(p=>p.type==='herbe');
@@ -319,6 +327,7 @@ export class Game {
             piece.update();
             if(piece.testerCollecte(this.player)){
                 this.scoreNiveau++; this.audio.piece();
+                if (!this.modeDemo && !this.modeTest) this.skins.crediter(1); // 🪙 boutique
                 if (this.modeDemo) this._demoDernierePiece = this.frameCount;
                 this.scoreCumul += 100; this.piecesTotal++;
                 if(navigator.vibrate)navigator.vibrate(30);

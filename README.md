@@ -100,6 +100,15 @@ Le **meilleur temps** de chaque niveau est mémorisé (il ne peut que s'amélior
 
 ---
 
+## 🎨 Boutique de skins
+
+Chaque pièce ramassée en partie normale (ni démo, ni test de l'éditeur) alimente un **portefeuille 🪙 persistant**. Le bouton **🎨 BOUTIQUE** du menu permet de le dépenser pour habiller Pixou :
+- **7 couleurs de corps** : Rouge (défaut), Bleu et Vert (60 🪙), Violet et Rose (90), Nuit (150), Or (250) ;
+- **5 chapeaux** : Casquette turquoise (défaut), Tête nue (gratuit), cône de Fête (80), chapeau de Magicien étoilé (120), Couronne à joyaux (200) ;
+- **Lunettes de soleil** 🕶️ (100), avec reflet.
+
+Acheter équipe automatiquement ; taper un article possédé l'équipe. Le skin s'applique **partout** : en jeu (avec toutes les expressions et animations de Pixou), et la mascotte de l'accueil prend la couleur choisie. Les joueurs existants reçoivent un **bonus de bienvenue** de 30 🪙 par niveau déjà débloqué. Le tout est couvert par la sauvegarde exportable (clés `supercarre_skins` et `supercarre_portefeuille`).
+
 ## 🗺️ Les 24 niveaux
 
 La difficulté monte progressivement. À partir du niveau 9, les mondes deviennent **plus grands que l'écran** : la caméra suit le joueur (scrolling horizontal et/ou vertical). Tous les 6 niveaux (6, 12, 18, 24), un **combat de boss** 👑 t'attend.
@@ -245,6 +254,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 🎨 v41 — boutique de skins
+
+Les pièces servent enfin ! **Portefeuille 🪙 persistant** (chaque pièce ramassée hors démo/test), **boutique** au menu avec 14 articles en 3 catégories (7 couleurs de corps, 5 chapeaux dessinés au canvas — couronne à joyaux, cône de fête rayé, chapeau de magicien étoilé —, lunettes de soleil à reflet), achat = équipé, bonus de bienvenue de 30 🪙 par niveau débloqué pour les joueurs existants, mascotte de l'accueil recolorée en direct, et compatibilité totale avec la sauvegarde exportable. Validation : 9 tests unitaires du gestionnaire (achat, refus, persistance, sécurité) et rendu des **70 combinaisons de skins** sans erreur.
 
 ### 📖 v40 — aide et documentation à jour
 

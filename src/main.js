@@ -6,6 +6,7 @@ import { NIVEAUX, medaillePour, MEDAILLE_EMOJI } from './levels.js';
 import { setupControls } from './controls.js';
 import { afficherHallOfFame, partagerScores, afficherToast } from './ui.js';
 import { exporterSauvegarde, importerSauvegarde } from './storage.js';
+import { CATALOGUE } from './skins.js';
 import './style.css';
 
 /* === Prologue : Service Worker (PWA) + invite d'installation === */
@@ -114,6 +115,74 @@ function init() {
         void logo.offsetWidth; // relance l'animation même en tapotant vite
         logo.classList.add('hop');
     });
+
+    // --- 🎨 BOUTIQUE DE SKINS ---
+    const CAT_TITRES = { corps: '🎨 Couleur de Pixou', chapeau: '🧢 Chapeaux', lunettes: '🕶️ Lunettes' };
+    function majMascotte() {
+        // La mascotte de l'accueil prend la couleur équipée
+        const cfg = game.skins.config();
+        const svg = document.querySelector('#start-screen .logo svg');
+        if (!svg) return;
+        const stops = svg.querySelectorAll('linearGradient stop');
+        if (stops.length >= 2) { stops[0].setAttribute('stop-color', cfg.haut); stops[1].setAttribute('stop-color', cfg.bas); }
+        const corpsRect = svg.querySelector('rect[stroke]');
+        if (corpsRect) corpsRect.setAttribute('stroke', cfg.bord);
+    }
+    function dessinerBoutique() {
+        document.getElementById('shop-wallet').textContent = '🪙 ' + game.skins.solde();
+        const soldeBtn = document.getElementById('btn-shop-solde');
+        if (soldeBtn) soldeBtn.textContent = '· 🪙 ' + game.skins.solde();
+        const grid = document.getElementById('shop-grid');
+        grid.innerHTML = '';
+        for (const [cat, items] of Object.entries(CATALOGUE)) {
+            const titre = document.createElement('div');
+            titre.className = 'shop-cat';
+            titre.textContent = CAT_TITRES[cat] || cat;
+            grid.appendChild(titre);
+            const rangee = document.createElement('div');
+            rangee.className = 'shop-tiles';
+            for (const item of items) {
+                const possede = game.skins.possede(cat, item.id);
+                const porte = game.skins.equipes[cat] === item.id;
+                const tile = document.createElement('button');
+                tile.className = 'shop-tile' + (porte ? ' porte' : '') + (!possede ? ' verrou' : '');
+                const apercu = item.haut
+                    ? `<span class="shop-preview" style="background:linear-gradient(180deg,${item.haut},${item.bas})"></span>`
+                    : `<span class="shop-preview" style="background:rgba(255,255,255,.08)">${item.emoji}</span>`;
+                const etat = porte ? '✓ porté' : (possede ? 'possédé' : `🪙 ${item.prix}`);
+                tile.innerHTML = `${apercu}<span class="shop-nom">${item.nom}</span><span class="shop-prix${!possede && game.skins.solde() >= item.prix ? ' ok' : ''}">${etat}</span>`;
+                tile.addEventListener('click', () => {
+                    game.audio.init(); game.audio.resume();
+                    if (possede) {
+                        if (!porte) { game.skins.equiper(cat, item.id); game.audio.saut(); }
+                    } else if (game.skins.solde() >= item.prix) {
+                        if (confirm(`Acheter « ${item.nom} » pour 🪙 ${item.prix} ?`)) {
+                            game.skins.acheter(cat, item.id);
+                            game.audio.victoire();
+                            if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
+                        }
+                    } else {
+                        afficherToast(`🪙 Il te manque ${item.prix - game.skins.solde()} pièces — retourne en ramasser !`);
+                        return;
+                    }
+                    if (game.player) game.player.skin = game.skins.config();
+                    majMascotte();
+                    dessinerBoutique();
+                });
+                rangee.appendChild(tile);
+            }
+            grid.appendChild(rangee);
+        }
+    }
+    document.getElementById('btn-shop').addEventListener('click', () => {
+        game.audio.init(); game.audio.resume();
+        dessinerBoutique();
+        document.getElementById('shop-screen').classList.add('show');
+    });
+    document.getElementById('btn-shop-back').addEventListener('click', () => {
+        document.getElementById('shop-screen').classList.remove('show');
+    });
+    majMascotte();
 
     // Bouton AIDE
     document.getElementById('btn-help').addEventListener('click', () => {
