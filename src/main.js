@@ -183,6 +183,8 @@ function init() {
         document.getElementById('shop-screen').classList.remove('show');
     });
     majMascotte();
+    // Solde 🪙 visible sur le bouton dès l'accueil
+    { const sb = document.getElementById('btn-shop-solde'); if (sb) sb.textContent = '· 🪙 ' + game.skins.solde(); }
 
     // Bouton AIDE
     document.getElementById('btn-help').addEventListener('click', () => {
@@ -249,7 +251,7 @@ function init() {
             const niv = game.progress.niveauDebloque + 1;
             btnContinue.innerHTML = `▶ CONTINUER <span class="lvl">niv. ${niv}</span>`;
             btnContinue.style.display = 'inline-block';
-            btnStart.textContent = '🔄 NOUVELLE PARTIE';
+            btnStart.textContent = '🔄 RECOMMENCER';
             btnStart.classList.add('secondaire');
         } else {
             btnContinue.style.display = 'none';

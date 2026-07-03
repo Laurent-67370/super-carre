@@ -255,6 +255,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 💅 v42 — bouton Boutique stylé + aide complétée
+
+Le bouton 🎨 BOUTIQUE (qui héritait du style navigateur par défaut) devient une **pilule pleine largeur au dégradé violet-rose** du jeu, liseré doré et **solde 🪙 affiché en permanence** dessus. Le bouton « Nouvelle partie » raccourci en **🔄 RECOMMENCER** (il débordait de sa demi-colonne). L'aide gagne une **carte 🎨 Boutique** (portefeuille, catalogue, achat = équipé).
+
 ### 🎨 v41 — boutique de skins
 
 Les pièces servent enfin ! **Portefeuille 🪙 persistant** (chaque pièce ramassée hors démo/test), **boutique** au menu avec 14 articles en 3 catégories (7 couleurs de corps, 5 chapeaux dessinés au canvas — couronne à joyaux, cône de fête rayé, chapeau de magicien étoilé —, lunettes de soleil à reflet), achat = équipé, bonus de bienvenue de 30 🪙 par niveau débloqué pour les joueurs existants, mascotte de l'accueil recolorée en direct, et compatibilité totale avec la sauvegarde exportable. Validation : 9 tests unitaires du gestionnaire (achat, refus, persistance, sécurité) et rendu des **70 combinaisons de skins** sans erreur.
