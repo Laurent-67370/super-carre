@@ -266,6 +266,29 @@ function init() {
     }
     document.getElementById('btn-crawl').addEventListener('click', () => {
         const scr = document.getElementById('crawl-screen');
+        // Pixou en apesanteur = CLONE de la mascotte personnalisée (skin complet).
+        // Les ids clonés (gradient, clipPath) sont renommés pour rester uniques.
+        const source = document.querySelector('#start-screen .logo svg');
+        const conteneur = document.getElementById('crawl-pixou');
+        if (source && conteneur) {
+            majMascotte(); // s'assurer que la mascotte reflète le skin courant
+            const clone = source.cloneNode(true);
+            clone.setAttribute('width', '80'); clone.setAttribute('height', '80');
+            const grad = clone.querySelector('linearGradient');
+            if (grad) {
+                grad.id = 'pixou-body-crawlclone';
+                const corps = clone.querySelector('rect[fill^="url"]');
+                if (corps) corps.setAttribute('fill', 'url(#pixou-body-crawlclone)');
+            }
+            const clip = clone.querySelector('clipPath');
+            if (clip) {
+                clip.id = clip.id + '-crawlclone';
+                const porteur = clone.querySelector('[clip-path]');
+                if (porteur) porteur.setAttribute('clip-path', 'url(#' + clip.id + ')');
+            }
+            conteneur.innerHTML = '';
+            conteneur.appendChild(clone);
+        }
         // Champ d'étoiles généré une seule fois (~110 étoiles)
         const stars = document.getElementById('crawl-stars');
         if (!stars.childElementCount) {

@@ -257,6 +257,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 🪞 v47 — l intro et la démo respectent la personnalisation
+
+Le Pixou en apesanteur du générique est désormais un **clone en direct de la mascotte personnalisée** (couleur — y compris Studio 🌈 —, chapeau, costume, lunettes), avec renommage des ids SVG clonés (dégradé, clipPath) pour rester valides. Le texte du générique devient neutre (« courageux petit carré dans sa tenue du jour »). La **démo utilisait déjà le skin** (le joueur est créé à un seul endroit du moteur) — vérifié.
+
 ### 🦸 v46 — nouveaux chapeaux et costumes
 
 Le catalogue passe à **31 articles** : 4 nouveaux chapeaux (bandana de pirate à pois avec nœud flottant, cowboy à larges bords, mortier de diplômé avec pompon orienté selon la direction, casque de viking à cornes) et une **nouvelle catégorie Costumes** — nœud papillon, écharpe au pan flottant animé, ceinture de karatéka, et la **cape de héros** dessinée derrière Pixou dont l'ondulation s'amplifie avec la vitesse de course. Chaque article existe en version canvas (jeu) et SVG (mascotte de l'accueil). Validation : 90 combinaisons chapeau × costume × lunettes rendues sans erreur.
