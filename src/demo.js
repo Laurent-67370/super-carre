@@ -30,6 +30,96 @@ export class DemoBot {
         if (!p || p.mort) return;
         const px = p.x + p.largeur / 2, py = p.y + p.hauteur / 2;
 
+        // ════════════════════════════════════════════════════════
+        //  NAVIGATION PLANIFIÉE — graphe des plateformes
+        //  Nœuds = plateformes praticables. Arêtes = sauts possibles
+        //  (portée mesurée : ~190 px de haut avec maintien, ~150 px
+        //  de large en course) + arêtes « ressort » (super saut).
+        //  Un BFS donne le chemin complet vers la pièce visée.
+        // ════════════════════════════════════════════════════════
+        if (this._nivRef !== game.niveau) {
+            this._nivRef = game.niveau;
+            this._graphe = this._construireGraphe(game);
+        }
+        return this._piloterCorps(game, p, t, px, py);
+    }
+
+    _construireGraphe(game) {
+        const plats = game.niveau.filter(pl => pl.type !== 'mur' && pl.largeur >= 40);
+        const aretes = new Map(); // index plateforme → [{vers, ressort?}]
+        const gapH = (a, b) => Math.max(0, b.x - (a.x + a.largeur), a.x - (b.x + b.largeur));
+        for (let i = 0; i < plats.length; i++) {
+            const liste = [];
+            for (let j = 0; j < plats.length; j++) {
+                if (i === j) continue;
+                const a = plats[i], b = plats[j];
+                const montee = a.y - b.y; // >0 : b est plus haute
+                const gap = gapH(a, b);
+                // Saut montant (maintenu) / saut plat / descente pilotée
+                if ((montee > 0 && montee <= 185 && gap <= 140) ||
+                    (montee <= 0 && gap <= 170)) {
+                    liste.push({ vers: j });
+                }
+            }
+            aretes.set(i, liste);
+        }
+        // Arêtes ressort : depuis la plateforme qui porte le ressort,
+        // vers toute plateforme bien plus haute pilotable en vol.
+        for (const r of (game.ressorts || [])) {
+            const rcx = r.x + r.largeur / 2;
+            let porteur = -1, py0 = Infinity;
+            for (let i = 0; i < plats.length; i++) {
+                const pl = plats[i];
+                if (rcx >= pl.x - 4 && rcx <= pl.x + pl.largeur + 4 && pl.y >= r.y && pl.y < py0) { porteur = i; py0 = pl.y; }
+            }
+            if (porteur < 0) continue;
+            for (let j = 0; j < plats.length; j++) {
+                const monte = plats[porteur].y - plats[j].y;
+                const derive = Math.abs((plats[j].x + plats[j].largeur / 2) - rcx);
+                if (monte > 140 && monte <= 480 && derive <= 260) {
+                    aretes.get(porteur).push({ vers: j, ressort: r });
+                }
+            }
+        }
+        return { plats, aretes };
+    }
+
+    // Plateforme sous un point (la plus haute dont le dessus est sous y)
+    _platSous(x, y) {
+        const { plats } = this._graphe;
+        let best = -1, by = Infinity;
+        for (let i = 0; i < plats.length; i++) {
+            const pl = plats[i];
+            if (x >= pl.x - 6 && x <= pl.x + pl.largeur + 6 && pl.y >= y - 8 && pl.y < by) { best = i; by = pl.y; }
+        }
+        return best;
+    }
+
+    // BFS : prochaine étape (arête) du chemin de `depuis` vers `vers`
+    _prochaineEtape(depuis, vers) {
+        if (depuis < 0 || vers < 0 || depuis === vers) return null;
+        const { aretes } = this._graphe;
+        const pred = new Map([[depuis, null]]);
+        const file = [depuis];
+        while (file.length) {
+            const n = file.shift();
+            for (const a of (aretes.get(n) || [])) {
+                if (pred.has(a.vers)) continue;
+                pred.set(a.vers, { de: n, arete: a });
+                if (a.vers === vers) {
+                    // Remonter jusqu'à la première étape après `depuis`
+                    let cur = vers, lien = pred.get(cur);
+                    while (lien && lien.de !== depuis) { cur = lien.de; lien = pred.get(cur); }
+                    return lien ? lien.arete : null;
+                }
+                file.push(a.vers);
+            }
+        }
+        return null;
+    }
+
+    _piloterCorps(game, p, t, px, py) {
+
         // ── Choix de la cible ─────────────────────────────────
         let cx, cy, modeBoss = false;
         if (game.boss && !game.boss.mort) {
@@ -88,6 +178,29 @@ export class DemoBot {
                 this.waypoint = { x: ressort.x + ressort.largeur / 2, y: ressort.y - 16 };
                 this.waypointFin = this.frame + 300;
                 this.cibleFrames = 60; // laisser 4 s à la route ressort avant de réessayer
+            }
+        }
+
+        // ── CHEMIN PLANIFIÉ (BFS) : prochaine étape vers la cible ──
+        // Au sol et sans engagement en cours : plateforme actuelle →
+        // plateforme de la cible ; l'étape suivante devient le waypoint.
+        if (!modeBoss && p.onGround && !this.waypoint && this.cible) {
+            const ici = this._platSous(px, p.y + p.hauteur);
+            const but = this._platSous(this.cible.x, this.cible.y);
+            const etape = this._prochaineEtape(ici, but);
+            if (etape) {
+                const { plats } = this._graphe;
+                if (etape.ressort) {
+                    const r = etape.ressort;
+                    this.waypoint = { x: r.x + r.largeur / 2, y: r.y - 16 };
+                } else {
+                    const b = plats[etape.vers];
+                    this.waypoint = {
+                        x: Math.max(b.x + 16, Math.min(this.cible.x, b.x + b.largeur - 16)),
+                        y: b.y - 30
+                    };
+                }
+                this.waypointFin = this.frame + 180;
             }
         }
 
@@ -178,7 +291,10 @@ export class DemoBot {
                 if (!plafond || bas > plafond.y + plafond.hauteur) plafond = pl;
             }
         }
-        if (plafond && cy < py - 24) {
+        // Le plafond ne gêne que si la cible est AU-DESSUS de lui : pour une
+        // cible située sous le plafond, un saut dosé passe sans le toucher.
+        const plafondBloque = plafond && cy < (plafond.y + plafond.hauteur) + 50;
+        if (plafondBloque && cy < py - 24) {
             // Sortir de sous le plafond par le bord qui rapproche de la cible
             const gauche = plafond.x - 26, droite = plafond.x + plafond.largeur + 26;
             cx = Math.abs(gauche - cx) < Math.abs(droite - cx) ? gauche : droite;
@@ -192,6 +308,18 @@ export class DemoBot {
             t.left = this.reculDir < 0; t.right = this.reculDir > 0;
             this.lastX = p.x;
             return;
+        }
+
+        // ── Descente : la cible est EN DESSOUS et la plateforme actuelle
+        //    bloque la verticale → marcher jusqu'au bord le plus proche
+        //    de la cible et se laisser tomber (pilotage en chute ensuite).
+        if (!modeBoss && p.onGround && cy > py + 30) {
+            const idxIci = this._platSous(px, p.y + p.hauteur);
+            const ici = idxIci >= 0 ? this._graphe.plats[idxIci] : null;
+            if (ici && cx >= ici.x - 6 && cx <= ici.x + ici.largeur + 6) {
+                const gauche = ici.x - 12, droite = ici.x + ici.largeur + 12;
+                cx = Math.abs(droite - cx) < Math.abs(gauche - cx) ? droite : gauche;
+            }
         }
 
         // ── Déplacement horizontal ────────────────────────────
@@ -209,7 +337,7 @@ export class DemoBot {
         let sauter = false;
         if (p.onGround) {
             // Cible nettement au-dessus et pas trop loin (jamais sous une plateforme !)
-            if (!sousPlafond && !plafond && dy < -24 && Math.abs(dx) < 180) sauter = true;
+            if (!sousPlafond && !plafondBloque && dy < -24 && Math.abs(dx) < 180) sauter = true;
             // Coincé contre un obstacle
             if (this.blocage > 24) sauter = true;
             // Trou devant : aucune plateforme sous le pas suivant
@@ -223,7 +351,8 @@ export class DemoBot {
                 if (!sol) sauter = true;
             }
             // Ennemi vivant droit devant à hauteur de Pixou → bondir dessus
-            if (dir !== 0 && !sauter) {
+            // (sauf en pleine descente : sauter interromprait la manœuvre)
+            if (dir !== 0 && !sauter && cy < py + 30) {
                 for (const e of game.ennemis) {
                     if (e.mort) continue;
                     const ex = (e.x + e.largeur / 2) - px;
@@ -241,7 +370,7 @@ export class DemoBot {
                     if (dist > 0 && dist < 60 && Math.abs(s.y - piedsY) < 40) {
                         // Sous un plafond on continue d avancer (il se termine souvent
                         // avant les pics) ; on ne recule qu au contact imminent.
-                        if (!plafond) sauter = true;
+                        if (!plafondBloque) sauter = true;
                         else if (dist < 22) { this.recul = 30; this.reculDir = -dir; }
                         break;
                     }
@@ -254,7 +383,13 @@ export class DemoBot {
         // En vol ascendant rapide (ressort !) : maintenir le saut → la gravité
         // réduite du saut variable fait monter bien plus haut, comme un vrai joueur.
         if (!p.onGround && p.vy < -2 && dy < -20) t.jump = true;
-        if (sauter && this.sautHold === 0 && this.sautRepos === 0) this.sautHold = 13; // maintien ≈ grand saut
+        if (sauter && this.sautHold === 0 && this.sautRepos === 0) {
+            // Saut dosé : maintien proportionnel à la hauteur à gagner
+            // (~55 px en bref appui, ~200 px en maintien complet). Les sauts
+            // de franchissement (trou, pics, blocage) restent au maximum.
+            const besoin = dy < -10 ? -dy : 999;
+            this.sautHold = besoin <= 45 ? 5 : besoin <= 90 ? 8 : besoin <= 135 ? 11 : 13;
+        }
         if (this.sautHold > 0) {
             t.jump = true;
             this.sautHold--;
