@@ -240,6 +240,9 @@ export class Player {
         // --- Corps arrondi (rouge, dégradé léger) ---
         // --- Skin (🎨 boutique) : couleurs du corps équipées ---
         const cHaut = skin.haut || '#FF6B5C', cBas = skin.bas || '#E74C3C', cBord = skin.bord || '#C0392B';
+        // Cape de héros : DERRIÈRE le corps, ondule avec le temps et la course
+        this._animT = (this._animT || 0) + 1;
+        if (skin.costume === 'cape') this._dessinerCape(ctx, x, y, L, H, dir);
         const bodyGrad = ctx.createLinearGradient(x, y, x, y + H);
         bodyGrad.addColorStop(0, cHaut);
         bodyGrad.addColorStop(1, cBas);
@@ -317,6 +320,9 @@ export class Player {
         ctx.beginPath(); ctx.arc(cx - 9, y + H - 9, 2, 0, 6.28); ctx.fill();
         ctx.beginPath(); ctx.arc(cx + 9, y + H - 9, 2, 0, 6.28); ctx.fill();
 
+        // --- Costume (🎨 boutique) : nœud, écharpe, ceinture ---
+        this._dessinerCostume(ctx, skin.costume, x, y, L, H, cx, dir);
+
         // --- Lunettes de soleil 🕶️ (skin) : par-dessus les yeux ---
         if (skin.lunettes) {
             ctx.fillStyle = '#1a1a2e';
@@ -335,6 +341,63 @@ export class Player {
         ctx.restore();  // fin squash & stretch
 
         ctx.globalAlpha = 1;
+    }
+    // --- Costumes (🎨 boutique) ---
+    _dessinerCape(ctx, x, y, L, H, dir) {
+        // Cape rouge qui flotte du côté opposé à la direction
+        const onde = Math.sin(this._animT * 0.15) * 3;
+        const vit = Math.min(Math.abs(this.vx || 0), 5);
+        const ampleur = 10 + vit * 2.2;
+        const ax = dir > 0 ? x + 3 : x + L - 3; // attache épaule
+        const bx = ax - dir * ampleur;          // bas de cape
+        ctx.fillStyle = '#C0392B';
+        ctx.beginPath();
+        ctx.moveTo(ax - 2 * dir, y + 7);
+        ctx.quadraticCurveTo(bx - 4 * dir, y + 12 + onde * 0.4, bx, y + H - 5 + onde);
+        ctx.lineTo(bx + dir * 6, y + H - 2 + onde * 0.6);
+        ctx.quadraticCurveTo(ax - dir * 3, y + H - 6, ax + 2 * dir, y + H - 10);
+        ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#922B21'; ctx.lineWidth = 1.4;
+        ctx.stroke();
+    }
+    _dessinerCostume(ctx, type, x, y, L, H, cx, dir) {
+        if (!type || type === 'aucun' || type === 'cape') return;
+        if (type === 'noeud') {
+            // Nœud papillon sous le sourire
+            const ny = y + H - 5;
+            ctx.fillStyle = '#8E44AD';
+            ctx.beginPath(); ctx.moveTo(cx - 1.5, ny); ctx.lineTo(cx - 8, ny - 4); ctx.lineTo(cx - 8, ny + 4); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(cx + 1.5, ny); ctx.lineTo(cx + 8, ny - 4); ctx.lineTo(cx + 8, ny + 4); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#6C3483';
+            ctx.beginPath(); ctx.arc(cx, ny, 2.4, 0, 6.28); ctx.fill();
+            return;
+        }
+        if (type === 'echarpe') {
+            // Écharpe rouge : bande + pan flottant côté opposé à la course
+            const ey = y + H - 12;
+            ctx.fillStyle = '#E74C3C';
+            this._rr(ctx, x - 1, ey, L + 2, 6, 3); ctx.fill();
+            const px2 = dir > 0 ? x + 2 : x + L - 2;
+            const onde = Math.sin(this._animT * 0.18) * 2.5;
+            ctx.beginPath();
+            ctx.moveTo(px2, ey + 3);
+            ctx.quadraticCurveTo(px2 - dir * 9, ey + 8 + onde, px2 - dir * 7, ey + 15 + onde);
+            ctx.lineTo(px2 - dir * 2, ey + 13 + onde * 0.6);
+            ctx.quadraticCurveTo(px2 - dir * 4, ey + 8, px2, ey + 5.5);
+            ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = '#C0392B'; ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(x - 1, ey + 3); ctx.lineTo(x + L + 1, ey + 3); ctx.stroke();
+            return;
+        }
+        if (type === 'ceinture') {
+            // Ceinture noire de karatéka : bande + nœud + pans
+            const by = y + H - 11;
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(x - 1, by, L + 2, 5);
+            ctx.fillRect(cx - 3, by - 1, 6, 7);
+            ctx.beginPath(); ctx.moveTo(cx - 2, by + 5); ctx.lineTo(cx - 6, by + 12); ctx.lineTo(cx - 2.5, by + 11); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(cx + 2, by + 5); ctx.lineTo(cx + 6, by + 12); ctx.lineTo(cx + 2.5, by + 11); ctx.closePath(); ctx.fill();
+        }
     }
     // --- Chapeaux (🎨 boutique) ---
     _dessinerChapeau(ctx, type, x, y, L, cx, dir) {
@@ -379,6 +442,59 @@ export class Player {
             ctx.fillStyle = '#F4D03F';
             const et = (ex, ey, r) => { ctx.beginPath(); for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 4 * Math.PI / 5; ctx.lineTo(ex + Math.cos(a) * r, ey + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); };
             et(cx - 3, y - 4, 2.2); et(cx + 4, y - 9, 1.7);
+            return;
+        }
+        if (type === 'bandana') {
+            // Bandana de pirate : bandeau rouge à pois, nœud flottant à l'arrière
+            ctx.fillStyle = '#C0392B';
+            this._rr(ctx, x - 1, y, L + 2, 8.5, 4); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx, y + 1, 8, Math.PI, 0); ctx.fill();
+            ctx.fillStyle = '#fff';
+            for (const [dx2, dy2] of [[-8, 4], [-2, 2], [4, 5], [9, 3], [1, 6.5]]) {
+                ctx.beginPath(); ctx.arc(cx + dx2, y + dy2, 1.1, 0, 6.28); ctx.fill();
+            }
+            // nœud + pans côté opposé à la direction
+            const nx = dir > 0 ? x - 2 : x + L + 2;
+            ctx.fillStyle = '#A93226';
+            ctx.beginPath(); ctx.moveTo(nx, y + 3); ctx.lineTo(nx - 7 * dir, y + 1); ctx.lineTo(nx - 5 * dir, y + 6); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(nx, y + 4); ctx.lineTo(nx - 6 * dir, y + 9); ctx.lineTo(nx - 2 * dir, y + 8); ctx.closePath(); ctx.fill();
+            return;
+        }
+        if (type === 'cowboy') {
+            // Chapeau de cowboy : large bord + calotte + ruban
+            ctx.fillStyle = '#8E5B3A';
+            ctx.beginPath(); ctx.ellipse(cx, y + 5.5, L / 2 + 8, 4, 0, 0, 6.28); ctx.fill();
+            ctx.fillStyle = '#7A4A2B';
+            this._rr(ctx, cx - 8.5, y - 8, 17, 14, 5); ctx.fill();
+            ctx.fillStyle = '#4E342E';
+            ctx.fillRect(cx - 8.5, y + 1.5, 17, 3);
+            return;
+        }
+        if (type === 'viking') {
+            // Casque de viking : dôme métallique + bandeau + cornes
+            ctx.fillStyle = '#95A5A6';
+            ctx.beginPath(); ctx.arc(cx, y + 6, 12, Math.PI, 0); ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = '#707B7C'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(cx, y + 6, 12, Math.PI, 0); ctx.stroke();
+            ctx.fillStyle = '#707B7C';
+            ctx.fillRect(cx - 12, y + 4.5, 24, 2.5);
+            // cornes
+            ctx.fillStyle = '#F7F9F9';
+            ctx.beginPath(); ctx.moveTo(cx - 11, y + 3); ctx.quadraticCurveTo(cx - 20, y - 2, cx - 17, y - 11); ctx.quadraticCurveTo(cx - 14, y - 3, cx - 8, y - 1); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(cx + 11, y + 3); ctx.quadraticCurveTo(cx + 20, y - 2, cx + 17, y - 11); ctx.quadraticCurveTo(cx + 14, y - 3, cx + 8, y - 1); ctx.closePath(); ctx.fill();
+            return;
+        }
+        if (type === 'diplome') {
+            // Mortier de diplômé : calotte + plateau losange + pompon doré
+            ctx.fillStyle = '#1a1a2e';
+            this._rr(ctx, cx - 8, y + 1, 16, 6, 2); ctx.fill();
+            ctx.beginPath();
+            ctx.moveTo(cx - 14, y + 1); ctx.lineTo(cx, y - 5); ctx.lineTo(cx + 14, y + 1); ctx.lineTo(cx, y + 6);
+            ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = '#F4D03F'; ctx.lineWidth = 1.2;
+            ctx.beginPath(); ctx.moveTo(cx, y - 1); ctx.lineTo(cx + 12 * dir, y + 2); ctx.lineTo(cx + 12 * dir, y + 8); ctx.stroke();
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath(); ctx.arc(cx + 12 * dir, y + 9, 2, 0, 6.28); ctx.fill();
             return;
         }
         // Casquette (turquoise par défaut — libre avec le Studio 🌈)

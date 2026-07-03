@@ -27,8 +27,19 @@ export const CATALOGUE = {
         { id: 'casquette', nom: 'Casquette', prix: 0,   emoji: '🧢' },
         { id: 'aucun',     nom: 'Tête nue',  prix: 0,   emoji: '🚫' },
         { id: 'fete',      nom: 'Fête',      prix: 80,  emoji: '🥳' },
+        { id: 'bandana',   nom: 'Pirate',    prix: 100, emoji: '🏴‍☠️' },
+        { id: 'cowboy',    nom: 'Cowboy',    prix: 120, emoji: '🤠' },
         { id: 'magicien',  nom: 'Magicien',  prix: 120, emoji: '🎩' },
+        { id: 'diplome',   nom: 'Diplômé',   prix: 150, emoji: '🎓' },
+        { id: 'viking',    nom: 'Viking',    prix: 180, emoji: '⚔️' },
         { id: 'couronne',  nom: 'Couronne',  prix: 200, emoji: '👑' }
+    ],
+    costume: [
+        { id: 'aucun',    nom: 'Aucun',        prix: 0,   emoji: '🚫' },
+        { id: 'noeud',    nom: 'Nœud pap.',    prix: 80,  emoji: '🎀' },
+        { id: 'echarpe',  nom: 'Écharpe',      prix: 120, emoji: '🧣' },
+        { id: 'ceinture', nom: 'Karatéka',     prix: 150, emoji: '🥋' },
+        { id: 'cape',     nom: 'Cape de héros', prix: 200, emoji: '🦸' }
     ],
     lunettes: [
         { id: 'aucune', nom: 'Aucune', prix: 0,   emoji: '🙂' },
@@ -36,7 +47,7 @@ export const CATALOGUE = {
     ]
 };
 
-const DEFAUTS = { corps: 'rouge', chapeau: 'casquette', lunettes: 'aucune' };
+const DEFAUTS = { corps: 'rouge', chapeau: 'casquette', lunettes: 'aucune', costume: 'aucun' };
 const CUSTOM_DEFAUTS = { corps: '#E74C3C', casquette: '#16A085', pieds: '#F1C40F' };
 
 // --- Aides couleur : éclaircir/assombrir un hex (#RRGGBB) ---
@@ -133,6 +144,7 @@ export class SkinManager {
         const cfg = {
             haut, bas, bord,
             chapeau: this.equipes.chapeau,
+            costume: this.equipes.costume,
             lunettes: this.equipes.lunettes === 'soleil'
         };
         // Couleurs de tenue (casquette, pieds) — libres si le Studio est débloqué

@@ -117,7 +117,7 @@ function init() {
     });
 
     // --- 🎨 BOUTIQUE DE SKINS ---
-    const CAT_TITRES = { corps: '🎨 Couleur de Pixou', chapeau: '🧢 Chapeaux', lunettes: '🕶️ Lunettes', studio: '🌈 Studio de couleurs' };
+    const CAT_TITRES = { corps: '🎨 Couleur de Pixou', chapeau: '🧢 Chapeaux', costume: '🦸 Costumes', lunettes: '🕶️ Lunettes', studio: '🌈 Studio de couleurs' };
     function majMascotte() {
         // La mascotte de l'accueil porte le skin complet : couleur,
         // chapeau (casquette/couronne/fête/magicien/tête nue) et lunettes.
@@ -128,12 +128,16 @@ function init() {
         if (stops.length >= 2) { stops[0].setAttribute('stop-color', cfg.haut); stops[1].setAttribute('stop-color', cfg.bas); }
         const corpsRect = svg.querySelector('rect[stroke]');
         if (corpsRect) corpsRect.setAttribute('stroke', cfg.bord);
-        for (const id of ['casquette', 'couronne', 'fete', 'magicien']) {
+        for (const id of ['casquette', 'couronne', 'fete', 'magicien', 'bandana', 'cowboy', 'viking', 'diplome']) {
             const g = svg.querySelector('#mascotte-chap-' + id);
             if (g) g.style.display = cfg.chapeau === id ? '' : 'none';
         }
         const lun = svg.querySelector('#mascotte-lunettes');
         if (lun) lun.style.display = cfg.lunettes ? '' : 'none';
+        for (const id of ['noeud', 'echarpe', 'ceinture', 'cape']) {
+            const g = svg.querySelector('#mascotte-cost-' + id);
+            if (g) g.style.display = cfg.costume === id ? '' : 'none';
+        }
         // 🌈 Studio : casquette et pieds aux couleurs libres
         const casq = svg.querySelector('#mascotte-chap-casquette');
         if (casq) {

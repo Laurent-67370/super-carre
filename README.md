@@ -104,7 +104,8 @@ Le **meilleur temps** de chaque niveau est mémorisé (il ne peut que s'amélior
 
 Chaque pièce ramassée en partie normale (ni démo, ni test de l'éditeur) alimente un **portefeuille 🪙 persistant**. Le bouton **🎨 BOUTIQUE** du menu permet de le dépenser pour habiller Pixou :
 - **14 couleurs de corps** : Rouge (défaut), Bleu, Vert, Orange et Turquoise (60 🪙), Violet, Rose, Menthe et Lavande (90), Corail (120), Océan, Chocolat et Nuit (150), Or (250) ;
-- **5 chapeaux** : Casquette turquoise (défaut), Tête nue (gratuit), cône de Fête (80), chapeau de Magicien étoilé (120), Couronne à joyaux (200) ;
+- **9 chapeaux** : Casquette turquoise (défaut), Tête nue (gratuit), cône de Fête (80), Bandana de pirate à pois (100), Cowboy (120), Magicien étoilé (120), Mortier de diplômé avec pompon (150), Casque de viking à cornes (180), Couronne à joyaux (200) ;
+- **4 costumes** : Nœud papillon (80), Écharpe avec pan flottant (120), Ceinture de karatéka (150), **Cape de héros** (200) — dessinée derrière Pixou, elle **ondule selon sa vitesse de course** ;
 - **Lunettes de soleil** 🕶️ (100), avec reflet ;
 - **🌈 Studio de couleurs** (300) : des **sélecteurs de couleur libres** pour le corps (dégradé et contour dérivés automatiquement de la teinte choisie), la **casquette** (visière et pompon nuancés) et les **pieds** — appliqués en jeu comme sur la mascotte, avec bouton ↺ retour aux couleurs d'origine.
 
@@ -255,6 +256,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 🦸 v46 — nouveaux chapeaux et costumes
+
+Le catalogue passe à **31 articles** : 4 nouveaux chapeaux (bandana de pirate à pois avec nœud flottant, cowboy à larges bords, mortier de diplômé avec pompon orienté selon la direction, casque de viking à cornes) et une **nouvelle catégorie Costumes** — nœud papillon, écharpe au pan flottant animé, ceinture de karatéka, et la **cape de héros** dessinée derrière Pixou dont l'ondulation s'amplifie avec la vitesse de course. Chaque article existe en version canvas (jeu) et SVG (mascotte de l'accueil). Validation : 90 combinaisons chapeau × costume × lunettes rendues sans erreur.
 
 ### 🌈 v45 — palette élargie + Studio de couleurs
 

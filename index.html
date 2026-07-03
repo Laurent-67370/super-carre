@@ -30,6 +30,10 @@
                 <rect x="30" y="84" width="14" height="8" rx="3" fill="#F1C40F"/>
                 <rect x="56" y="84" width="14" height="8" rx="3" fill="#F1C40F"/>
             </g>
+            <!-- cape de héros 🦸 (derrière le corps) -->
+            <g id="mascotte-cost-cape" style="display:none">
+                <path d="M 30 40 Q 4 54 9 82 L 24 77 Q 19 58 32 50 Z" fill="#C0392B" stroke="#922B21" stroke-width="2"/>
+            </g>
             <!-- corps -->
             <rect x="22" y="28" width="56" height="60" rx="14" fill="url(#pixou-body)" stroke="#C0392B" stroke-width="3"/>
             <!-- casquette turquoise (chapeau par défaut) -->
@@ -62,6 +66,34 @@
                 <path d="M 47 16 l 1.4 3 3.3 .3 -2.5 2.2 .8 3.2 -3 -1.7 -3 1.7 .8 -3.2 -2.5 -2.2 3.3 -.3 Z" fill="#F4D03F"/>
                 <circle cx="56" cy="9" r="1.6" fill="#F4D03F"/>
             </g>
+            <!-- bandana de pirate 🏴‍☠️ -->
+            <g id="mascotte-chap-bandana" style="display:none">
+                <path d="M 21 36 Q 21 15 50 15 Q 79 15 79 36 Z" fill="#C0392B"/>
+                <circle cx="38" cy="26" r="2.2" fill="#fff"/><circle cx="50" cy="21" r="2.2" fill="#fff"/>
+                <circle cx="62" cy="27" r="2.2" fill="#fff"/><circle cx="45" cy="31" r="2.2" fill="#fff"/><circle cx="57" cy="33" r="2.2" fill="#fff"/>
+                <path d="M 22 28 L 8 22 L 12 33 Z" fill="#A93226"/>
+                <path d="M 22 31 L 10 42 L 18 40 Z" fill="#A93226"/>
+            </g>
+            <!-- chapeau de cowboy 🤠 -->
+            <g id="mascotte-chap-cowboy" style="display:none">
+                <ellipse cx="50" cy="31" rx="38" ry="7.5" fill="#8E5B3A"/>
+                <rect x="33" y="7" width="34" height="27" rx="8" fill="#7A4A2B"/>
+                <rect x="33" y="25" width="34" height="6" fill="#4E342E"/>
+            </g>
+            <!-- casque de viking ⚔️ -->
+            <g id="mascotte-chap-viking" style="display:none">
+                <path d="M 26 34 A 24 21 0 0 1 74 34 Z" fill="#95A5A6" stroke="#707B7C" stroke-width="2"/>
+                <rect x="25" y="30" width="50" height="5" fill="#707B7C"/>
+                <path d="M 28 27 Q 10 20 14 2 Q 22 14 34 19 Z" fill="#F7F9F9" stroke="#D5DBDB" stroke-width="1"/>
+                <path d="M 72 27 Q 90 20 86 2 Q 78 14 66 19 Z" fill="#F7F9F9" stroke="#D5DBDB" stroke-width="1"/>
+            </g>
+            <!-- mortier de diplômé 🎓 -->
+            <g id="mascotte-chap-diplome" style="display:none">
+                <rect x="34" y="23" width="32" height="10" rx="3" fill="#1a1a2e"/>
+                <path d="M 20 23 L 50 10 L 80 23 L 50 33 Z" fill="#1a1a2e"/>
+                <polyline points="50,19 74,25 74,38" fill="none" stroke="#F4D03F" stroke-width="2.5"/>
+                <circle cx="74" cy="41" r="3.5" fill="#F4D03F"/>
+            </g>
             <!-- joues -->
             <circle cx="33" cy="62" r="5" fill="#ff9696" opacity="0.55"/>
             <circle cx="67" cy="62" r="5" fill="#ff9696" opacity="0.55"/>
@@ -73,6 +105,23 @@
                 <circle cx="61.5" cy="53.5" r="3.3" fill="#1a1a2e"/>
                 <circle cx="43" cy="51.5" r="1.1" fill="#fff"/>
                 <circle cx="63" cy="51.5" r="1.1" fill="#fff"/>
+            </g>
+            <!-- costumes (🎨 boutique) -->
+            <g id="mascotte-cost-noeud" style="display:none">
+                <path d="M 46 80 L 33 73 L 33 87 Z" fill="#8E44AD"/>
+                <path d="M 54 80 L 67 73 L 67 87 Z" fill="#8E44AD"/>
+                <circle cx="50" cy="80" r="4.5" fill="#6C3483"/>
+            </g>
+            <g id="mascotte-cost-echarpe" style="display:none">
+                <rect x="21" y="70" width="58" height="10" rx="4" fill="#E74C3C"/>
+                <path d="M 27 78 Q 13 88 18 98 L 27 95 Q 24 86 32 80 Z" fill="#E74C3C" stroke="#C0392B" stroke-width="1"/>
+                <line x1="22" y1="75" x2="78" y2="75" stroke="#C0392B" stroke-width="1.5"/>
+            </g>
+            <g id="mascotte-cost-ceinture" style="display:none">
+                <rect x="22" y="72" width="56" height="8" fill="#1a1a2e"/>
+                <rect x="45" y="70" width="10" height="12" rx="2" fill="#1a1a2e"/>
+                <path d="M 45 82 L 38 96 L 46 93 Z" fill="#1a1a2e"/>
+                <path d="M 55 82 L 62 96 L 54 93 Z" fill="#1a1a2e"/>
             </g>
             <!-- lunettes de soleil 🕶️ (skin) -->
             <g id="mascotte-lunettes" style="display:none">
@@ -104,7 +153,7 @@
     </div>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v45</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v46</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -208,7 +257,7 @@
         <div class="help-card">
             <h3><span class="ico">🎨</span> Boutique</h3>
             <div class="help-row"><span class="emoji">🪙</span><span class="desc">Chaque pièce ramassée en jouant remplit ton <strong>portefeuille</strong> (la démo et le mode test ne comptent pas)</span></div>
-            <div class="help-row"><span class="emoji">🎨</span><span class="desc"><strong>14 couleurs</strong> pour Pixou — du Bleu (60 🪙) à l'Or (250) — <strong>5 chapeaux</strong> (couronne 👑, fête 🥳, magicien 🎩…) et des <strong>lunettes de soleil</strong> 🕶️</span></div>
+            <div class="help-row"><span class="emoji">🎨</span><span class="desc"><strong>14 couleurs</strong> pour Pixou — du Bleu (60 🪙) à l'Or (250) — <strong>9 chapeaux</strong> (couronne 👑, pirate 🏴‍☠️, cowboy 🤠, viking ⚔️, diplômé 🎓…), <strong>4 costumes</strong> (cape de héros 🦸 qui ondule en courant, écharpe 🧣, nœud papillon 🎀, ceinture de karatéka 🥋) et des <strong>lunettes de soleil</strong> 🕶️</span></div>
             <div class="help-row"><span class="emoji">🌈</span><span class="desc">Le <strong>Studio de couleurs</strong> (300 🪙) débloque des <strong>sélecteurs libres</strong> : choisis N'IMPORTE quelle couleur pour le corps, la casquette et les pieds — des millions de Pixou possibles !</span></div>
             <div class="help-row"><span class="emoji">✨</span><span class="desc">Acheter équipe automatiquement ; tape un article possédé pour le porter. Ton skin s'applique en jeu ET sur la mascotte de l'accueil</span></div>
             <div class="help-tip">💡 Le solde s'affiche sur le bouton 🎨 BOUTIQUE — vise l'Or à couronne et lunettes pour la classe absolue ! 👑🕶️</div>
