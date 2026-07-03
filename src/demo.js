@@ -15,6 +15,7 @@ export class DemoBot {
         this.cible = null;         // pièce actuellement visée
         this.cibleFrames = 0;      // depuis combien de frames on la vise
         this.blacklist = new Map();// pièces temporairement abandonnées → frame de fin
+        this.echecs = new Map();   // pièce → nombre d'abandons (déclenche la route ressort)
         this.recul = 0;            // frames de marche arrière (pics infranchissables sous plafond)
         this.reculDir = 0;         // direction du recul
         this.waypoint = null;      // point de passage engagé (hystérésis anti-oscillation)
@@ -40,7 +41,10 @@ export class DemoBot {
             // Pièce la plus proche (poids vertical accru : préférer celles à portée)
             if (this.cible && (this.cible.collectee || this.cibleFrames > 480)) {
                 // Visée depuis 8 s sans succès → blacklist 8 s
-                if (!this.cible.collectee) this.blacklist.set(this.cible, this.frame + 480);
+                if (!this.cible.collectee) {
+                    this.blacklist.set(this.cible, this.frame + 480);
+                    this.echecs.set(this.cible, (this.echecs.get(this.cible) || 0) + 1);
+                }
                 this.cible = null;
             }
             if (!this.cible) {
@@ -66,6 +70,27 @@ export class DemoBot {
             cx = this.cible.x; cy = this.cible.y;
         }
 
+        // ── SUPER SAUT adaptatif : si la cible résiste depuis 5 s et
+        //    qu'un ressort peut l'atteindre (portée ~440 px de haut,
+        //    pilotable en vol sur ~250 px de large), on prend le ressort.
+        if (!modeBoss && this.cible && this.cibleFrames > 300 &&
+            (this.cible.y < p.y + p.hauteur - 220 || (this.echecs.get(this.cible) || 0) >= 2) &&
+            game.ressorts && game.ressorts.length) {
+            let ressort = null, rd = Infinity;
+            for (const r of game.ressorts) {
+                const rcx = r.x + r.largeur / 2;
+                if (Math.abs(rcx - this.cible.x) > 260) continue;  // trop loin pour piloter en vol
+                if (this.cible.y < r.y - 460) continue;            // hors de portée même en super saut
+                const d = Math.abs(rcx - px);
+                if (d < rd) { rd = d; ressort = r; }
+            }
+            if (ressort) {
+                this.waypoint = { x: ressort.x + ressort.largeur / 2, y: ressort.y - 16 };
+                this.waypointFin = this.frame + 300;
+                this.cibleFrames = 60; // laisser 4 s à la route ressort avant de réessayer
+            }
+        }
+
         // ── Hystérésis : rester engagé sur le point de passage en cours ──
         if (this.waypoint) {
             const atteint = Math.abs(this.waypoint.x - px) < 26 && Math.abs(this.waypoint.y - py) < 34;
@@ -76,8 +101,10 @@ export class DemoBot {
         // ── Plateforme relais : escalier vers les cibles hautes ──
         // Un saut monte ~135 px. Si la cible est plus haute, viser une
         // plateforme intermédiaire atteignable qui s'en rapproche.
+        // ⚠️ Planification AU SOL uniquement : en vol (saut, ressort),
+        // on pilote droit vers la cible sans se laisser distraire.
         const piedsY = p.y + p.hauteur;
-        if (!modeBoss && cy < piedsY - 125) {
+        if (!modeBoss && p.onGround && cy < piedsY - 125) {
             let relais = null, dmin = Infinity;
             for (const pl of game.niveau) {
                 if (pl.type === 'mur' || pl.largeur < 40) continue; // pas les murs
@@ -90,6 +117,16 @@ export class DemoBot {
                 // Point posé SUR le relais, tiré vers la cible finale
                 cx = Math.max(relais.x + 16, Math.min(cx, relais.x + relais.largeur - 16));
                 cy = relais.y - 30;
+            } else if (game.ressorts && game.ressorts.length) {
+                // Aucune plateforme relais → SUPER SAUT : viser le ressort le
+                // plus pertinent (force -19 ≈ 3× un saut normal). Le rebond se
+                // déclenche en marchant dessus, puis le bot pilote la cible en vol.
+                let ressort = null, rd = Infinity;
+                for (const r of game.ressorts) {
+                    const d = Math.abs((r.x + r.largeur / 2) - px) + Math.abs(r.y - cy) * 0.5;
+                    if (d < rd) { rd = d; ressort = r; }
+                }
+                if (ressort) { cx = ressort.x + ressort.largeur / 2; cy = ressort.y - 16; }
             }
         }
 
@@ -214,6 +251,9 @@ export class DemoBot {
             if (modeBoss && Math.abs(dx) < 90 && dy > -60) sauter = true;
         }
 
+        // En vol ascendant rapide (ressort !) : maintenir le saut → la gravité
+        // réduite du saut variable fait monter bien plus haut, comme un vrai joueur.
+        if (!p.onGround && p.vy < -2 && dy < -20) t.jump = true;
         if (sauter && this.sautHold === 0 && this.sautRepos === 0) this.sautHold = 13; // maintien ≈ grand saut
         if (this.sautHold > 0) {
             t.jump = true;

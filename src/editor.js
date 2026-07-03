@@ -762,7 +762,7 @@ export class LevelEditor {
                     this.fit();
                     this.dessiner();
                 } else {
-                    alert('Fichier .json non reconnu (ce n\'est pas un niveau Super Carré valide).');
+                    alert('Fichier .json non reconnu (ce n\'est pas un niveau Super Pixou valide).');
                 }
             };
             reader.onerror = () => alert('Impossible de lire le fichier.');

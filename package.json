@@ -1,8 +1,8 @@
 {
   "name": "super-carre",
   "private": true,
-  "version": "34.0.0",
-  "description": "Super Carré — jeu de plateforme HTML5 (24 niveaux + éditeur, PWA)",
+  "version": "35.0.0",
+  "description": "Super Pixou — jeu de plateforme HTML5 (24 niveaux + éditeur, PWA)",
   "type": "module",
   "scripts": {
     "dev": "vite",

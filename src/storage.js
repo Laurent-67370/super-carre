@@ -162,7 +162,7 @@ export function exporterSauvegarde() {
 export function importerSauvegarde(json) {
     const data = JSON.parse(json);
     if (!data || data._app !== 'super-carre') {
-        throw new Error('Ce fichier n\'est pas une sauvegarde Super Carré.');
+        throw new Error('Ce fichier n\'est pas une sauvegarde Super Pixou.');
     }
     let n = 0;
     for (const [k, v] of Object.entries(data)) {

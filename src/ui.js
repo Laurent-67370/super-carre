@@ -31,9 +31,9 @@ export function partagerScores(hs) {
         const pref = /^\d+$/.test(String(s.rank)) ? `${s.rank}. ` : `${s.rank} `;
         return `${pref}${s.nom} — ${s.score.toLocaleString('fr-FR')} pts (niv ${s.niveau}/${NIVEAUX.length} · 🪙 ${s.pieces} · ⏱️ ${s.temps}s)`;
     }).join('\n');
-    const texte = `🟥 Super Carré — Hall of Fame 🏆\n\n${lignes}\n\n🎮 Tente de me battre : ${URL_PARTAGE}`;
+    const texte = `🟥 Super Pixou — Hall of Fame 🏆\n\n${lignes}\n\n🎮 Tente de me battre : ${URL_PARTAGE}`;
     if (navigator.share) {
-        navigator.share({ title: '🟥 Super Carré — mes scores', text: texte })
+        navigator.share({ title: '🟥 Super Pixou — mes scores', text: texte })
             .catch(err => { if (!err || err.name !== 'AbortError') copierPartage(texte); });
     } else {
         copierPartage(texte);

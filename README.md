@@ -1,4 +1,4 @@
-# 🟥 Super Carré
+# 🟥 Super Pixou
 
 Jeu de plateforme HTML5 autonome, jouable au clavier comme au tactile. La **source** est organisée en modules ES (`src/`) assemblés par **Vite** ; le build produit un **`index.html` unique** (JS + CSS inlinés et minifiés via `vite-plugin-singlefile`), déployé en statique sur GitHub Pages.
 
@@ -196,7 +196,7 @@ Au lancement, si une progression existe, le menu propose **▶ CONTINUER** (repr
 
 ## 📱 Installer l'application (PWA)
 
-Super Carré est une **Progressive Web App** : on peut l'installer sur son téléphone comme une vraie application, la lancer en plein écran (sans barre de navigateur) et y jouer **hors-ligne**.
+Super Pixou est une **Progressive Web App** : on peut l'installer sur son téléphone comme une vraie application, la lancer en plein écran (sans barre de navigateur) et y jouer **hors-ligne**.
 
 ### Installation
 1. Ouvrir https://laurent-67370.github.io/super-carre/ dans le navigateur.
@@ -236,6 +236,11 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 🚀 v35 — Super Pixou + super saut pour le bot démo
+
+- **Le jeu s'appelle désormais Super Pixou** (titre, menu, PWA installée, générique, partages). Tous les identifiants techniques (`supercarre_*`, format des sauvegardes et des niveaux, dépôt GitHub) sont inchangés : les progressions et fichiers existants restent 100 % compatibles.
+- **Le bot démo maîtrise le super saut** : il maintient le saut pendant l'ascension tant que la cible est plus haute (gravité réduite du saut variable = vol nettement plus haut, comme un vrai joueur) et relâche à hauteur de cible pour ne pas sur-sauter. Quand une pièce résiste (2 abandons ou cible très haute), il prend la route du **ressort** (force -19 ≈ 3× un saut) et pilote vers la pièce en plein vol. Résultats simulateur : L'Éveil **6/6 en 6,5 s** (contre 5/6 bloqué), Grande Traversée 10/10 en 19 s **sans aucun dégât**, Invasion 7/7, boss toujours vaincu.
 
 ### 🔧 Correctif v34 — le bot démo se cognait la tête en boucle
 

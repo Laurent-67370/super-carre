@@ -1,6 +1,6 @@
 {
-  "name": "Super Carré — Aventure",
-  "short_name": "Super Carré",
+  "name": "Super Pixou — Aventure",
+  "short_name": "Super Pixou",
   "description": "Jeu de plateforme — 24 niveaux, éditeur de niveaux, mondes géants à explorer.",
   "start_url": "./index.html",
   "scope": "./",
