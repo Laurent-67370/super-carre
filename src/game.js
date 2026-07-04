@@ -1,7 +1,7 @@
 import { Player } from './player.js';
 import { Boss } from './entities.js';
 import { AudioManager } from './audio.js';
-import { NIVEAUX, medaillePour, seuilsMedailles, MEDAILLE_EMOJI } from './levels.js';
+import { NIVEAUX, seuilsDepuis, medaillePour, seuilsMedailles, MEDAILLE_EMOJI } from './levels.js';
 import { HighScoreManager, ProgressManager } from './storage.js';
 import { DemoBot } from './demo.js';
 import { SkinManager } from './skins.js';
@@ -73,6 +73,22 @@ export class Game {
     chargerNiveauData(data, largeurMonde, hauteurMonde, spawn) {
         this.modeTest = true;
         this._initNiveau(data, largeurMonde, hauteurMonde, spawn);
+    }
+    // 📝 Joue un niveau créé dans l'éditeur comme un vrai niveau :
+    // chrono + médailles + meilleur temps mémorisé. Pas de crédit 🪙
+    // (anti-farming), pas d'étoiles ni de Hall of Fame (réservés à l'aventure).
+    demarrerPerso(modele, data) {
+        this.modeTest = false; this.modeDemo = false;
+        this.vies = 3; this.scoreCumul = 0;
+        this.modePerso = {
+            nom: modele.nom || 'Mon niveau',
+            seuils: seuilsDepuis(data.pieces.length, modele.largeurMonde, modele.hauteurMonde, false)
+        };
+        this._persoSource = { modele, data: null }; // data reconstruit à chaque REJOUER
+        this._initNiveau(data, modele.largeurMonde, modele.hauteurMonde, modele.spawn);
+    }
+    static tempsPerso() {
+        try { return JSON.parse(localStorage.getItem('supercarre_temps_perso')) || {}; } catch (e) { return {}; }
     }
     _initNiveau(data, largeurMonde, hauteurMonde, spawn) {
         this.niveau = data.niveau; this.pieces = data.pieces;
@@ -334,7 +350,7 @@ export class Game {
             piece.update();
             if(piece.testerCollecte(this.player)){
                 this.scoreNiveau++; this.audio.piece();
-                if (!this.modeDemo && !this.modeTest) this.skins.crediter(1); // 🪙 boutique
+                if (!this.modeDemo && !this.modeTest && !this.modePerso) this.skins.crediter(1); // 🪙 boutique
                 if (this.modeDemo) this._demoDernierePiece = this.frameCount;
                 this.scoreCumul += 100; this.piecesTotal++;
                 if(navigator.vibrate)navigator.vibrate(30);
@@ -712,6 +728,23 @@ export class Game {
         this.audio.victoire();
         if (this.modeDemo) { setTimeout(() => { if (this.modeDemo) this._demoSuivant(); }, 900); this.etat = 'transition'; return; }
         if (this.modeTest) { if (navigator.vibrate) navigator.vibrate([100,50,100]); if (this._onTestFini) this._onTestFini(true); return; }
+        if (this.modePerso) {
+            this.etat = 'transition';
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            const t = this.tempsNiveau;
+            const tous = Game.tempsPerso();
+            const ancien = tous[this.modePerso.nom];
+            const record = ancien === undefined || t < ancien;
+            if (record) { tous[this.modePerso.nom] = Math.round(t * 10) / 10; try { localStorage.setItem('supercarre_temps_perso', JSON.stringify(tous)); } catch (e) {} }
+            const s = this.modePerso.seuils;
+            const med = t <= s.or ? '🥇' : t <= s.argent ? '🥈' : t <= s.bronze ? '🥉' : '';
+            document.getElementById('perso-win-titre').textContent = '🎉 « ' + this.modePerso.nom + ' » réussi !';
+            document.getElementById('perso-win-info').innerHTML =
+                `⏱ ${t.toFixed(1)} s ${med}${record ? ' — 🔥 RECORD !' : ancien !== undefined ? ` (record : ${ancien.toFixed(1)} s)` : ''}` +
+                `<br><span class="perso-seuils">🥇 ≤ ${s.or}s · 🥈 ≤ ${s.argent}s · 🥉 ≤ ${s.bronze}s</span>`;
+            document.getElementById('perso-win').classList.add('show');
+            return;
+        }
         this.etat='transition';
         this.scoreTotal+=this.scoreNiveau; this.tempsTotal+=this.tempsNiveau;
         // Débloquer le niveau suivant dès qu'on termine celui-ci
@@ -764,6 +797,13 @@ export class Game {
     niveauSuivant() { this.niveauActuel++; document.getElementById('transition-screen').classList.remove('show'); this.chargerNiveau(this.niveauActuel); }
     gameOver() {
         if (this.modeTest) { this.audio.degat(); if (this._onTestFini) this._onTestFini(false); return; }
+        if (this.modePerso) {
+            this.etat = 'transition';
+            document.getElementById('perso-win-titre').textContent = '💀 « ' + this.modePerso.nom + ' » — perdu !';
+            document.getElementById('perso-win-info').textContent = 'Retente ta chance ou retouche ton niveau dans l\'éditeur.';
+            document.getElementById('perso-win').classList.add('show');
+            return;
+        }
         this.etat='gameover';
         const scoreFinal = this.scoreCumul;
         const tempsFinal = this.tempsTotal + this.tempsNiveau;
@@ -885,6 +925,9 @@ export class Game {
     quitterVersMenu() { this.retourMenu(); }
     // Retour au menu principal depuis n'importe quel écran ; rafraîchit le bouton Continuer
     retourMenu() {
+        this.modePerso = null;
+        const pw = document.getElementById('perso-win');
+        if (pw) pw.classList.remove('show');
         // Si un test d'éditeur est en cours, revenir à l'éditeur, pas au menu
         if (this.modeTest && this._editor) {
             document.getElementById('pause-overlay').classList.remove('show');

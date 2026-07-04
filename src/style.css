@@ -65,6 +65,19 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 .shop-picker input[type=color]{width:40px;height:40px;border:2px solid rgba(255,255,255,.4);border-radius:11px;background:none;padding:0;cursor:pointer}
 .shop-picker input[type=color]::-webkit-color-swatch-wrapper{padding:2px}
 .shop-picker input[type=color]::-webkit-color-swatch{border:none;border-radius:8px}
+.levels-section{grid-column:1/-1;text-align:left;font-weight:700;color:#F4D03F;font-size:clamp(14px,4.2vw,17px);margin:12px 2px 2px}
+.level-tile.perso .perso-nom{font-size:clamp(9px,2.8vw,11px);line-height:1.1;word-break:break-word}
+.level-tile.perso{border-color:rgba(244,208,63,.5)}
+#perso-win{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:150;padding:20px}
+#perso-win.show{display:flex}
+.perso-box{background:linear-gradient(135deg,#1a1a2e,#2d2d54);border:2px solid rgba(244,208,63,.5);border-radius:20px;padding:26px 22px;text-align:center;max-width:420px;width:100%;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+.perso-box h2{color:#F4D03F;font-size:clamp(19px,5.5vw,26px);margin:0 0 12px}
+.perso-box p{color:#fff;font-size:clamp(14px,4.2vw,17px);margin:0 0 18px;line-height:1.6}
+.perso-seuils{opacity:.65;font-size:.85em}
+.perso-btns{display:flex;gap:10px;justify-content:center}
+.perso-btns button{flex:1;padding:12px 8px;border-radius:50px;border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:clamp(13px,4vw,16px);cursor:pointer}
+.perso-btns button:active{transform:scale(.95)}
+#perso-rejouer{background:linear-gradient(135deg,#f39c12,#e67e22);border-color:rgba(255,255,255,.5)}
 #save-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:110;padding:20px;text-align:center}
 #save-screen.show{display:flex}
 #save-screen h2{font-size:clamp(22px,7vw,34px);color:#FFD700;margin-bottom:8px}

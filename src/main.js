@@ -425,7 +425,38 @@ function init() {
             }
             grid.appendChild(tile);
         });
+        // --- 📝 MES NIVEAUX (créés dans l'éditeur) ---
+        const persos = editor.chargerSauvegardes();
+        if (persos.length) {
+            const titre = document.createElement('div');
+            titre.className = 'levels-section';
+            titre.textContent = '📝 Mes niveaux';
+            grid.appendChild(titre);
+            const records = Game.tempsPerso();
+            for (const m of persos) {
+                const tile = document.createElement('button');
+                tile.className = 'level-tile unlocked perso';
+                const best = records[m.nom];
+                if (best !== undefined) tile.title = `Meilleur temps : ${best.toFixed(1)}s`;
+                const bestHTML = best !== undefined ? `<span class="tile-stars">⏱ ${best.toFixed(1)}s</span>` : '<span class="tile-stars">·</span>';
+                tile.innerHTML = `<span class="ico">📝</span><span class="num perso-nom">${(m.nom || '?').slice(0, 12)}</span>${bestHTML}`;
+                tile.addEventListener('click', () => {
+                    document.getElementById('levels-screen').classList.remove('show');
+                    entrerEnJeu(() => game.demarrerPerso(m, editor.construireData(m)));
+                });
+                grid.appendChild(tile);
+            }
+        }
     }
+    // Overlay de fin de niveau perso : REJOUER / MENU
+    document.getElementById('perso-rejouer').addEventListener('click', () => {
+        document.getElementById('perso-win').classList.remove('show');
+        const src = game._persoSource;
+        if (src) game.demarrerPerso(src.modele, editor.construireData(src.modele));
+    });
+    document.getElementById('perso-menu').addEventListener('click', () => {
+        game.retourMenu();
+    });
     document.getElementById('btn-levels').addEventListener('click', () => {
         game.audio.init(); game.audio.resume();
         remplirSelecteurNiveaux();

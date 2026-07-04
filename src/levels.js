@@ -88,6 +88,11 @@ export const NIVEAUX=[
 //  🥇 or ≤ seuil "or" • 🥈 argent ≤ or×1.6 • 🥉 bronze ≤ or×2.4
 // ============================================================
 const _seuilsCache = {};
+// Seuils depuis des caractéristiques brutes (réutilisable pour les niveaux persos)
+export function seuilsDepuis(nbPieces, w, h, boss) {
+    const d = { pieces: { length: nbPieces } };
+    return _calculerSeuils(d, w || 800, h || 600, !!boss);
+}
 export function seuilsMedailles(idx) {
     if (_seuilsCache[idx]) return _seuilsCache[idx];
     const niv = NIVEAUX[idx];
@@ -95,6 +100,10 @@ export function seuilsMedailles(idx) {
     const d = niv.creer();
     const w = niv.largeurMonde || 800, h = niv.hauteurMonde || 600;
     const boss = (idx + 1) % 6 === 0;
+    _seuilsCache[idx] = _calculerSeuils(d, w, h, boss);
+    return _seuilsCache[idx];
+}
+function _calculerSeuils(d, w, h, boss) {
     // Estimation du temps "expert" : base + ramassage des pièces
     // + traversée du monde + combat de boss éventuel.
     let or = 8
@@ -103,9 +112,7 @@ export function seuilsMedailles(idx) {
         + (h / 600) * 5
         + (boss ? 20 : 0);
     or = Math.round(or);
-    const s = { or, argent: Math.round(or * 1.6), bronze: Math.round(or * 2.4) };
-    _seuilsCache[idx] = s;
-    return s;
+    return { or, argent: Math.round(or * 1.6), bronze: Math.round(or * 2.4) };
 }
 
 // Retourne la médaille ('or'|'argent'|'bronze'|null) pour un temps donné

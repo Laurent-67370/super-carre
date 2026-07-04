@@ -188,6 +188,8 @@ Accessible via le bouton **« ✏️ ÉDITEUR DE NIVEAUX »** du menu d'accueil.
 - **📋 Dupliquer** : clone l'objet sélectionné avec un léger décalage — les escaliers de plateformes se construisent en quelques appuis.
 - **💾 Télécharger .json** / **📂 Charger .json** : exporter ou importer un niveau sous forme de **fichier `.json`**, pratique pour le sauvegarder hors du navigateur ou le partager. Le format JSON est sans perte (contrairement au copier-coller de code).
 
+**🎯 Jouer ses créations** : chaque niveau sauvegardé dans l'éditeur apparaît dans le sélecteur « 🎯 NIVEAUX », section **📝 Mes niveaux** — jouable comme un vrai niveau avec chrono, **médailles 🥇🥈🥉 à seuils automatiques** (calculés d'après le nombre de pièces et la taille du monde) et **meilleur temps mémorisé** (affiché sur la tuile). Fin de niveau : écran dédié avec 🔄 REJOUER / 🏠 MENU. Par équité, les niveaux persos ne créditent pas le portefeuille 🪙 et n'alimentent ni les étoiles ni le Hall of Fame (réservés à l'aventure).
+
 Les niveaux créés sont stockés localement dans le navigateur. Pour les partager : **🔗 code de partage** (recommandé, un message suffit) ou fichier **`.json`** (archivage hors navigateur). L'ancien « ⤓ Exporter le code » (format développeur) a été retiré du menu en v54 — il faisait double emploi ; les vieux codes restent importables via 📥.
 
 ---
@@ -265,6 +267,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 🎯 v56 — jouer ses niveaux créés depuis le menu
+
+Les créations de l'éditeur deviennent de **vrais niveaux jouables** : le sélecteur « 🎯 NIVEAUX » gagne une section **📝 Mes niveaux** listant les sauvegardes de l'éditeur, avec meilleur temps sur la tuile. En jeu : chrono, **médailles à seuils automatiques** (la formule des niveaux officiels, extraite en `seuilsDepuis()`), **record par niveau** (clé `supercarre_temps_perso`), écran de fin dédié 🎉/💀 avec REJOUER / MENU. Garde-fous : pas de crédit 🪙 (anti-farming), ni étoiles ni Hall of Fame. Trois vies, comme l'aventure.
 
 ### 🪙 v55 — jouabilité : plus aucune pièce « à dégât garanti »
 

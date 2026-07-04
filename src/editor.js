@@ -464,9 +464,9 @@ export class LevelEditor {
     }
 
     // ---------- Conversion modèle -> objets de jeu instanciés ----------
-    construireData() {
+    construireData(modele = this.modele) {
         const niveau = [], pieces = [], ennemis = [], pics = [], ressorts = [], powerups = [];
-        for (const o of this.modele.objets) {
+        for (const o of modele.objets) {
             // Sécuriser les propriétés numériques (NaN → crash)
             const dist = Math.max(0, o.dist || 0);
             const vit = Math.max(0.1, o.vit || 1);
@@ -488,7 +488,7 @@ export class LevelEditor {
             }
         }
         // Checkpoint manuel éventuel (drapeau 🏁 posé dans l'éditeur)
-        const cp = this.modele.objets.find(o => o.type === 'checkpoint');
+        const cp = modele.objets.find(o => o.type === 'checkpoint');
         const checkpointPos = cp ? { x: cp.x + 15, y: cp.y + 22 } : null;
         return { niveau, pieces, ennemis, pics, ressorts, powerups, checkpointPos };
     }
