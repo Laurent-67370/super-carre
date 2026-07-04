@@ -204,6 +204,10 @@ Le jeu utilise le stockage local du navigateur (`localStorage`) :
 | Étoiles obtenues par niveau | `supercarre_stars` |
 | Hall of Fame (top scores) | `supercarre_highscores` |
 | Niveaux de l'éditeur | `supercarre_editor_levels` |
+| Meilleurs temps (contre-la-montre) | `supercarre_temps` |
+| Records des niveaux persos 📝 | `supercarre_temps_perso` |
+| Portefeuille 🪙 de la boutique | `supercarre_portefeuille` |
+| Skins possédés et équipés | `supercarre_skins` |
 | Musique coupée ou non | `supercarre_muet` |
 | Ambiance musicale choisie | `supercarre_piste` |
 | Meilleurs temps par niveau (contre-la-montre) | `supercarre_temps` |
@@ -257,16 +261,22 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 - Personnage **animé** dessiné au canvas (yeux, expressions, animation de course et de saut) et **entièrement personnalisable** : 43 articles de boutique (couleurs, Studio 🌈 libre, chapeaux, costumes — dont cape et jetpack animés —, lunettes, chaussures) rendus en canvas (jeu) et SVG (mascotte).
 - Pause (avec auto-pause quand l'onglet passe en arrière-plan).
 - Audio entièrement généré par la **Web Audio API** (bruitages, **4 ambiances musicales** au choix et **fanfare orchestrale d'intro**, aucun fichier son).
-- **Checkpoints** à mi-parcours dans les grands niveaux, **système d'étoiles** (1 à 3 par niveau) et **contre-la-montre** (meilleurs temps + médailles 🥇🥈🥉 à seuils automatiques), progression sauvegardée et **exportable/importable** (fichier JSON).
+- **Checkpoints** à mi-parcours dans les grands niveaux (ou posés à la main dans l'éditeur), **système d'étoiles** (1 à 3 par niveau) et **contre-la-montre** (meilleurs temps + médailles 🥇🥈🥉 à seuils automatiques), progression sauvegardée et **exportable/importable** (fichier JSON).
 - **Combats de boss** tous les 6 niveaux (boss à 3 points de vie, écrasable sur la tête).
 - Contrôles tactiles multi-points et clavier (jeu ET saisie du nom).
 - **Mode démo** « attract mode » : pilote automatique planifié (graphe des plateformes + BFS, sauts dosés, ressorts), invincible, sortie au moindre toucher.
+- **Éditeur de niveaux complet** : palette de 16 outils (dont 🏁 checkpoint posable), annuler/rétablir, niveau aléatoire, **🤖 vérification par le bot** (simulation accélérée garantissant que toutes les pièces sont atteignables), duplication d'objet — et les créations sauvegardées sont **jouables depuis le sélecteur** (📝 Mes niveaux : chrono, médailles, records).
 - **Partage de niveaux** de l'éditeur par code compact `PIXOU1.…` (deflate + base64) via le partage natif du téléphone.
+- **Audit de jouabilité outillé** : `analyse-pieces.mjs` (analyse statique pièce/pics/vide + simulation bot) a validé les 24 niveaux officiels — aucune pièce ne coûte une vie d'office.
 - **Boutique** alimentée par un portefeuille 🪙 persistant (1 pièce ramassée = 1 pièce créditée, hors démo/test).
 
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 📖 v57 — documentation consolidée
+
+Les Caractéristiques techniques gagnent un pilier **Éditeur complet** (16 outils, vérification bot, checkpoint, Mes niveaux jouables) et mentionnent l audit de jouabilité outillé ; le tableau des clés de sauvegarde est complété (meilleurs temps, records persos, portefeuille, skins). L aide intégrée était déjà à jour.
 
 ### 🎯 v56 — jouer ses niveaux créés depuis le menu
 
