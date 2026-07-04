@@ -1,5 +1,7 @@
 import { Game } from './game.js';
 import { Platform, MovingPlatform, Spike, Ennemi, EnnemiVolant, EnnemiSaut, Coin, Ressort, PowerUp } from './entities.js';
+import { Player } from './player.js';
+import { DemoBot } from './demo.js';
 import { setupControls } from './controls.js';
 /* LevelEditor — éditeur de niveaux */
 
@@ -199,6 +201,7 @@ export class LevelEditor {
             case 'ennemi':  return { w: 28,  h: 28, dist: 80, vit: 1 };
             case 'ennemiVol':  return { w: 26, h: 22, dist: 120, vit: 1 };
             case 'ennemiSaut': return { w: 28, h: 28, dist: 0, vit: 1 };
+            case 'checkpoint': return { w: 30, h: 44 };
             default:        return { w: 28,  h: 28 }; // power-ups
         }
     }
@@ -270,9 +273,23 @@ export class LevelEditor {
         // pièces / powerups : on stocke le centre
         if (this.outil === 'coin' || this.outil.startsWith('pu')) { o.x = this.snap(mx); o.y = this.snap(my); }
         // ennemi : posé par son coin
+        // checkpoint : unique — poser un nouveau retire l'ancien
+        if (this.outil === 'checkpoint') {
+            this.modele.objets = this.modele.objets.filter(ob => ob.type !== 'checkpoint');
+        }
         this.modele.objets.push(o);
         this.selection = (this.outil === 'select') ? o : null;
         this._snapshot(); this.dessiner();
+    }
+    dupliquerSelection() {
+        if (!this.selection) return;
+        const copie = JSON.parse(JSON.stringify(this.selection));
+        copie.x = Math.min(copie.x + 24, this.modele.largeurMonde - 20);
+        copie.y = Math.min(copie.y + 18, this.modele.hauteurMonde - 20);
+        if (copie.type === 'checkpoint') this.modele.objets = this.modele.objets.filter(ob => ob.type !== 'checkpoint');
+        this.modele.objets.push(copie);
+        this.selection = copie;
+        this._snapshot(); this.majProps(); this.dessiner();
     }
     effacerSous(mx, my) {
         const o = this.objetSous(mx, my);
@@ -331,6 +348,16 @@ export class LevelEditor {
 
         // Objets
         for (const o of this.modele.objets) this.dessinerObjet(ctx, o);
+        // 🤖 pièces jugées inaccessibles : halo rouge clignotant (6 s)
+        if (this._piecesRatees && Date.now() < this._rateesJusqua) {
+            const pulse = 0.5 + Math.sin(Date.now() / 160) * 0.4;
+            ctx.strokeStyle = `rgba(231,76,60,${pulse})`;
+            ctx.lineWidth = 3;
+            for (const p of this._piecesRatees) {
+                ctx.beginPath(); ctx.arc(p.x, p.y, 17, 0, 6.28); ctx.stroke();
+            }
+            requestAnimationFrame(() => this.dessiner());
+        } else { this._piecesRatees = null; }
 
         // Spawn
         const s = this.modele.spawn;
@@ -356,6 +383,19 @@ export class LevelEditor {
         ctx.restore();
     }
     dessinerObjet(ctx, o) {
+        if (o.type === 'checkpoint') {
+            const bx = o.x, by = o.y;
+            ctx.strokeStyle = '#ECF0F1'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(bx + 6, by); ctx.lineTo(bx + 6, by + 44); ctx.stroke();
+            ctx.fillStyle = '#E74C3C';
+            ctx.beginPath(); ctx.moveTo(bx + 8, by + 2); ctx.lineTo(bx + 30, by + 9); ctx.lineTo(bx + 8, by + 17); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(bx + 9, by + 4, 5, 5);
+            ctx.fillRect(bx + 16, by + 8, 5, 5);
+            ctx.fillStyle = '#95A5A6';
+            ctx.fillRect(bx + 2, by + 42, 9, 4);
+            return;
+        }
         const couleurs = {
             sol:'#8B4513', herbe:'#228B22', mur:'#6B4226',
             mobileH:'#8E44AD', mobileV:'#8E44AD', spike:'#C0392B',
@@ -447,7 +487,72 @@ export class LevelEditor {
                 case 'puSpeed': powerups.push(new PowerUp(o.x,o.y,'speed')); break;
             }
         }
-        return { niveau, pieces, ennemis, pics, ressorts, powerups };
+        // Checkpoint manuel éventuel (drapeau 🏁 posé dans l'éditeur)
+        const cp = this.modele.objets.find(o => o.type === 'checkpoint');
+        const checkpointPos = cp ? { x: cp.x + 15, y: cp.y + 22 } : null;
+        return { niveau, pieces, ennemis, pics, ressorts, powerups, checkpointPos };
+    }
+
+    // ---------- 🤖 Vérification par le bot de démo ----------
+    // Simulation accélérée (jusqu'à 90 s de jeu, sans rendu) : le pilote
+    // automatique tente de ramasser toutes les pièces. Résultat pur,
+    // testable hors navigateur.
+    _simulerBot(data, mondeW, mondeH, spawn, maxSecondes = 90) {
+        const player = new Player(spawn.x, spawn.y);
+        player.checkpointX = spawn.x; player.checkpointY = spawn.y;
+        player.mondeW = mondeW; player.mondeH = mondeH;
+        const jeu = {
+            player, touches: { left: false, right: false, jump: false },
+            pieces: data.pieces, ennemis: data.ennemis, niveau: data.niveau,
+            pics: data.pics, ressorts: data.ressorts, boss: null
+        };
+        const bot = new DemoBot();
+        const audioMuet = new Proxy({}, { get: () => () => {} });
+        let collectees = 0, frames = 0, degats = 0;
+        const maxFrames = 60 * maxSecondes;
+        while (frames < maxFrames && collectees < data.pieces.length) {
+            frames++;
+            for (const p of data.niveau) if (p.update && p.axe) p.update();
+            for (const e of data.ennemis) e.update(player);
+            for (const r of data.ressorts) {
+                r.update();
+                if (r.testerRebond(player)) {
+                    player.vy = r.force; player.onGround = false;
+                    player.sauteEncore = false; player.dejaDoubleJump = false;
+                }
+            }
+            bot.piloter(jeu);
+            const res = player.update(jeu.touches, audioMuet, data.niveau, data.ennemis, data.pics);
+            if (res === 'degat' || res === 'trou') {
+                degats++;
+                player.x = player.checkpointX; player.y = player.checkpointY;
+                player.vx = 0; player.vy = 0; player.mort = false; player.invincible = 60;
+            }
+            for (const c of data.pieces) if (!c.collectee && c.testerCollecte(player)) collectees++;
+        }
+        return {
+            collectees, total: data.pieces.length, degats,
+            temps: frames / 60,
+            ratees: data.pieces.filter(c => !c.collectee).map(c => ({ x: c.x, y: c.y }))
+        };
+    }
+    verifierBot() {
+        const probs = this.valider();
+        if (probs.length) { alert('⚠️ ' + probs.join('\n')); return; }
+        const data = this.construireData();
+        const m = this.modele;
+        const r = this._simulerBot(data, m.largeurMonde, m.hauteurMonde, m.spawn);
+        if (r.collectees === r.total) {
+            this._piecesRatees = null;
+            alert(`🤖 Niveau validé !\n\n✅ ${r.total}/${r.total} pièces ramassées en ${r.temps.toFixed(1)} s` +
+                  (r.degats ? `\n💥 ${r.degats} dégât(s) en route — un joueur prudent fera mieux` : '\n✨ Sans le moindre dégât'));
+        } else {
+            // Surligner 6 s les pièces que le bot n'a pas atteintes
+            this._piecesRatees = r.ratees;
+            this._rateesJusqua = Date.now() + 6000;
+            this.dessiner();
+            alert(`🤖 Vérification : ${r.collectees}/${r.total} pièces en ${r.temps.toFixed(0)} s.\n\n⚠️ ${r.ratees.length} pièce(s) peut-être inaccessibles — elles clignotent en rouge.\nAjoute une plateforme ou un ressort, ou rapproche-les.\n(Le bot est bon mais pas parfait : un passage très acrobatique peut le dépasser.)`);
+        }
     }
 
     // ---------- Validation rapide ----------
@@ -684,7 +789,7 @@ export class LevelEditor {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         // Nom de fichier propre à partir du nom du niveau
-        const nomFichier = (m.nom || 'niveau').replace(/[^a-z0-9_-]+/gi, '_').slice(0, 40);
+        const nomFichier = (this.modele.nom || 'niveau').replace(/[^a-z0-9_-]+/gi, '_').slice(0, 40);
         a.href = url;
         a.download = nomFichier + '.json';
         document.body.appendChild(a);
@@ -699,7 +804,7 @@ export class LevelEditor {
         let data;
         try { data = JSON.parse(texte); } catch (e) { return false; }
         if (!data || !Array.isArray(data.objets) || !data.spawn) return false;
-        const typesValides = new Set(['sol','herbe','mur','mobileH','mobileV','coin','ennemi','spike','ressort','puDouble','puShield','puSpeed']);
+        const typesValides = new Set(['sol','herbe','mur','mobileH','mobileV','coin','ennemi','ennemiVol','ennemiSaut','spike','ressort','puDouble','puShield','puSpeed','checkpoint']);
         const objets = [];
         for (const o of data.objets) {
             if (!o || !typesValides.has(o.type)) continue;
@@ -759,6 +864,10 @@ export class LevelEditor {
         document.getElementById('ed-undo').addEventListener('click', () => this.undo());
         document.getElementById('ed-redo').addEventListener('click', () => this.redo());
         document.getElementById('ed-test').addEventListener('click', () => this.tester());
+        document.getElementById('ed-verify').addEventListener('click', () => {
+            document.getElementById('ed-dropdown').classList.add('hidden');
+            setTimeout(() => this.verifierBot(), 60); // laisser le menu se fermer
+        });
         document.getElementById('ed-share').addEventListener('click', async () => {
             try {
                 const code = await this.codePartage();
@@ -774,11 +883,6 @@ export class LevelEditor {
                 if (e && e.name === 'AbortError') return; // partage annul\u00E9 par l'utilisateur
                 alert('Partage impossible : ' + (e && e.message ? e.message : e));
             }
-        });
-        document.getElementById('ed-export').addEventListener('click', () => {
-            document.getElementById('ed-dropdown').classList.add('hidden');
-            document.getElementById('ed-export-text').value = this.exporter();
-            document.getElementById('ed-export-overlay').classList.remove('hidden');
         });
         // Dropdown ⋯
         const dd = document.getElementById('ed-dropdown');
@@ -858,14 +962,6 @@ export class LevelEditor {
             }
         });
         // Export overlay
-        document.getElementById('ed-export-close').addEventListener('click', () => document.getElementById('ed-export-overlay').classList.add('hidden'));
-        document.getElementById('ed-export-copy').addEventListener('click', () => {
-            const ta = document.getElementById('ed-export-text');
-            ta.select();
-            try { navigator.clipboard.writeText(ta.value); } catch(e) { document.execCommand('copy'); }
-            document.getElementById('ed-export-copy').textContent = '✅ Copié !';
-            setTimeout(() => document.getElementById('ed-export-copy').textContent = '📋 Copier', 1500);
-        });
         // Load overlay
         document.getElementById('ed-load-close').addEventListener('click', () => document.getElementById('ed-load-overlay').classList.add('hidden'));
         // Dimensions du monde
@@ -888,6 +984,7 @@ export class LevelEditor {
             this.dessiner();
         };
         ['ed-prop-w','ed-prop-h','ed-prop-dist','ed-prop-vit'].forEach(id => document.getElementById(id).addEventListener('input', upd));
+        document.getElementById('ed-prop-dup').addEventListener('click', () => this.dupliquerSelection());
         document.getElementById('ed-prop-del').addEventListener('click', () => {
             if (this.selection) { this.modele.objets.splice(this.modele.objets.indexOf(this.selection), 1); this.deselectionner(); }
         });

@@ -183,10 +183,12 @@ Accessible via le bouton **« ✏️ ÉDITEUR DE NIVEAUX »** du menu d'accueil.
 - **💾 Sauvegarder** et **📂 Mes niveaux** : enregistrer et recharger ses créations dans le navigateur.
 - **🔗 Partager** : génère un **code de partage compact `PIXOU1.…`** (niveau compressé, sans perte) et ouvre le partage natif du téléphone (WhatsApp, SMS, mail…) avec un message d'instructions prêt à l'emploi — c'est la façon recommandée d'échanger des niveaux.
 - **📥 Coller un code** : colle un code reçu — **le message entier fonctionne**, le code PIXOU est détecté automatiquement (l'ancien format texte reste accepté).
-- **⤓ Export** : copier-coller le code d'un niveau au format développeur (`NIVEAUX`).
+- **🤖 Vérifier le niveau** : le pilote de la démo joue le niveau en simulation accélérée (jusqu'à 90 s de jeu, sans rendu) et confirme que toutes les pièces sont atteignables — les pièces ratées clignotent en rouge 6 s sur le canvas. Un passage très acrobatique peut dépasser le bot, le message le précise.
+- **🏁 Checkpoint** : pose un drapeau à damier (un seul par niveau, le nouveau remplace l'ancien) — il devient le point de réapparition une fois touché, **prioritaire sur le checkpoint automatique** des grands mondes.
+- **📋 Dupliquer** : clone l'objet sélectionné avec un léger décalage — les escaliers de plateformes se construisent en quelques appuis.
 - **💾 Télécharger .json** / **📂 Charger .json** : exporter ou importer un niveau sous forme de **fichier `.json`**, pratique pour le sauvegarder hors du navigateur ou le partager. Le format JSON est sans perte (contrairement au copier-coller de code).
 
-Les niveaux créés sont stockés localement dans le navigateur. Pour les partager : **🔗 code de partage** (recommandé, un message suffit), fichier **`.json`** (archivage hors navigateur), ou code développeur (⤓ Export).
+Les niveaux créés sont stockés localement dans le navigateur. Pour les partager : **🔗 code de partage** (recommandé, un message suffit) ou fichier **`.json`** (archivage hors navigateur). L'ancien « ⤓ Exporter le code » (format développeur) a été retiré du menu en v54 — il faisait double emploi ; les vieux codes restent importables via 📥.
 
 ---
 
@@ -263,6 +265,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 🤖 v54 — éditeur : vérification par le bot, checkpoint, duplication
+
+L'éditeur gagne trois outils majeurs. **🤖 Vérifier le niveau** : le pilote automatique de la démo joue le niveau en simulation accélérée (≤ 90 s de jeu simulé, quasi instantané) et garantit que toutes les pièces sont atteignables — celles qu'il rate clignotent en rouge sur le canvas. **🏁 Checkpoint posable** dans la palette (unique, prioritaire sur l'automatique des grands mondes, transporté par les codes PIXOU et les .json). **📋 Dupliquer** l'objet sélectionné. Ménage : le bouton « ⤓ Exporter le code » (format développeur, partiellement lossy) quitte le menu — le code PIXOU et le .json couvrent tous les usages, les anciens codes restent importables. Deux bugs latents corrigés au passage : le téléchargement .json était cassé depuis la v39 (référence `m.nom` orpheline), et **l'import perdait silencieusement les abeilles 🐝 et les sauteurs 🦘** (absents de la liste blanche des types). Validation : 4 tests Node (aller-retour PIXOU complet, checkpoint transmis au moteur, pièce inaccessible identifiée, niveau complet validé).
 
 ### 📖 v53 — documentation remise à niveau
 

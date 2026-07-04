@@ -135,6 +135,9 @@ export class Game {
             this.bossArene = arene ? { x: arene.x, r: arene.x + arene.largeur, y: arene.y } : null;
             this.bossVaincu = false;
         }
+        // Checkpoint MANUEL (drapeau 🏁 posé dans l'éditeur) : prioritaire,
+        // fonctionne quelle que soit la taille du monde.
+        this._checkpointManuel = data.checkpointPos || null;
         // Checkpoint à mi-parcours, uniquement pour les grands niveaux (où une chute coûte cher).
         // On choisit une plateforme proche du milieu géographique du parcours.
         this.checkpoint = null;
@@ -159,6 +162,10 @@ export class Game {
                     atteint: false
                 };
             }
+        }
+        if (this._checkpointManuel) {
+            const cp = this._checkpointManuel;
+            this.checkpoint = { x: cp.x, y: cp.y, spawnX: cp.x - 15, spawnY: cp.y - 8, atteint: false };
         }
         this.nuages = [];
         const largeurNuages = Math.max(800, this.mondeW);

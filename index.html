@@ -235,7 +235,7 @@
     </div>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v53</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v54</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -394,6 +394,9 @@
             <h3><span class="ico">✏️</span> Éditeur & partage</h3>
             <div class="help-row"><span class="emoji">✏️</span><span class="desc">Crée tes propres niveaux : plateformes, pièces, ennemis, pics, ressorts, power-ups… puis <strong>▶ Tester</strong> pour y jouer aussitôt</span></div>
             <div class="help-row"><span class="emoji">🎲</span><span class="desc"><strong>Niveau aléatoire</strong> : génère un niveau jouable en un appui, à modifier à ta guise</span></div>
+            <div class="help-row"><span class="emoji">🤖</span><span class="desc"><strong>Vérifier le niveau</strong> : le robot de la démo joue ton niveau en accéléré et te dit si toutes les pièces sont atteignables — les impossibles clignotent en rouge</span></div>
+            <div class="help-row"><span class="emoji">🏁</span><span class="desc"><strong>Checkpoint</strong> : pose un drapeau (un seul) — une fois touché, Pixou y réapparaît au lieu de repartir du début</span></div>
+            <div class="help-row"><span class="emoji">📋</span><span class="desc"><strong>Dupliquer</strong> : clone l'objet sélectionné — parfait pour les escaliers de plateformes</span></div>
             <div class="help-row"><span class="emoji">🔗</span><span class="desc"><strong>Partager</strong> : ton niveau devient un code <strong>PIXOU1.…</strong> envoyé par WhatsApp, SMS ou mail avec le mode d'emploi</span></div>
             <div class="help-row"><span class="emoji">📥</span><span class="desc"><strong>Coller un code</strong> : colle le message reçu <strong>en entier</strong> — le code est détecté tout seul, et le niveau s'ouvre dans l'éditeur</span></div>
             <div class="help-tip">💡 Échangez vos créations en famille : chacun construit un niveau, l'envoie, et on compare les chronos !</div>
@@ -556,6 +559,7 @@
         <button class="ed-tool" data-tool="ennemiSaut" title="Ennemi sauteur (écrasable)">🦘</button>
         <button class="ed-tool" data-tool="spike" title="Pics">🔺</button>
         <button class="ed-tool" data-tool="ressort" title="Ressort">🔴</button>
+        <button class="ed-tool" data-tool="checkpoint" title="Checkpoint (un seul par niveau)">🏁</button>
         <button class="ed-tool" data-tool="puDouble" title="Power-up double saut">🔵</button>
         <button class="ed-tool" data-tool="puShield" title="Power-up bouclier">🟡</button>
         <button class="ed-tool" data-tool="puSpeed" title="Power-up vitesse">🟠</button>
@@ -577,6 +581,7 @@
             <label>Dist<input id="ed-prop-dist" type="number" min="10" step="10"></label>
             <label>Vit<input id="ed-prop-vit" type="number" min="1" max="9" step="1"></label>
         </div>
+        <button id="ed-prop-dup" class="ed-tb-btn">📋 Dupliquer</button>
         <button id="ed-prop-del" class="ed-tb-btn ed-del-btn">🗑 Supprimer</button>
     </div>
 
@@ -592,8 +597,8 @@
         <button id="ed-save">💾 Sauvegarder</button>
         <button id="ed-load">📂 Mes niveaux</button>
         <div class="ed-dd-sep">Partage (code)</div>
+        <button id="ed-verify">🤖 Vérifier le niveau</button>
         <button id="ed-share">🔗 Partager</button>
-        <button id="ed-export">⤓ Exporter le code</button>
         <button id="ed-import">📥 Coller un code</button>
         <div class="ed-dd-sep">Fichier .json</div>
         <button id="ed-export-json">💾 Télécharger .json</button>
@@ -603,19 +608,7 @@
         <button id="ed-clear">🧹 Tout effacer</button>
     </div>
 
-    <!-- Overlay export -->
-    <div id="ed-export-overlay" class="hidden">
-        <div class="ed-overlay-card">
-            <h3>Code du niveau</h3>
-            <p class="ed-hint">Copie ce code et colle-le dans le tableau <code>NIVEAUX</code>.</p>
-            <textarea id="ed-export-text" readonly></textarea>
-            <div class="ed-overlay-btns">
-                <button id="ed-export-copy" class="ed-tb-btn ed-accent">📋 Copier</button>
-                <button id="ed-export-close" class="ed-tb-btn">Fermer</button>
-            </div>
-        </div>
-    </div>
-
+    
     <!-- Overlay liste de niveaux sauvegardés -->
     <div id="ed-load-overlay" class="hidden">
         <div class="ed-overlay-card">
