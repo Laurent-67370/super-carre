@@ -89,6 +89,20 @@ export const NIVEAUX=[
 // ============================================================
 const _seuilsCache = {};
 // Seuils depuis des caractéristiques brutes (réutilisable pour les niveaux persos)
+// 🎨 Fonds de niveau sélectionnables dans l'éditeur (haut → bas du ciel)
+export const FONDS = {
+    jour:    { nom: '☀️ Jour',       haut: '#5DADE2', bas: '#D6EAF8' },
+    aube:    { nom: '🌅 Aube',       haut: '#AED6F1', bas: '#21618C' },
+    coucher: { nom: '🌇 Coucher',    haut: '#CB4335', bas: '#2C0008' },
+    nuit:    { nom: '🌙 Nuit',       haut: '#2C3E50', bas: '#1a1a2e' },
+    espace:  { nom: '🌌 Espace',     haut: '#1B263B', bas: '#02030a' },
+    foret:   { nom: '🌲 Forêt',      haut: '#145A32', bas: '#0a1f12' },
+    lave:    { nom: '🌋 Lave',       haut: '#922B21', bas: '#1A0000' },
+    ocean:   { nom: '🌊 Océan',      haut: '#1B4F72', bas: '#0E2F44' },
+    violet:  { nom: '🔮 Mystique',   haut: '#8E44AD', bas: '#2C003E' },
+    menthe:  { nom: '🍃 Menthe',     haut: '#7DCEA0', bas: '#D5F5E3' }
+};
+
 export function seuilsDepuis(nbPieces, w, h, boss) {
     const d = { pieces: { length: nbPieces } };
     return _calculerSeuils(d, w || 800, h || 600, !!boss);

@@ -235,7 +235,7 @@
     </div>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v57</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v58</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -408,6 +408,7 @@
             <div class="help-row"><span class="emoji">🎲</span><span class="desc"><strong>Niveau aléatoire</strong> : génère un niveau jouable en un appui, à modifier à ta guise</span></div>
             <div class="help-row"><span class="emoji">🤖</span><span class="desc"><strong>Vérifier le niveau</strong> : le robot de la démo joue ton niveau en accéléré et te dit si toutes les pièces sont atteignables — les impossibles clignotent en rouge</span></div>
             <div class="help-row"><span class="emoji">🏁</span><span class="desc"><strong>Checkpoint</strong> : pose un drapeau (un seul) — une fois touché, Pixou y réapparaît au lieu de repartir du début</span></div>
+            <div class="help-row"><span class="emoji">🌇</span><span class="desc"><strong>🎨 Fond</strong> : choisis l'ambiance du niveau parmi 10 ciels (jour, coucher de soleil, nuit, espace, lave…) — visible dans l'éditeur, en test et dans 📝 Mes niveaux</span></div>
             <div class="help-row"><span class="emoji">📋</span><span class="desc"><strong>Dupliquer</strong> : clone l'objet sélectionné — parfait pour les escaliers de plateformes</span></div>
             <div class="help-row"><span class="emoji">🔗</span><span class="desc"><strong>Partager</strong> : ton niveau devient un code <strong>PIXOU1.…</strong> envoyé par WhatsApp, SMS ou mail avec le mode d'emploi</span></div>
             <div class="help-row"><span class="emoji">📥</span><span class="desc"><strong>Coller un code</strong> : colle le message reçu <strong>en entier</strong> — le code est détecté tout seul, et le niveau s'ouvre dans l'éditeur</span></div>
@@ -599,6 +600,7 @@
     </div>
 
     <div id="ed-bottombar">
+        <label class="ed-dim">🎨 Fond <select id="ed-fond"></select></label>
         <label class="ed-dim">Monde L <input id="ed-world-w" type="number" min="800" step="100" value="800"></label>
         <label class="ed-dim">Monde H <input id="ed-world-h" type="number" min="600" step="100" value="600"></label>
         <button id="ed-fit" class="ed-tb-btn">⊡ Ajuster</button>

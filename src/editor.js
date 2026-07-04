@@ -1,6 +1,7 @@
 import { Game } from './game.js';
 import { Platform, MovingPlatform, Spike, Ennemi, EnnemiVolant, EnnemiSaut, Coin, Ressort, PowerUp } from './entities.js';
 import { Player } from './player.js';
+import { FONDS } from './levels.js';
 import { DemoBot } from './demo.js';
 import { setupControls } from './controls.js';
 /* LevelEditor — éditeur de niveaux */
@@ -29,7 +30,7 @@ export class LevelEditor {
     modeleVide() {
         return {
             nom: 'Mon niveau',
-            largeurMonde: 800, hauteurMonde: 600,
+            largeurMonde: 800, hauteurMonde: 600, fond: 'jour',
             spawn: { x: 60, y: 480 },
             objets: []  // {type, x, y, w, h, dist, vit}  (type: sol/herbe/mur/mobileH/mobileV/coin/ennemi/spike/ressort/puDouble/puShield/puSpeed)
         };
@@ -332,8 +333,11 @@ export class LevelEditor {
         ctx.clearRect(0, 0, this.cssW, this.cssH);
         ctx.save();
         ctx.translate(c.x, c.y); ctx.scale(c.zoom, c.zoom);
-        // Fond du monde
-        ctx.fillStyle = '#16213e';
+        // Fond du monde : aperçu du 🎨 fond choisi
+        const f = FONDS[this.modele.fond] || FONDS.jour;
+        const gradFond = ctx.createLinearGradient(0, 0, 0, this.modele.hauteurMonde);
+        gradFond.addColorStop(0, f.haut); gradFond.addColorStop(1, f.bas);
+        ctx.fillStyle = gradFond;
         ctx.fillRect(0, 0, this.modele.largeurMonde, this.modele.hauteurMonde);
         // Grille
         ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1 / c.zoom;
@@ -621,7 +625,7 @@ export class LevelEditor {
         if (!this.game._controlesInstalles) { setupControls(this.game); this.game._controlesInstalles = true; }
         this.game.audio.init(); this.game.audio.resume();
         banner.classList.add('hidden');
-        this.game.chargerNiveauData(data, this.modele.largeurMonde, this.modele.hauteurMonde, this.modele.spawn);
+        this.game.chargerNiveauData(data, this.modele.largeurMonde, this.modele.hauteurMonde, this.modele.spawn, this.modele.fond);
         // Démarrer la boucle de jeu si ce n'est pas déjà fait
         if (!this.game._boucleLancee) { this.game._boucleLancee = true; this.game._lastTime = undefined; this.game._accumulateur = 0; requestAnimationFrame((t) => this.game.boucle(t)); }
     }
@@ -723,6 +727,7 @@ export class LevelEditor {
             format: 'super-carre-niveau',
             version: 1,
             nom: m.nom,
+            fond: m.fond || 'jour',
             largeurMonde: m.largeurMonde,
             hauteurMonde: m.hauteurMonde,
             spawn: { x: Math.round(m.spawn.x), y: Math.round(m.spawn.y) },
@@ -816,7 +821,9 @@ export class LevelEditor {
             objets.push(obj);
         }
         if (objets.length === 0) return false;
+        const fondValide = (data && FONDS[data.fond]) ? data.fond : 'jour';
         this.modele = {
+            fond: fondValide,
             nom: typeof data.nom === 'string' ? data.nom : 'Niveau importé',
             largeurMonde: +data.largeurMonde || 800,
             hauteurMonde: +data.hauteurMonde || 600,
@@ -887,6 +894,20 @@ export class LevelEditor {
         // Dropdown ⋯
         const dd = document.getElementById('ed-dropdown');
         document.getElementById('ed-menu2').addEventListener('click', () => dd.classList.toggle('hidden'));
+        // 🎨 Fond du niveau
+        const selFond = document.getElementById('ed-fond');
+        if (selFond) {
+            for (const [id, fd] of Object.entries(FONDS)) {
+                const opt = document.createElement('option');
+                opt.value = id; opt.textContent = fd.nom;
+                selFond.appendChild(opt);
+            }
+            selFond.value = this.modele.fond || 'jour';
+            selFond.addEventListener('change', () => {
+                this.modele.fond = selFond.value;
+                this._snapshot(); this.dessiner();
+            });
+        }
         document.getElementById('ed-save').addEventListener('click', () => { dd.classList.add('hidden'); this.sauvegarder(); });
         document.getElementById('ed-clear').addEventListener('click', () => { dd.classList.add('hidden'); if (confirm('Tout effacer ?')) { this.modele = this.modeleVide(); document.getElementById('ed-name').value = this.modele.nom; this.deselectionner(); this._snapshot(); this.fit(); this.dessiner(); } });
         document.getElementById('ed-load').addEventListener('click', () => { dd.classList.add('hidden'); this._ouvrirListe(); });

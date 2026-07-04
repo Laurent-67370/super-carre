@@ -186,6 +186,7 @@ Accessible via le bouton **« ✏️ ÉDITEUR DE NIVEAUX »** du menu d'accueil.
 - **🤖 Vérifier le niveau** : le pilote de la démo joue le niveau en simulation accélérée (jusqu'à 90 s de jeu, sans rendu) et confirme que toutes les pièces sont atteignables — les pièces ratées clignotent en rouge 6 s sur le canvas. Un passage très acrobatique peut dépasser le bot, le message le précise.
 - **🏁 Checkpoint** : pose un drapeau à damier (un seul par niveau, le nouveau remplace l'ancien) — il devient le point de réapparition une fois touché, **prioritaire sur le checkpoint automatique** des grands mondes.
 - **📋 Dupliquer** : clone l'objet sélectionné avec un léger décalage — les escaliers de plateformes se construisent en quelques appuis.
+- **🎨 Fond** : 10 ambiances de ciel au choix (☀️ Jour, 🌅 Aube, 🌇 Coucher, 🌙 Nuit, 🌌 Espace, 🌲 Forêt, 🌋 Lave, 🌊 Océan, 🔮 Mystique, 🍃 Menthe) — aperçu en direct sur le canvas de l'éditeur, appliqué en test et dans 📝 Mes niveaux, transporté par les codes 🔗 PIXOU et les fichiers .json (les anciens codes retombent sur Jour).
 - **💾 Télécharger .json** / **📂 Charger .json** : exporter ou importer un niveau sous forme de **fichier `.json`**, pratique pour le sauvegarder hors du navigateur ou le partager. Le format JSON est sans perte (contrairement au copier-coller de code).
 
 **🎯 Jouer ses créations** : chaque niveau sauvegardé dans l'éditeur apparaît dans le sélecteur « 🎯 NIVEAUX », section **📝 Mes niveaux** — jouable comme un vrai niveau avec chrono, **médailles 🥇🥈🥉 à seuils automatiques** (calculés d'après le nombre de pièces et la taille du monde) et **meilleur temps mémorisé** (affiché sur la tuile). Fin de niveau : écran dédié avec 🔄 REJOUER / 🏠 MENU. Par équité, les niveaux persos ne créditent pas le portefeuille 🪙 et n'alimentent ni les étoiles ni le Hall of Fame (réservés à l'aventure).
@@ -273,6 +274,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 🌇 v58 — fond du niveau au choix dans l'éditeur
+
+Nouveau réglage **🎨 Fond** dans l'éditeur : 10 ambiances de ciel nommées (issues de la palette des 24 niveaux officiels — Jour, Aube, Coucher, Nuit, Espace, Forêt, Lave, Océan, Mystique, Menthe), avec **aperçu en dégradé directement sur le canvas de l'éditeur**. Le fond choisi s'applique en mode ▶ Test comme dans 📝 Mes niveaux (priorité sur la palette indexée du moteur, cache du dégradé invalidé proprement), voyage dans les codes 🔗 PIXOU et les .json (champ optionnel : anciens codes → Jour, fond inconnu → Jour). Tests Node : transport du fond, rétro-compatibilité, rejet des valeurs invalides.
 
 ### 📖 v57 — documentation consolidée
 

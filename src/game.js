@@ -1,7 +1,7 @@
 import { Player } from './player.js';
 import { Boss } from './entities.js';
 import { AudioManager } from './audio.js';
-import { NIVEAUX, seuilsDepuis, medaillePour, seuilsMedailles, MEDAILLE_EMOJI } from './levels.js';
+import { NIVEAUX, seuilsDepuis, FONDS, medaillePour, seuilsMedailles, MEDAILLE_EMOJI } from './levels.js';
 import { HighScoreManager, ProgressManager } from './storage.js';
 import { DemoBot } from './demo.js';
 import { SkinManager } from './skins.js';
@@ -67,12 +67,19 @@ export class Game {
     chargerNiveau(idx) {
         this.modeTest = false;
         this.niveauActuel = idx;
+        this.definirFond(null);
         this._initNiveau(NIVEAUX[idx].creer(), NIVEAUX[idx].largeurMonde, NIVEAUX[idx].hauteurMonde, NIVEAUX[idx].spawn);
     }
     // Charge un niveau depuis des données déjà instanciées (utilisé par l'éditeur en mode test)
-    chargerNiveauData(data, largeurMonde, hauteurMonde, spawn) {
+    chargerNiveauData(data, largeurMonde, hauteurMonde, spawn, fond) {
         this.modeTest = true;
+        this.definirFond(fond);
         this._initNiveau(data, largeurMonde, hauteurMonde, spawn);
+    }
+    // 🎨 Fond personnalisé (éditeur / niveaux persos) — id de FONDS ou null
+    definirFond(fond) {
+        this._fondPerso = (fond && FONDS[fond]) ? [FONDS[fond].haut, FONDS[fond].bas] : null;
+        this._cielGrad = null; // invalider le cache du dégradé
     }
     // 📝 Joue un niveau créé dans l'éditeur comme un vrai niveau :
     // chrono + médailles + meilleur temps mémorisé. Pas de crédit 🪙
@@ -85,6 +92,7 @@ export class Game {
             seuils: seuilsDepuis(data.pieces.length, modele.largeurMonde, modele.hauteurMonde, false)
         };
         this._persoSource = { modele, data: null }; // data reconstruit à chaque REJOUER
+        this.definirFond(modele.fond);
         this._initNiveau(data, modele.largeurMonde, modele.hauteurMonde, modele.spawn);
     }
     static tempsPerso() {
@@ -465,7 +473,14 @@ export class Game {
         const cols=couleurs[Math.min(this.niveauActuel,couleurs.length-1)];
         // Le dégradé du ciel ne dépend que du niveau et de la hauteur : on le met en cache
         // pour ne pas le reconstruire à chaque frame (gain CPU, aucun changement visuel).
-        if (!this._cielGrad || this._cielGradNiv !== this.niveauActuel || this._cielGradH !== this.H) {
+        if (this._fondPerso) {
+            if (!this._cielGrad || this._cielGradH !== this.H) {
+                const g = ctx.createLinearGradient(0, 0, 0, this.H);
+                g.addColorStop(0, this._fondPerso[0]); g.addColorStop(1, this._fondPerso[1]);
+                this._cielGrad = g; this._cielGradH = this.H;
+            }
+            ctx.fillStyle = this._cielGrad; ctx.fillRect(0, 0, this.W, this.H);
+        } else if (!this._cielGrad || this._cielGradNiv !== this.niveauActuel || this._cielGradH !== this.H) {
             const g = ctx.createLinearGradient(0,0,0,this.H);
             g.addColorStop(0,cols[0]); g.addColorStop(1,cols[1]);
             this._cielGrad = g; this._cielGradNiv = this.niveauActuel; this._cielGradH = this.H;
@@ -926,6 +941,7 @@ export class Game {
     // Retour au menu principal depuis n'importe quel écran ; rafraîchit le bouton Continuer
     retourMenu() {
         this.modePerso = null;
+        this.definirFond(null);
         const pw = document.getElementById('perso-win');
         if (pw) pw.classList.remove('show');
         // Si un test d'éditeur est en cours, revenir à l'éditeur, pas au menu
