@@ -3,7 +3,9 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 
 /* ÉCRAN DÉMARRAGE */
 #start-screen{position:fixed;inset:0;background:linear-gradient(135deg,#667eea 0%,#764ba2 50%,#f093fb 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:20px}
-#start-screen .logo{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#start-screen .logo{cursor:grab;-webkit-tap-highlight-color:transparent;perspective:520px;touch-action:none;user-select:none}
+#start-screen .logo:active{cursor:grabbing}
+#start-screen .logo svg{will-change:transform;backface-visibility:visible}
 @keyframes pixouHop{0%{transform:translateY(0) scale(1,1)}18%{transform:translateY(3px) scale(1.12,.84)}55%{transform:translateY(-30px) scale(.92,1.12)}80%{transform:translateY(2px) scale(1.06,.92)}100%{transform:translateY(0) scale(1,1)}}
 #start-screen .logo.hop svg{animation:pixouHop .55s cubic-bezier(.36,.07,.19,.97)}
 #start-screen .logo{width:clamp(90px,26vw,130px);height:clamp(90px,26vw,130px);margin-bottom:10px;animation:b 1.5s ease-in-out infinite;filter:drop-shadow(0 8px 20px rgba(231,76,60,.4))}

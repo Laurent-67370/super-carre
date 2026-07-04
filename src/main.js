@@ -105,16 +105,71 @@ function init() {
         }, 400);
     });
 
-    // --- PIXOU INTERACTIF : taper la mascotte la fait sauter ! ---
+    // --- PIXOU INTERACTIF : tap = bond 🦘, glisser = rotation 3D 🌀 ---
     const logo = document.querySelector('#start-screen .logo');
-    if (logo) logo.addEventListener('click', () => {
+    const logoSvg = logo ? logo.querySelector('svg') : null;
+    function bondMascotte() {
         game.audio.init(); game.audio.resume();
         game.audio.saut();
         if (navigator.vibrate) navigator.vibrate(20);
         logo.classList.remove('hop');
         void logo.offsetWidth; // relance l'animation même en tapotant vite
         logo.classList.add('hop');
-    });
+    }
+    if (logo && logoSvg) {
+        let rotY = 0, spinVel = 0, spinRAF = null, dragM = null, dernierQuart = 0;
+        const appliquerRot = () => { logoSvg.style.transform = rotY ? `rotateY(${rotY}deg)` : ''; };
+        const clicQuart = () => {
+            // petit clic sonore + vibration à chaque quart de tour
+            const q = Math.floor(Math.abs(rotY) / 90);
+            if (q !== dernierQuart) {
+                dernierQuart = q;
+                game.audio.beep(480 + (q % 4) * 70, 480 + (q % 4) * 70, 0.03, 'square', 0.05);
+                if (navigator.vibrate) navigator.vibrate(8);
+            }
+        };
+        const inertie = () => {
+            spinVel *= 0.955; // frottement
+            rotY += spinVel;
+            clicQuart(); appliquerRot();
+            if (Math.abs(spinVel) > 0.45) { spinRAF = requestAnimationFrame(inertie); return; }
+            // Se stabiliser face au joueur : multiple de 360° le plus proche
+            spinRAF = null;
+            logoSvg.style.transition = 'transform .55s cubic-bezier(.2,.8,.3,1.18)';
+            rotY = Math.round(rotY / 360) * 360;
+            appliquerRot();
+            setTimeout(() => {
+                logoSvg.style.transition = '';
+                rotY = 0; dernierQuart = 0; appliquerRot();
+            }, 570);
+        };
+        logo.addEventListener('pointerdown', (e) => {
+            if (spinRAF) { cancelAnimationFrame(spinRAF); spinRAF = null; }
+            logoSvg.style.transition = '';
+            dragM = { x0: e.clientX, rot0: rotY, lastX: e.clientX, lastT: performance.now(), moved: false };
+            try { logo.setPointerCapture(e.pointerId); } catch (err) {}
+        });
+        logo.addEventListener('pointermove', (e) => {
+            if (!dragM) return;
+            const dx = e.clientX - dragM.x0;
+            if (Math.abs(dx) > 7) dragM.moved = true;
+            if (!dragM.moved) return;
+            const t = performance.now();
+            spinVel = (e.clientX - dragM.lastX) / Math.max(1, t - dragM.lastT) * 14;
+            dragM.lastX = e.clientX; dragM.lastT = t;
+            rotY = dragM.rot0 + dx * 0.9; // le doigt entraîne la rotation
+            game.audio.init();
+            clicQuart(); appliquerRot();
+        });
+        const finDrag = () => {
+            if (!dragM) return;
+            const etaitDrag = dragM.moved; dragM = null;
+            if (!etaitDrag) { bondMascotte(); return; } // simple tap → bond
+            spinRAF = requestAnimationFrame(inertie);   // pichenette → inertie
+        };
+        logo.addEventListener('pointerup', finDrag);
+        logo.addEventListener('pointercancel', finDrag);
+    }
 
     // --- 🎨 BOUTIQUE DE SKINS ---
     const CAT_TITRES = { corps: '🎨 Couleur de Pixou', chapeau: '🧢 Chapeaux', costume: '🦸 Costumes', chaussures: '👟 Chaussures', lunettes: '🕶️ Lunettes', studio: '🌈 Studio de couleurs' };
