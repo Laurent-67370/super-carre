@@ -275,6 +275,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 🥋 v60 — le Karatéka gagne son kimono
+
+Le costume Karatéka ne se résumait qu à une ceinture noire, peu lisible sur les corps sombres : il gagne des **revers de kimono blancs en V** au-dessus de la ceinture (sans masquer le visage de Pixou), une bande plus épaisse et un nœud renforcé — en jeu comme sur la mascotte. 45 rendus combinés validés.
+
 ### 🔧 Correctif v59 — costumes visibles sur la mascotte
 
 Les costumes portés sur le torse (ceinture de karatéka, nœud papillon, écharpe, étoile de shérif, collier hawaïen) étaient partiellement **masqués par le sourire et les joues de la mascotte** (dessinés après eux dans l ordre SVG) : les cinq groupes passent après le sourire — la ceinture noire s affiche désormais entière, nœud et pans compris. Le rendu en jeu n était pas concerné.

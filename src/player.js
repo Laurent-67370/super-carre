@@ -569,13 +569,19 @@ export class Player {
             return;
         }
         if (type === 'ceinture') {
-            // Ceinture noire de karatéka : bande + nœud + pans
+            // Tenue de karatéka : revers de kimono blancs en V + ceinture noire
             const by = y + H - 11;
+            ctx.fillStyle = '#F7F9F9';
+            ctx.strokeStyle = '#D5DBDB'; ctx.lineWidth = 1;
+            // revers gauche et droit (col du gi, au-dessus de la ceinture)
+            ctx.beginPath(); ctx.moveTo(x + 1, by - 7); ctx.lineTo(cx - 1, by + 1); ctx.lineTo(x + 1, by + 1); ctx.closePath(); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(x + L - 1, by - 7); ctx.lineTo(cx + 1, by + 1); ctx.lineTo(x + L - 1, by + 1); ctx.closePath(); ctx.fill(); ctx.stroke();
+            // ceinture noire : bande + nœud + pans
             ctx.fillStyle = '#1a1a2e';
-            ctx.fillRect(x - 1, by, L + 2, 5);
-            ctx.fillRect(cx - 3, by - 1, 6, 7);
-            ctx.beginPath(); ctx.moveTo(cx - 2, by + 5); ctx.lineTo(cx - 6, by + 12); ctx.lineTo(cx - 2.5, by + 11); ctx.closePath(); ctx.fill();
-            ctx.beginPath(); ctx.moveTo(cx + 2, by + 5); ctx.lineTo(cx + 6, by + 12); ctx.lineTo(cx + 2.5, by + 11); ctx.closePath(); ctx.fill();
+            ctx.fillRect(x - 1, by, L + 2, 6);
+            ctx.fillRect(cx - 3.5, by - 1.5, 7, 9);
+            ctx.beginPath(); ctx.moveTo(cx - 2, by + 6); ctx.lineTo(cx - 7, by + 14); ctx.lineTo(cx - 2.5, by + 12); ctx.closePath(); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(cx + 2, by + 6); ctx.lineTo(cx + 7, by + 14); ctx.lineTo(cx + 2.5, by + 12); ctx.closePath(); ctx.fill();
         }
     }
     // --- Chapeaux (🎨 boutique) ---
