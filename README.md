@@ -275,7 +275,11 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
-### 🌇 v58 — fond du niveau au choix dans l'éditeur
+### 🔧 Correctif v59 — costumes visibles sur la mascotte
+
+Les costumes portés sur le torse (ceinture de karatéka, nœud papillon, écharpe, étoile de shérif, collier hawaïen) étaient partiellement **masqués par le sourire et les joues de la mascotte** (dessinés après eux dans l ordre SVG) : les cinq groupes passent après le sourire — la ceinture noire s affiche désormais entière, nœud et pans compris. Le rendu en jeu n était pas concerné.
+
+### 🌇 v58 — fond du niveau au choix dans l éditeur
 
 Nouveau réglage **🎨 Fond** dans l'éditeur : 10 ambiances de ciel nommées (issues de la palette des 24 niveaux officiels — Jour, Aube, Coucher, Nuit, Espace, Forêt, Lave, Océan, Mystique, Menthe), avec **aperçu en dégradé directement sur le canvas de l'éditeur**. Le fond choisi s'applique en mode ▶ Test comme dans 📝 Mes niveaux (priorité sur la palette indexée du moteur, cache du dégradé invalidé proprement), voyage dans les codes 🔗 PIXOU et les .json (champ optionnel : anciens codes → Jour, fond inconnu → Jour). Tests Node : transport du fond, rétro-compatibilité, rejet des valeurs invalides.
 
