@@ -341,6 +341,35 @@ function init() {
     }
     majDiff();
 
+    // --- 📬 NIVEAU REÇU PAR LIEN (?n=CODE dans l'URL) ---
+    (async () => {
+        const m = location.search.match(/[?&]n=([^&]+)/);
+        if (!m) return;
+        // Nettoyer l'URL tout de suite (pas de re-déclenchement au refresh)
+        try { history.replaceState(null, '', location.pathname); } catch (e) {}
+        let code;
+        try { code = decodeURIComponent(m[1]); } catch (e) { return; }
+        const ok = await editor.chargerCode(code);
+        if (!ok) { afficherToast('😕 Le lien de niveau reçu est invalide ou incomplet.'); return; }
+        const nom = editor.modele.nom || 'Niveau partagé';
+        document.getElementById('share-recu-info').innerHTML =
+            `Quelqu'un t'a envoyé le niveau<br><strong>« ${nom.replace(/</g, '&lt;')} »</strong> !`;
+        document.getElementById('share-recu').classList.add('show');
+        document.getElementById('share-jouer').onclick = () => {
+            document.getElementById('share-recu').classList.remove('show');
+            game.audio.init(); game.audio.resume();
+            entrerEnJeu(() => game.demarrerPerso(editor.modele, editor.construireData(editor.modele)));
+        };
+        document.getElementById('share-editer').onclick = () => {
+            document.getElementById('share-recu').classList.remove('show');
+            document.getElementById('btn-editor').click(); // le niveau est déjà chargé dans l'éditeur
+        };
+        document.getElementById('share-fermer').onclick = () => {
+            document.getElementById('share-recu').classList.remove('show');
+            afficherToast('💡 Le niveau reste ouvert dans ✏️ ÉDITEUR.');
+        };
+    })();
+
     // Bouton AIDE
     document.getElementById('btn-help').addEventListener('click', () => {
         game.audio.init(); game.audio.resume();

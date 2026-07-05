@@ -189,8 +189,8 @@ Accessible via le bouton **« ✏️ ÉDITEUR DE NIVEAUX »** du menu d'accueil.
 - **🎲 Niveau aléatoire** : génère automatiquement un niveau **jouable** (course horizontale ou ascension verticale, tiré au hasard). Chaque plateforme est placée à portée de saut de la précédente, les pièces sont toujours accessibles et les dangers évitables. Confirmation demandée si le niveau courant n'est pas vide.
 - **▶ Tester** : jouer immédiatement son niveau, puis « ◀ Retour éditeur » pour revenir à l'édition.
 - **💾 Sauvegarder** et **📂 Mes niveaux** : enregistrer et recharger ses créations dans le navigateur.
-- **🔗 Partager** : génère un **code de partage compact `PIXOU1.…`** (niveau compressé, sans perte) et ouvre le partage natif du téléphone (WhatsApp, SMS, mail…) avec un message d'instructions prêt à l'emploi — c'est la façon recommandée d'échanger des niveaux.
-- **📥 Coller un code** : colle un code reçu — **le message entier fonctionne**, le code PIXOU est détecté automatiquement (l'ancien format texte reste accepté).
+- **🔗 Partager** : génère un **lien cliquable** (`…/super-carre/?n=PIXOU1.…` — le niveau compressé sans perte voyage dans l'URL) et ouvre le partage natif du téléphone (WhatsApp, SMS, mail…). **Le destinataire clique : le jeu s'ouvre et lui propose ▶ JOUER (avec chrono et médailles) ou ✏️ ÉDITEUR** — zéro copier-coller. L'URL est nettoyée après réception (pas de re-déclenchement au rafraîchissement).
+- **📥 Coller un code** : le secours universel — colle un **lien**, un message entier ou un ancien code PIXOU nu : tout est détecté automatiquement (le paramètre `?n=` des liens est décodé avant analyse).
 - **🤖 Vérifier le niveau** : le pilote de la démo joue le niveau en simulation accélérée (jusqu'à 90 s de jeu, sans rendu) et confirme que toutes les pièces sont atteignables — les pièces ratées clignotent en rouge 6 s sur le canvas. Un passage très acrobatique peut dépasser le bot, le message le précise.
 - **🏁 Checkpoint** : pose un drapeau à damier (un seul par niveau, le nouveau remplace l'ancien) — il devient le point de réapparition une fois touché, **prioritaire sur le checkpoint automatique** des grands mondes.
 - **📋 Dupliquer** : clone l'objet sélectionné avec un léger décalage — les escaliers de plateformes se construisent en quelques appuis.
@@ -282,6 +282,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 📬 v64 — partage par lien cliquable
+
+Fini le copier-coller : **🔗 Partager génère un lien** (`?n=PIXOU1.…`, code compressé encodé dans l'URL, ~370 caractères). À l'ouverture du lien, le jeu détecte le paramètre, importe le niveau et affiche **« 📬 Niveau reçu ! »** avec deux choix : **▶ JOUER** (lancé comme un niveau perso, chrono et médailles compris) ou **✏️ ÉDITEUR** (déjà chargé) — plus « ✕ Plus tard » (le niveau reste dans l'éditeur). L'URL est nettoyée immédiatement (`history.replaceState`). **📥 Coller un code** accepte désormais aussi les liens (décodage `?n=` avant détection), en plus des messages entiers et des anciens codes nus — 4 chemins d'import validés par tests Node.
 
 ### 🎚️ v63 — trois niveaux de difficulté
 

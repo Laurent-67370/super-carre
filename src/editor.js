@@ -773,6 +773,9 @@ export class LevelEditor {
     // Accepte un code PIXOU même noyé dans un message copié-collé.
     // Renvoie true si un niveau valide a été chargé.
     async chargerCode(texte) {
+        // Lien de partage ?n=… : décoder le code encodé dans l'URL
+        const mUrl = String(texte).match(/[?&]n=([A-Za-z0-9%._~-]+)/);
+        if (mUrl) { try { texte = decodeURIComponent(mUrl[1]) + ' ' + texte; } catch (e) {} }
         const m = String(texte).match(/PIXOU([01])\.([A-Za-z0-9+/=]+)/);
         if (!m) return false;
         try {
@@ -879,7 +882,11 @@ export class LevelEditor {
             try {
                 const code = await this.codePartage();
                 const nom = this.modele.nom || 'Mon niveau';
-                const message = `\u{1F7E5} Super Pixou \u2014 je t'envoie mon niveau \u00AB ${nom} \u00BB !\n\nDans le jeu : \u270F\uFE0F \u00C9DITEUR \u2192 \uD83D\uDCE5 Coller un code, puis colle ce message entier :\n\n${code}\n\n\uD83C\uDFAE https://laurent-67370.github.io/super-carre/`;
+                // Lien cliquable : le code voyage dans l'URL (?n=…), le jeu
+                // l'ouvre automatiquement à l'arrivée. Le collage manuel du
+                // lien dans \uD83D\uDCE5 reste possible en secours.
+                const lien = 'https://laurent-67370.github.io/super-carre/?n=' + encodeURIComponent(code);
+                const message = `\u{1F7E5} Super Pixou \u2014 je t'envoie mon niveau \u00AB ${nom} \u00BB !\n\n\uD83D\uDC49 Clique pour y jouer :\n${lien}`;
                 if (navigator.share) {
                     await navigator.share({ title: 'Super Pixou \u2014 ' + nom, text: message });
                 } else {

@@ -247,7 +247,7 @@
     </div>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v63</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v64</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -289,6 +289,19 @@
             <button id="perso-rejouer">🔄 REJOUER</button>
             <button id="perso-menu">🏠 MENU</button>
         </div>
+    </div>
+</div>
+
+<!-- NIVEAU REÇU PAR LIEN 📬 -->
+<div id="share-recu">
+    <div class="perso-box">
+        <h2 id="share-recu-titre">📬 Niveau reçu !</h2>
+        <p id="share-recu-info"></p>
+        <div class="perso-btns">
+            <button id="share-jouer">▶ JOUER</button>
+            <button id="share-editer">✏️ ÉDITEUR</button>
+        </div>
+        <button id="share-fermer">✕ Plus tard</button>
     </div>
 </div>
 
@@ -423,8 +436,8 @@
             <div class="help-row"><span class="emoji">🏁</span><span class="desc"><strong>Checkpoint</strong> : pose un drapeau (un seul) — une fois touché, Pixou y réapparaît au lieu de repartir du début</span></div>
             <div class="help-row"><span class="emoji">🌇</span><span class="desc"><strong>🎨 Fond</strong> : choisis l'ambiance du niveau parmi 10 ciels (jour, coucher de soleil, nuit, espace, lave…) — visible dans l'éditeur, en test et dans 📝 Mes niveaux</span></div>
             <div class="help-row"><span class="emoji">📋</span><span class="desc"><strong>Dupliquer</strong> : clone l'objet sélectionné — parfait pour les escaliers de plateformes</span></div>
-            <div class="help-row"><span class="emoji">🔗</span><span class="desc"><strong>Partager</strong> : ton niveau devient un code <strong>PIXOU1.…</strong> envoyé par WhatsApp, SMS ou mail avec le mode d'emploi</span></div>
-            <div class="help-row"><span class="emoji">📥</span><span class="desc"><strong>Coller un code</strong> : colle le message reçu <strong>en entier</strong> — le code est détecté tout seul, et le niveau s'ouvre dans l'éditeur</span></div>
+            <div class="help-row"><span class="emoji">🔗</span><span class="desc"><strong>Partager</strong> : ton niveau devient un <strong>lien cliquable</strong> envoyé par WhatsApp, SMS ou mail — le destinataire clique et le jeu lui propose direct <strong>▶ JOUER ou ✏️ ÉDITEUR</strong> !</span></div>
+            <div class="help-row"><span class="emoji">📥</span><span class="desc"><strong>Coller un code</strong> : en secours, colle le message reçu <strong>en entier</strong> (lien ou ancien code PIXOU) — le niveau est détecté tout seul</span></div>
             <div class="help-row"><span class="emoji">🎯</span><span class="desc">Tes niveaux <strong>sauvegardés</strong> apparaissent dans « 🎯 NIVEAUX », section <strong>📝 Mes niveaux</strong> : joue-les avec chrono, médailles et record — comme de vrais niveaux ! (sans gain de 🪙 ni Hall of Fame)</span></div>
             <div class="help-tip">💡 Échangez vos créations en famille : chacun construit un niveau, l'envoie, et on compare les chronos !</div>
         </div>
