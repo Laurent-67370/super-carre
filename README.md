@@ -205,6 +205,11 @@ Les niveaux créés sont stockés localement dans le navigateur. Pour les partag
 
 ## 💾 Sauvegarde
 
+**Trois protections contre le « tout local »** :
+- **🔒 Stockage persistant** : au démarrage, le jeu demande `navigator.storage.persist()` — le navigateur s'engage à ne pas évincer les données du site sous pression de stockage (l'état est affiché dans l'écran 💾).
+- **📲 Transfert entre appareils par lien** : la sauvegarde complète est compressée en code `PIXSAVE1.…` et voyage dans une URL (`?s=…`) via le partage natif — l'autre appareil clique, confirme (avec avertissement de remplacement) et tout est restauré en un clic, puis le jeu redémarre. Repli fichier conseillé au-delà de ~12 000 caractères (nombreux niveaux créés).
+- **💾 Rappel intelligent** : après chaque boss vaincu (paliers 6/12/18/24), un toast rappelle d'exporter ou de transférer.
+
 Le jeu utilise le stockage local du navigateur (`localStorage`) :
 
 | Donnée | Clé |
@@ -285,6 +290,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 🔒 v67 — le « tout local » sécurisé
+
+Trois parades sans backend : **stockage persistant** demandé au navigateur (`navigator.storage.persist()`, état affiché dans l'écran 💾 — fini l'éviction silencieuse), **📲 transfert entre appareils par lien** (sauvegarde complète compressée `PIXSAVE1.…` dans l'URL `?s=…`, overlay de confirmation avec avertissement de remplacement, rechargement propre après restauration, garde-fou fichier au-delà de 12 000 caractères), et **rappel d'export après chaque boss** vaincu. Import universel testé (lien, message, code nu, rejet propre). Pour de vrais classements en ligne, l'étape suivante serait un petit backend (Supabase).
 
 ### 📖 v66 — README consolidé
 

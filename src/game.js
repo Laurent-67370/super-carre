@@ -5,7 +5,7 @@ import { NIVEAUX, seuilsDepuis, FONDS, medaillePour, seuilsMedailles, MEDAILLE_E
 import { HighScoreManager, ProgressManager } from './storage.js';
 import { DemoBot } from './demo.js';
 import { SkinManager } from './skins.js';
-import { afficherHallOfFame } from './ui.js';
+import { afficherHallOfFame, afficherToast } from './ui.js';
 /* Game — moteur de jeu (boucle, physique, rendu) */
 
 // 🎚️ Difficultés : vies, vitesse des ennemis, invincibilité après dégât,
@@ -785,6 +785,10 @@ export class Game {
                 `<br><span class="perso-seuils">🥇 ≤ ${s.or}s · 🥈 ≤ ${s.argent}s · 🥉 ≤ ${s.bronze}s</span>`;
             document.getElementById('perso-win').classList.add('show');
             return;
+        }
+        // 💾 Rappel de sauvegarde après chaque boss vaincu (paliers 6/12/18/24)
+        if ((this.niveauActuel + 1) % 6 === 0) {
+            setTimeout(() => afficherToast('💾 Palier franchi ! Pense à exporter ta sauvegarde (menu 💾) ou à l\'envoyer sur un autre appareil 📲'), 2200);
         }
         this.etat='transition';
         this.scoreTotal+=this.scoreNiveau; this.tempsTotal+=this.tempsNiveau;

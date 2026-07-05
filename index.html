@@ -247,7 +247,7 @@
     </div>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v66</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v67</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -312,10 +312,24 @@
     <div class="save-buttons">
         <button id="btn-save-export">📤 EXPORTER<br><span class="save-hint">Télécharge un fichier de sauvegarde</span></button>
         <button id="btn-save-import">📥 IMPORTER<br><span class="save-hint">Restaure depuis un fichier</span></button>
+        <button id="btn-save-transfert">📲 VERS UN AUTRE APPAREIL<br><span class="save-hint">Envoie un lien : tout est restauré en un clic</span></button>
     </div>
+    <p id="save-persist" class="sub-scores"></p>
     <p class="save-warning">⚠️ Importer remplace la progression actuelle</p>
     <input type="file" id="save-file" accept=".json,application/json" style="display:none">
     <button id="btn-save-back">◀ RETOUR</button>
+</div>
+
+<!-- SAUVEGARDE REÇUE PAR LIEN 📲 -->
+<div id="save-recu">
+    <div class="perso-box">
+        <h2>📲 Sauvegarde reçue !</h2>
+        <p id="save-recu-info"></p>
+        <div class="perso-btns">
+            <button id="save-recu-ok">✅ RESTAURER</button>
+            <button id="save-recu-non">✕ Annuler</button>
+        </div>
+    </div>
 </div>
 
 <!-- SAISIE DE NOM ARCADE -->
@@ -452,6 +466,8 @@
 
         <div class="help-card">
             <h3><span class="ico">💾</span> Sauvegarde</h3>
+            <div class="help-row"><span class="emoji">📲</span><span class="desc"><strong>Vers un autre appareil</strong> : envoie un lien (WhatsApp, mail…) — l'autre appareil clique et TOUT est restauré : progression, skins, niveaux créés, records</span></div>
+            <div class="help-row"><span class="emoji">🔒</span><span class="desc">Le jeu demande au navigateur un <strong>stockage protégé</strong> pour que tes données ne soient jamais supprimées automatiquement</span></div>
             <div class="help-row"><span class="emoji">📤</span><span class="desc"><strong>EXPORTER</strong> (menu → 💾 SAUVEGARDE) télécharge un fichier contenant TOUTE ta progression : niveaux, étoiles, chronos, Hall of Fame, niveaux créés dans l'éditeur, préférences</span></div>
             <div class="help-row"><span class="emoji">📥</span><span class="desc"><strong>IMPORTER</strong> restaure ce fichier — après un nettoyage du navigateur, ou sur un autre appareil pour emporter ta progression</span></div>
             <div class="help-tip">💡 Exporte de temps en temps : c'est ton assurance-vie contre un « effacer les données de navigation » malheureux !</div>

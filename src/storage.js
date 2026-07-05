@@ -157,6 +157,38 @@ export function exporterSauvegarde() {
     return JSON.stringify(data, null, 2);
 }
 
+// --- 📲 TRANSFERT ENTRE APPAREILS : sauvegarde compressée en code URL ---
+async function _deflateB64(texte) {
+    const flux = new Blob([texte]).stream().pipeThrough(new CompressionStream('deflate-raw'));
+    const buf = await new Response(flux).arrayBuffer();
+    let bin = '';
+    const oct = new Uint8Array(buf);
+    for (let i = 0; i < oct.length; i++) bin += String.fromCharCode(oct[i]);
+    return btoa(bin);
+}
+async function _inflateB64(b64) {
+    const bin = atob(b64);
+    const oct = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) oct[i] = bin.charCodeAt(i);
+    const flux = new Blob([oct]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+    return await new Response(flux).text();
+}
+// Code compact de la sauvegarde complète (PIXSAVE1.xxxx)
+export async function codeSauvegarde() {
+    return 'PIXSAVE1.' + await _deflateB64(exporterSauvegarde());
+}
+// Restaure depuis un code (ou un texte/lien le contenant). Retourne le
+// nombre d'entrées importées, ou lève une erreur explicite.
+export async function chargerCodeSauvegarde(texte) {
+    // lien ?s=… éventuel : décoder d'abord
+    const mUrl = String(texte).match(/[?&]s=([A-Za-z0-9%._~-]+)/);
+    if (mUrl) { try { texte = decodeURIComponent(mUrl[1]) + ' ' + texte; } catch (e) {} }
+    const m = String(texte).match(/PIXSAVE1\.([A-Za-z0-9+/=]+)/);
+    if (!m) throw new Error('Aucun code de sauvegarde (PIXSAVE1.…) détecté.');
+    const json = await _inflateB64(m[1]);
+    return importerSauvegarde(json);
+}
+
 // Restaure une sauvegarde. Retourne le nombre d'entrées importées.
 // Lève une erreur si le fichier n'est pas une sauvegarde valide.
 export function importerSauvegarde(json) {

@@ -5,7 +5,7 @@ import { AudioManager } from './audio.js';
 import { NIVEAUX, medaillePour, MEDAILLE_EMOJI } from './levels.js';
 import { setupControls } from './controls.js';
 import { afficherHallOfFame, partagerScores, afficherToast } from './ui.js';
-import { exporterSauvegarde, importerSauvegarde } from './storage.js';
+import { exporterSauvegarde, importerSauvegarde, codeSauvegarde, chargerCodeSauvegarde } from './storage.js';
 import { CATALOGUE, nuancer } from './skins.js';
 import './style.css';
 
@@ -341,6 +341,44 @@ function init() {
     }
     majDiff();
 
+    // --- 🔒 STOCKAGE PERSISTANT : demander au navigateur de ne jamais
+    // évincer les données du jeu sous pression de stockage ---
+    (async () => {
+        try {
+            if (navigator.storage && navigator.storage.persist) {
+                const deja = await navigator.storage.persisted();
+                const ok = deja || await navigator.storage.persist();
+                const el = document.getElementById('save-persist');
+                if (el) el.textContent = ok
+                    ? '🔒 Stockage protégé : le navigateur ne supprimera pas tes données automatiquement.'
+                    : '⚠️ Stockage non protégé — exporte régulièrement ta sauvegarde par prudence.';
+            }
+        } catch (e) {}
+    })();
+
+    // --- 📲 SAUVEGARDE REÇUE PAR LIEN (?s=CODE) ---
+    (async () => {
+        const m = location.search.match(/[?&]s=([^&]+)/);
+        if (!m) return;
+        try { history.replaceState(null, '', location.pathname); } catch (e) {}
+        document.getElementById('save-recu-info').innerHTML =
+            'Une sauvegarde complète t\'a été envoyée.<br><strong>⚠️ Restaurer remplacera la progression de CET appareil</strong> (niveaux, skins, records…).';
+        document.getElementById('save-recu').classList.add('show');
+        document.getElementById('save-recu-ok').onclick = async () => {
+            try {
+                const n = await chargerCodeSauvegarde(decodeURIComponent(m[1]));
+                document.getElementById('save-recu').classList.remove('show');
+                alert('✅ ' + n + ' éléments restaurés ! Le jeu va redémarrer.');
+                location.reload();
+            } catch (e) {
+                alert('😕 Restauration impossible : ' + e.message);
+            }
+        };
+        document.getElementById('save-recu-non').onclick = () => {
+            document.getElementById('save-recu').classList.remove('show');
+        };
+    })();
+
     // --- 📬 NIVEAU REÇU PAR LIEN (?n=CODE dans l'URL) ---
     (async () => {
         const m = location.search.match(/[?&]n=([^&]+)/);
@@ -603,6 +641,23 @@ function init() {
             afficherToast('💾 Sauvegarde exportée !');
         } catch (e) {
             afficherToast('❌ Export impossible : ' + e.message);
+        }
+    });
+    document.getElementById('btn-save-transfert').addEventListener('click', async () => {
+        game.audio.init(); game.audio.resume();
+        try {
+            const code = await codeSauvegarde();
+            const lien = 'https://laurent-67370.github.io/super-carre/?s=' + encodeURIComponent(code);
+            if (lien.length > 12000) {
+                alert('📦 Ta sauvegarde est volumineuse (beaucoup de niveaux créés) — utilise plutôt 📤 EXPORTER (fichier) pour ce transfert.');
+                return;
+            }
+            const message = `📲 Ma sauvegarde Super Pixou — ouvre ce lien sur l'autre appareil pour tout restaurer (progression, skins, niveaux…) :\n${lien}`;
+            if (navigator.share) await navigator.share({ title: 'Sauvegarde Super Pixou', text: message });
+            else { await navigator.clipboard.writeText(message); afficherToast('📋 Lien copié ! Envoie-le à ton autre appareil.'); }
+        } catch (e) {
+            if (e && e.name === 'AbortError') return;
+            alert('Transfert impossible : ' + (e && e.message ? e.message : e));
         }
     });
     document.getElementById('btn-save-import').addEventListener('click', () => {
