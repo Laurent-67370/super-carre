@@ -107,7 +107,7 @@ function init() {
 
     // --- PIXOU INTERACTIF : tap = bond 🦘, glisser = rotation 3D 🌀 ---
     const logo = document.querySelector('#start-screen .logo');
-    const logoSvg = logo ? logo.querySelector('svg') : null;
+    const logoSvg = logo ? logo.querySelector('.pixou3d') : null; // boîte 3D (SVG + tranches + dos)
     function bondMascotte() {
         game.audio.init(); game.audio.resume();
         game.audio.saut();
@@ -218,6 +218,15 @@ function init() {
         }
         for (const pied of svg.querySelectorAll('.pixou-feet rect')) {
             pied.setAttribute('fill', cfg.pieds || '#F1C40F');
+        }
+        // 🧊 Volume 3D : tranches et dos aux couleurs du corps équipé
+        for (const face of document.querySelectorAll('.p3d-left, .p3d-right')) {
+            face.style.background = `linear-gradient(180deg, ${nuancer(cfg.bord, 0.15)}, ${nuancer(cfg.bord, -0.25)})`;
+        }
+        const dos = document.querySelector('.p3d-back');
+        if (dos) {
+            dos.style.background = `linear-gradient(180deg, ${nuancer(cfg.bas, 0.12)}, ${cfg.bas})`;
+            dos.style.borderColor = nuancer(cfg.bord, -0.15);
         }
     }
     function dessinerBoutique() {

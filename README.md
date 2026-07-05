@@ -62,7 +62,7 @@ Pour le vaincre, **saute-lui sur la tête 3 fois**. Après chaque coup il devien
 La condition de victoire d'un niveau à boss : **battre le boss, puis ramasser toutes les pièces**. Un bandeau « 👑 Bats le boss ! » affiche ses vies restantes tant qu'il est en vie. Le vaincre rapporte **+1000 points**.
 
 ### Le héros : Pixou
-Tu incarnes **Pixou**, un petit personnage rouge à casquette turquoise, au design original. Il est animé : ses yeux suivent la direction du regard, il cligne des yeux, ses pieds se balancent à la course et il fait une petite tête de surprise en plein saut. Petit plus : **tape la mascotte sur l'écran d'accueil**, elle fait un bond cartoon avec son et vibration — et **fais-la glisser horizontalement** : elle **tourne sur elle-même en 3D**, suit ton doigt, continue sur l'inertie d'une pichenette (petit clic sonore à chaque quart de tour) puis se stabilise face à toi.
+Tu incarnes **Pixou**, un petit personnage rouge à casquette turquoise, au design original. Il est animé : ses yeux suivent la direction du regard, il cligne des yeux, ses pieds se balancent à la course et il fait une petite tête de surprise en plein saut. Petit plus : **tape la mascotte sur l'écran d'accueil**, elle fait un bond cartoon avec son et vibration — et **fais-la glisser horizontalement** : elle **tourne sur elle-même en vrai volume 3D** (boîte CSS avec tranches latérales et dos aux couleurs du skin), suit ton doigt, continue sur l'inertie d'une pichenette (petit clic sonore à chaque quart de tour) puis se stabilise face à toi.
 
 ### 🎬 Démo & 🍿 Intro
 - **🎬 DÉMO** : le jeu se joue tout seul (« attract mode ») sur 4 niveaux — dont le 👑 boss en final — grâce à un pilote automatique qui planifie ses routes (graphe des plateformes + BFS), dose ses sauts et utilise les ressorts. Pixou y est invincible et la progression sauvegardée n'est jamais touchée. **Le moindre toucher rend la main** et ramène au menu.
@@ -274,6 +274,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 🧊 v62 — la mascotte prend du volume
+
+La rotation 3D de la v61 tournait une carte plate : la mascotte devient une **vraie boîte 3D CSS** (`transform-style: preserve-3d`). La face avant reste le SVG habillé complet ; s'y ajoutent **deux tranches latérales** de 24 px (dégradé dérivé de la couleur de contour du skin, via `nuancer()`) positionnées sur les flancs du corps, et un **panneau dorsal** aux couleurs du corps équipé avec bord assorti — recolorés en direct par la boutique comme le reste. En tournant, on voit désormais l'épaisseur de Pixou passer devant la caméra ; le bond 🦘 anime la boîte entière (tranches comprises).
 
 ### 🌀 v61 — la mascotte tourne en 3D
 
