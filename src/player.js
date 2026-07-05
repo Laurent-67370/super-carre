@@ -705,7 +705,7 @@ export class Player {
         ctx.arcTo(x, y, x + w, y, r);
         ctx.closePath();
     }
-    subirDegat() { this.invincible = 90; this.x = this.checkpointX; this.y = this.checkpointY; this.vx = 0; this.vy = 0; this.expression = 'hurt'; this.expressionTimer = 90; }
+    subirDegat() { this.invincible = this.invincDuree || 90; this.x = this.checkpointX; this.y = this.checkpointY; this.vx = 0; this.vy = 0; this.expression = 'hurt'; this.expressionTimer = 90; }
 }
 
 // ============================================================

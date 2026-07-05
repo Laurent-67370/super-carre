@@ -64,6 +64,14 @@ La condition de victoire d'un niveau à boss : **battre le boss, puis ramasser t
 ### Le héros : Pixou
 Tu incarnes **Pixou**, un petit personnage rouge à casquette turquoise, au design original. Il est animé : ses yeux suivent la direction du regard, il cligne des yeux, ses pieds se balancent à la course et il fait une petite tête de surprise en plein saut. Petit plus : **tape la mascotte sur l'écran d'accueil**, elle fait un bond cartoon avec son et vibration — et **fais-la glisser horizontalement** : elle **tourne sur elle-même en vrai volume 3D** (boîte CSS avec tranches latérales et dos aux couleurs du skin), suit ton doigt, continue sur l'inertie d'une pichenette (petit clic sonore à chaque quart de tour) puis se stabilise face à toi.
 
+### 🎚️ Difficulté
+Trois modes, sélectionnables sous le menu de l'accueil (mémorisés, appliqués à la prochaine partie) :
+- **😊 Facile** : 6 vies, ennemis et boss ralentis (×0,75), invincibilité prolongée après un dégât (2,5 s), **checkpoint automatique dans tous les niveaux** ;
+- **😐 Normal** : le jeu d'origine — 5 vies, checkpoint auto dans les grands mondes ;
+- **😈 Difficile** : 3 vies, ennemis et boss accélérés (×1,25), invincibilité raccourcie, **aucun checkpoint automatique** (celui posé dans l'éditeur reste)… mais chaque pièce **crédite le double 🪙** au portefeuille — le risque paie.
+
+Par équité, **étoiles et médailles gardent les mêmes règles et seuils** dans tous les modes ; la démo reste sur les réglages standard.
+
 ### 🎬 Démo & 🍿 Intro
 - **🎬 DÉMO** : le jeu se joue tout seul (« attract mode ») sur 4 niveaux — dont le 👑 boss en final — grâce à un pilote automatique qui planifie ses routes (graphe des plateformes + BFS), dose ses sauts et utilise les ressorts. Pixou y est invincible et la progression sauvegardée n'est jamais touchée. **Le moindre toucher rend la main** et ramène au menu.
 - **🍿 INTRO** : un générique façon Star Wars — « Il y a bien longtemps, dans un navigateur lointain… » puis l'histoire de Pixou défile en perspective vers un champ d'étoiles, au son d'une **fanfare orchestrale originale** (timbales, cuivres, nappes — générée par le moteur WebAudio). La mascotte en apesanteur est un **clone en direct du Pixou personnalisé** (couleur, chapeau, costume, lunettes, chaussures). ✕ PASSER ou un simple toucher pour sortir.
@@ -274,6 +282,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 🎚️ v63 — trois niveaux de difficulté
+
+Le jeu gagne un **sélecteur de difficulté** persistant sous le menu (😊 Facile / 😐 Normal / 😈 Difficile) : vies (6/5/3), vitesse des ennemis et boss (×0,75/×1/×1,25), durée d'invincibilité après dégât (150/90/70 frames), politique de checkpoint automatique (partout / grands mondes / jamais) et **crédit 🪙 doublé en Difficile** (le risque paie). Le mode Normal est strictement le jeu d'origine ; étoiles et médailles restent identiques partout ; la démo n'est pas affectée ; les niveaux persos 📝 suivent la difficulté choisie. Toast explicatif au changement, réglage appliqué à la prochaine partie.
 
 ### 🧊 v62 — la mascotte prend du volume
 

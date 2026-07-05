@@ -8,7 +8,20 @@ import { SkinManager } from './skins.js';
 import { afficherHallOfFame } from './ui.js';
 /* Game — moteur de jeu (boucle, physique, rendu) */
 
+// 🎚️ Difficultés : vies, vitesse des ennemis, invincibilité après dégât,
+// politique de checkpoint automatique, crédit 🪙 par pièce (le risque paie).
+// Étoiles et médailles restent identiques quel que soit le mode.
+export const DIFFICULTES = {
+    facile:    { nom: '😊 Facile',    vies: 6, vit: 0.75, invinc: 150, checkpoint: 'toujours', credit: 1 },
+    normal:    { nom: '😐 Normal',    vies: 5, vit: 1,    invinc: 90,  checkpoint: 'grands',   credit: 1 },
+    difficile: { nom: '😈 Difficile', vies: 3, vit: 1.25, invinc: 70,  checkpoint: 'jamais',   credit: 2 }
+};
+
 export class Game {
+    static difficulteActuelle() {
+        try { const d = localStorage.getItem('supercarre_difficulte'); return DIFFICULTES[d] ? d : 'normal'; } catch (e) { return 'normal'; }
+    }
+    get _diff() { return DIFFICULTES[Game.difficulteActuelle()]; }
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d', { alpha: false });
@@ -86,7 +99,7 @@ export class Game {
     // (anti-farming), pas d'étoiles ni de Hall of Fame (réservés à l'aventure).
     demarrerPerso(modele, data) {
         this.modeTest = false; this.modeDemo = false;
-        this.vies = 3; this.scoreCumul = 0;
+        this.vies = this._diff.vies; this.scoreCumul = 0;
         this.modePerso = {
             nom: modele.nom || 'Mon niveau',
             seuils: seuilsDepuis(data.pieces.length, modele.largeurMonde, modele.hauteurMonde, false)
@@ -159,13 +172,24 @@ export class Game {
             this.bossArene = arene ? { x: arene.x, r: arene.x + arene.largeur, y: arene.y } : null;
             this.bossVaincu = false;
         }
+        // 🎚️ Difficulté : vitesse des ennemis/boss et invincibilité après dégât
+        // (la démo reste sur les réglages standard — c'est une vitrine du jeu)
+        if (!this.modeDemo) {
+            const f = this._diff.vit;
+            if (f !== 1) {
+                for (const e of this.ennemis) if (e.vitesse) e.vitesse *= f;
+                if (this.boss && this.boss.vitesse) this.boss.vitesse *= f;
+            }
+            this.player.invincDuree = this._diff.invinc;
+        }
         // Checkpoint MANUEL (drapeau 🏁 posé dans l'éditeur) : prioritaire,
         // fonctionne quelle que soit la taille du monde.
         this._checkpointManuel = data.checkpointPos || null;
         // Checkpoint à mi-parcours, uniquement pour les grands niveaux (où une chute coûte cher).
         // On choisit une plateforme proche du milieu géographique du parcours.
         this.checkpoint = null;
-        const grand = this.mondeW > 1200 || this.mondeH > 800;
+        const modeCp = this.modeDemo ? 'grands' : this._diff.checkpoint;
+        const grand = modeCp === 'toujours' ? true : modeCp === 'jamais' ? false : (this.mondeW > 1200 || this.mondeH > 800);
         if (grand && platSafe.length > 3) {
             // axe principal = horizontal si large, vertical si haut
             const horizontal = this.mondeW >= this.mondeH;
@@ -358,7 +382,7 @@ export class Game {
             piece.update();
             if(piece.testerCollecte(this.player)){
                 this.scoreNiveau++; this.audio.piece();
-                if (!this.modeDemo && !this.modeTest && !this.modePerso) this.skins.crediter(1); // 🪙 boutique
+                if (!this.modeDemo && !this.modeTest && !this.modePerso) this.skins.crediter(this._diff.credit); // 🪙 boutique (×2 en Difficile)
                 if (this.modeDemo) this._demoDernierePiece = this.frameCount;
                 this.scoreCumul += 100; this.piecesTotal++;
                 if(navigator.vibrate)navigator.vibrate(30);
@@ -876,7 +900,7 @@ export class Game {
     }
     // Réinitialise l'état d'une partie et charge le niveau demandé
     _resetPartie(idx) {
-        this.niveauActuel=idx;this.scoreTotal=0;this.tempsTotal=0;this.vies=5;this.scoreCumul=0;this.piecesTotal=0;this.prochainPalierScore=5000;this.effets=[];
+        this.niveauActuel=idx;this.scoreTotal=0;this.tempsTotal=0;this.vies=this._diff.vies;this.scoreCumul=0;this.piecesTotal=0;this.prochainPalierScore=5000;this.effets=[];
         document.getElementById('win-screen').classList.remove('show');
         document.getElementById('gameover-screen').classList.remove('show');
         document.getElementById('transition-screen').classList.remove('show');

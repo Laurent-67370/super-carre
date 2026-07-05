@@ -52,6 +52,10 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 .level-tile{position:relative}
 #btn-shop{grid-column:1/-1;background:linear-gradient(135deg,#c44bc7,#8E44AD 55%,#6C3483);color:#fff;border:2px solid rgba(255,215,0,.55);padding:12px 6px;font-size:clamp(14px,4.2vw,17px);font-weight:700;border-radius:50px;cursor:pointer;transition:transform .1s;box-shadow:0 4px 18px rgba(142,68,173,.45);letter-spacing:.5px}
 #btn-shop:active{transform:scale(.96)}
+#diff-select{display:flex;gap:7px;margin:12px auto 0;justify-content:center;width:min(440px,92vw)}
+#diff-select button{flex:1;padding:8px 4px;border-radius:50px;border:2px solid rgba(255,255,255,.25);background:rgba(255,255,255,.07);color:rgba(255,255,255,.75);font-size:clamp(11px,3.4vw,14px);font-weight:600;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+#diff-select button:active{transform:scale(.95)}
+#diff-select button.on{background:rgba(244,208,63,.18);border-color:rgba(244,208,63,.75);color:#F4D03F;box-shadow:0 0 10px rgba(244,208,63,.25)}
 #btn-shop-solde{font-weight:700;color:#F4D03F;font-size:.85em}
 #shop-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:none;flex-direction:column;align-items:center;z-index:110;padding:18px;text-align:center;overflow-y:auto;-webkit-overflow-scrolling:touch}
 #shop-screen.show{display:flex}

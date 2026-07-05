@@ -318,6 +318,29 @@ function init() {
     });
     majMascotte();
 
+    // --- 🎚️ SÉLECTEUR DE DIFFICULTÉ ---
+    const DIFF_TOASTS = {
+        facile: '😊 Facile — 6 vies, ennemis ralentis, checkpoint partout, invincibilité prolongée',
+        normal: '😐 Normal — 5 vies, l\'aventure telle qu\'elle est née',
+        difficile: '😈 Difficile — 3 vies, ennemis rapides, aucun checkpoint auto… mais pièces ×2 au portefeuille !'
+    };
+    function majDiff() {
+        const actuel = Game.difficulteActuelle();
+        for (const b of document.querySelectorAll('#diff-select button')) {
+            b.classList.toggle('on', b.dataset.d === actuel);
+        }
+    }
+    for (const b of document.querySelectorAll('#diff-select button')) {
+        b.addEventListener('click', () => {
+            try { localStorage.setItem('supercarre_difficulte', b.dataset.d); } catch (e) {}
+            game.audio.init(); game.audio.resume(); game.audio.saut();
+            if (navigator.vibrate) navigator.vibrate(15);
+            majDiff();
+            afficherToast(DIFF_TOASTS[b.dataset.d]);
+        });
+    }
+    majDiff();
+
     // Bouton AIDE
     document.getElementById('btn-help').addEventListener('click', () => {
         game.audio.init(); game.audio.resume();
