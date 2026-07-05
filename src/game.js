@@ -170,7 +170,8 @@ export class Game {
                 };
                 if (bornes.max < bornes.min) bornes.max = bornes.min; // plateforme étroite
             }
-            this.boss = new Boss(bx, bossY, this.mondeW, bornes);
+            const bossType = Math.max(1, Math.min(4, Math.round((this.niveauActuel + 1) / 6)));
+            this.boss = new Boss(bx, bossY, this.mondeW, bornes, bossType);
             this.bossArene = arene ? { x: arene.x, r: arene.x + arene.largeur, y: arene.y } : null;
             this.bossVaincu = false;
         }
@@ -298,7 +299,7 @@ export class Game {
         if (this.boss && !this.bossVaincu) {
             this.boss.update(this.player);
             const p = this.player, b = this.boss;
-            if (!b.mort && p.x < b.x + b.largeur && p.x + p.largeur > b.x && p.y < b.y + b.hauteur && p.y + p.hauteur > b.y) {
+            if (!b.mort && !b.intangible && p.x < b.x + b.largeur && p.x + p.largeur > b.x && p.y < b.y + b.hauteur && p.y + p.hauteur > b.y) {
                 // saut sur la tête ?
                 if (p.vy > 2 && (p.y + p.hauteur - b.y) < 24) {
                     const vaincu = b.encaisser();
@@ -321,6 +322,31 @@ export class Game {
                     this.audio.degat(); if(navigator.vibrate)navigator.vibrate(200);
                     if(!this.modeDemo){this.vies--;} this.updateHearts(); this.shakeFrames=8; this.mortsNiveau++;
                     if(this.vies<=0){ this._spawnDebris(p.x+15,p.y+15); this.etat='mort'; this.mortFrame=0; return; }
+                    p.subirDegat();
+                    this.recalculerCamera(true);
+                }
+            }
+            // 🌋 Impact du Colosse : secousse d'écran
+            if (b.impactFrame > 0) {
+                b.impactFrame = 0;
+                this.shakeFrames = Math.max(this.shakeFrames, 12);
+                this.audio.ecrase();
+                if (navigator.vibrate) navigator.vibrate([60, 40, 90]);
+            }
+            // Projectiles 🔮 et ondes de choc 🌋 : dégât au contact
+            if (p.invincible <= 0 && p.powerUpTimer.shield <= 0) {
+                const pcx = p.x + p.largeur / 2, pcy = p.y + p.hauteur / 2;
+                let touche = false;
+                for (const pr of b.projectiles) {
+                    if (Math.abs(pr.x - pcx) < pr.r + 13 && Math.abs(pr.y - pcy) < pr.r + 13) { pr.vie = 0; touche = true; break; }
+                }
+                if (!touche) for (const o of b.ondes) {
+                    if (Math.abs(o.x - pcx) < 14 && p.y + p.hauteur > o.y - 20) { touche = true; break; }
+                }
+                if (touche) {
+                    this.audio.degat(); if (navigator.vibrate) navigator.vibrate(200);
+                    if (!this.modeDemo) { this.vies--; } this.updateHearts(); this.shakeFrames = 8; this.mortsNiveau++;
+                    if (this.vies <= 0) { this._spawnDebris(p.x + 15, p.y + 15); this.etat = 'mort'; this.mortFrame = 0; return; }
                     p.subirDegat();
                     this.recalculerCamera(true);
                 }

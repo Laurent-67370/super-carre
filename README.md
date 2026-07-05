@@ -123,6 +123,16 @@ Chaque pièce ramassée en partie normale (ni démo, ni test de l'éditeur) alim
 
 Acheter équipe automatiquement ; taper un article possédé l'équipe. Le skin s'applique **partout** : en jeu (avec toutes les expressions et animations de Pixou), et la mascotte de l'accueil prend la couleur choisie. Les joueurs existants reçoivent un **bonus de bienvenue** de 30 🪙 par niveau déjà débloqué. Le tout est couvert par la sauvegarde exportable (clés `supercarre_skins` et `supercarre_portefeuille`).
 
+## 👑 Les 4 boss
+
+Un boss garde chaque palier — et chacun a **sa personnalité** :
+- **👑 Le Gardien** (niv. 6, 3 PV) : patrouille et charge, de plus en plus vite à mesure qu'il encaisse — le boss d'apprentissage ;
+- **🔮 Le Sorcier** (niv. 12, 3 PV) : coiffé d'un chapeau étoilé, il lance des **salves de boules magiques en cloche** visant ta position — esquive, puis saute-lui dessus entre deux salves ;
+- **🌋 Le Colosse** (niv. 18, 4 PV) : massif, épaulettes à pics — il **bondit sur toi et son impact déclenche deux ondes de choc** qui courent au sol (saute-les !), puis reste **étourdi** quelques secondes : c'est ta fenêtre ;
+- **🌀 Le Roi Fantôme** (niv. 24, 5 PV) : il **se téléporte** (intangible pendant le fondu), charge à grande vitesse, et à mi-vie chaque téléportation s'accompagne d'une **étoile de projectiles**. Le boss final mérite son trône.
+
+Dans tous les cas : **saute sur la tête** pour infliger un coup, la barre de vie est affichée au-dessus, et la colère monte avec les dégâts (teinte rougissante, attaques accélérées).
+
 ## 🗺️ Les 24 niveaux
 
 La difficulté monte progressivement. À partir du niveau 9, les mondes deviennent **plus grands que l'écran** : la caméra suit le joueur (scrolling horizontal et/ou vertical). Tous les 6 niveaux (6, 12, 18, 24), un **combat de boss** 👑 t'attend.
@@ -290,6 +300,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 👑 v69 — quatre boss, quatre personnalités
+
+La plus grosse faiblesse du bilan est corrigée : les 4 boss partagent une base commune (PV, écrasement, colère, barre de vie) mais chacun a **son comportement, sa silhouette et sa teinte**. Le **Gardien** (niv. 6) garde la patrouille d'origine — la démo n'est pas affectée. Le **Sorcier** (12) tire des salves de 2 boules en cloche **calculées pour viser le joueur** (résolution balistique du vy initial). Le **Colosse** (18, 72×60, 4 PV) enchaîne bond avec suivi aérien → impact (secousse d'écran) → **deux ondes de choc au sol** → phase étourdie vulnérable. Le **Roi Fantôme** (24, 5 PV) alterne charges dirigées et **téléportations** (fondu avec intangibilité, réapparition à distance moyenne côté aléatoire) et tire une **étoile de 4 boules** à mi-vie. Nouvelles entités projectiles (gravité paramétrable, halo lumineux) et ondes (arcs de feu s'atténuant sur leur portée), collisions et dégâts intégrés au moteur, vitesses modulées par la difficulté 🎚️. Validation : simulation des 4 comportements (salves, phases sol/air/étourdi, 6 téléportations, étoile à mi-vie) et rendu du cycle complet des 4 boss.
 
 ### 📖 v68 — documentation à jour
 

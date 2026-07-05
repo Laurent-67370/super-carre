@@ -174,16 +174,29 @@ export class EnnemiSaut {
 //  BOSS — gros ennemi à écraser 3 fois sur la tête
 // ============================================================
 export class Boss {
-    constructor(x, y, mondeW, bornes) {
-        this.largeur = 60; this.hauteur = 52;
+    constructor(x, y, mondeW, bornes, type = 1) {
+        // 🎭 4 personnalités : 1 Gardien 👑 (patrouille), 2 Sorcier 🔮
+        // (projectiles en cloche), 3 Colosse 🌋 (bonds + ondes de choc,
+        // étourdi après l'impact), 4 Roi Fantôme 🌀 (téléportations,
+        // charges, étoile de projectiles à mi-vie).
+        this.type = type;
+        this.largeur = type === 3 ? 72 : 60; this.hauteur = type === 3 ? 60 : 52;
         this.x = x; this.y = y;
         this.baseY = y;
         this.mondeW = mondeW || 800;
         // bornes horizontales de patrouille (par défaut tout le monde)
         this.minX = bornes ? bornes.min : 4;
         this.maxX = bornes ? bornes.max : (this.mondeW - 4 - this.largeur);
-        this.pv = 3; this.pvMax = 3;
-        this.vitesse = 1.4;
+        this.pv = [0, 3, 3, 4, 5][type] || 3; this.pvMax = this.pv;
+        this.vitesse = type === 3 ? 1.0 : type === 4 ? 1.8 : 1.4;
+        this.projectiles = [];      // boules du Sorcier / du Roi
+        this.ondes = [];            // ondes de choc du Colosse
+        this._cd = 110;             // compte à rebours de l'attaque spéciale
+        this._phase = type === 4 ? 'visible' : 'sol'; // Colosse : sol|air|etourdi — Fantôme : visible|out|in
+        this._alpha = 1;            // fondu du Fantôme
+        this.intangible = false;    // pendant la téléportation
+        this.impactFrame = 0;       // signal de secousse pour le moteur
+        this._vy = 0;
         this.direction = 1;
         this.mort = false; this.mortFrame = 0;
         this.ecrasable = true;     // mais géré spécialement (3 coups)
@@ -205,16 +218,108 @@ export class Boss {
         if (this.pv <= 0) { this.mort = true; this.mortFrame = 0; return true; }
         return false;
     }
+    _clampX() {
+        if (this.x <= this.minX) { this.x = this.minX; this.direction = 1; }
+        if (this.x >= this.maxX) { this.x = this.maxX; this.direction = -1; }
+    }
+    _tir(px, py, vx, vy, grav) {
+        this.projectiles.push({ x: px, y: py, vx, vy, grav, r: 8, vie: 320 });
+    }
     update(player) {
         if (this.mort) { this.mortFrame++; return; }
         if (this.invincible > 0) this.invincible--;
         if (this.compression > 0) this.compression--;
         this.temps += 0.05;
         const v = this.vitesse * (1 + this.colere * 0.8);
-        this.x += v * this.direction;
-        if (this.x <= this.minX) { this.x = this.minX; this.direction = 1; }
-        if (this.x >= this.maxX) { this.x = this.maxX; this.direction = -1; }
-        this.y = this.baseY + Math.abs(Math.sin(this.temps * 2)) * -4;
+        const cx = this.x + this.largeur / 2;
+
+        if (this.type === 2) {
+            // 🔮 SORCIER : patrouille lente + salves de 2 boules en cloche vers le joueur
+            this.x += v * 0.7 * this.direction;
+            this._clampX();
+            this.y = this.baseY + Math.sin(this.temps * 2.4) * -6;
+            if (--this._cd <= 0) {
+                const dx = (player.x + player.largeur / 2) - cx;
+                const t = 55; // frames de vol visées
+                const grav = 0.22;
+                const vy0 = -(grav * t) / 2 - (this.y - player.y) / t;
+                this._tir(cx, this.y + 10, dx / t, vy0, grav);
+                this._tir(cx, this.y + 10, dx / t * 1.25, vy0 - 0.8, grav);
+                this._cd = 150 - this.colere * 55;
+            }
+        } else if (this.type === 3) {
+            // 🌋 COLOSSE : bond → impact → ondes de choc → étourdi (fenêtre d'attaque)
+            if (this._phase === 'sol') {
+                this.x += v * 0.8 * this.direction;
+                this._clampX();
+                this.y = this.baseY;
+                if (--this._cd <= 0) { this._phase = 'air'; this._vy = -13.5; }
+            } else if (this._phase === 'air') {
+                this._vy += 0.55;
+                this.y += this._vy;
+                // léger suivi du joueur en l'air
+                this.x += Math.sign((player.x + 15) - cx) * 1.6;
+                this._clampX();
+                if (this._vy > 0 && this.y >= this.baseY) {
+                    this.y = this.baseY;
+                    this._phase = 'etourdi';
+                    this._cd = 75;
+                    this.compression = 14;
+                    this.impactFrame = 2; // le moteur secoue l'écran
+                    const sol = this.baseY + this.hauteur;
+                    const portee = 240 + this.colere * 140;
+                    this.ondes.push({ x: this.x - 4, y: sol, dir: -1, parcouru: 0, portee });
+                    this.ondes.push({ x: this.x + this.largeur + 4, y: sol, dir: 1, parcouru: 0, portee });
+                }
+            } else { // étourdi : immobile, vulnérable
+                if (--this._cd <= 0) { this._phase = 'sol'; this._cd = 130 - this.colere * 45; }
+            }
+        } else if (this.type === 4) {
+            // 🌀 ROI FANTÔME : charges + téléportations (étoile de tirs à mi-vie)
+            if (this._phase === 'visible') {
+                this.direction = (player.x + 15) > cx ? 1 : -1;
+                this.x += v * this.direction;
+                this._clampX();
+                this.y = this.baseY + Math.abs(Math.sin(this.temps * 2.6)) * -5;
+                if (--this._cd <= 0) { this._phase = 'out'; }
+            } else if (this._phase === 'out') {
+                this._alpha -= 0.06;
+                this.intangible = true;
+                if (this._alpha <= 0) {
+                    // réapparaît à distance moyenne du joueur, côté aléatoire
+                    const cote = Math.random() < 0.5 ? -1 : 1;
+                    const cible = player.x + cote * (150 + Math.random() * 90) - this.largeur / 2;
+                    this.x = Math.max(this.minX, Math.min(this.maxX, cible));
+                    this._phase = 'in';
+                    if (this.pv <= Math.ceil(this.pvMax / 2)) {
+                        // étoile de 4 boules à mi-vie
+                        for (const a of [0.3, 1.05, 2.09, 2.84]) {
+                            this._tir(this.x + this.largeur / 2, this.y + 20, Math.cos(a) * 3.1, -Math.abs(Math.sin(a)) * 3.4, 0.14);
+                        }
+                    }
+                }
+            } else { // in
+                this._alpha += 0.06;
+                if (this._alpha >= 1) { this._alpha = 1; this.intangible = false; this._phase = 'visible'; this._cd = 105 - this.colere * 30; }
+            }
+        } else {
+            // 👑 GARDIEN : la patrouille d'origine, inchangée
+            this.x += v * this.direction;
+            this._clampX();
+            this.y = this.baseY + Math.abs(Math.sin(this.temps * 2)) * -4;
+        }
+
+        // Projectiles (gravité) et ondes de choc
+        const sol = this.baseY + this.hauteur;
+        for (const pr of this.projectiles) {
+            pr.vy += pr.grav; pr.x += pr.vx; pr.y += pr.vy; pr.vie--;
+            if (pr.y > sol + 60) pr.vie = 0;
+        }
+        this.projectiles = this.projectiles.filter(pr => pr.vie > 0);
+        for (const o of this.ondes) {
+            o.x += o.dir * 3.4; o.parcouru += 3.4;
+        }
+        this.ondes = this.ondes.filter(o => o.parcouru < o.portee && o.x > -40 && o.x < this.mondeW + 40);
     }
     dessiner(ctx) {
         if (this.mort) {
@@ -233,19 +338,53 @@ export class Boss {
         const comp = this.compression > 0 ? Math.sin((10 - this.compression) / 10 * Math.PI) * 5 : 0;
         const x = this.x, y = this.y + comp, L = this.largeur, H = this.hauteur - comp;
         const cx = x + L / 2;
-        const r = Math.round(155 + this.colere * 80), g = Math.round(89 - this.colere * 40), b = Math.round(182 - this.colere * 100);
+        // Teinte par personnalité (le rouge de colère s'y superpose)
+        const teintes = { 1: [155, 89, 182], 2: [62, 105, 225], 3: [222, 96, 40], 4: [70, 62, 110] };
+        const [tr, tg, tb] = teintes[this.type] || teintes[1];
+        const r = Math.round(tr + this.colere * 70), g = Math.round(Math.max(20, tg - this.colere * 40)), b = Math.round(Math.max(20, tb - this.colere * 70));
+        if (this.type === 4) ctx.globalAlpha = Math.max(0.06, this._alpha);
         const grad = ctx.createLinearGradient(x, y, x, y + H);
         grad.addColorStop(0, `rgb(${Math.min(255,r+30)},${g+20},${b+20})`);
         grad.addColorStop(1, `rgb(${r},${g},${b})`);
         ctx.fillStyle = grad;
         this._rr(ctx, x, y, L, H, 10); ctx.fill();
         ctx.strokeStyle = '#5B2C6F'; ctx.lineWidth = 3; this._rr(ctx, x, y, L, H, 10); ctx.stroke();
-        // couronne (c'est un boss !)
-        ctx.fillStyle = '#FFD700';
-        ctx.beginPath();
-        ctx.moveTo(cx - 16, y - 2); ctx.lineTo(cx - 16, y - 12); ctx.lineTo(cx - 8, y - 5);
-        ctx.lineTo(cx, y - 14); ctx.lineTo(cx + 8, y - 5); ctx.lineTo(cx + 16, y - 12);
-        ctx.lineTo(cx + 16, y - 2); ctx.closePath(); ctx.fill();
+        // Accessoire par personnalité
+        if (this.type === 2) {
+            // chapeau de sorcier bleu nuit étoilé
+            ctx.fillStyle = '#1B2A6B';
+            this._rr(ctx, x + 4, y - 4, L - 8, 7, 3); ctx.fill();
+            ctx.beginPath(); ctx.moveTo(cx - 16, y - 2); ctx.lineTo(cx + 16, y - 2); ctx.lineTo(cx + 4, y - 26); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = '#F4D03F';
+            ctx.beginPath(); ctx.arc(cx - 3, y - 12, 2.2, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx + 6, y - 18, 1.6, 0, 6.28); ctx.fill();
+        } else if (this.type === 3) {
+            // épaulettes à pics du Colosse
+            ctx.fillStyle = '#7A3010';
+            for (const ex of [x - 4, x + L + 4]) {
+                ctx.beginPath(); ctx.moveTo(ex, y + 12); ctx.lineTo(ex + (ex < cx ? -9 : 9), y + 2); ctx.lineTo(ex + (ex < cx ? 3 : -3), y + 4); ctx.closePath(); ctx.fill();
+            }
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.moveTo(cx - 14, y - 2); ctx.lineTo(cx - 10, y - 10); ctx.lineTo(cx, y - 4);
+            ctx.lineTo(cx + 10, y - 10); ctx.lineTo(cx + 14, y - 2); ctx.closePath(); ctx.fill();
+        } else if (this.type === 4) {
+            // couronne sombre du Roi Fantôme + aura
+            ctx.fillStyle = '#2C2C54';
+            ctx.beginPath();
+            ctx.moveTo(cx - 16, y - 2); ctx.lineTo(cx - 16, y - 14); ctx.lineTo(cx - 8, y - 6);
+            ctx.lineTo(cx, y - 16); ctx.lineTo(cx + 8, y - 6); ctx.lineTo(cx + 16, y - 14);
+            ctx.lineTo(cx + 16, y - 2); ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = 'rgba(140,120,255,.55)'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.arc(cx, y + H / 2, L / 2 + 8 + Math.sin(this.temps * 4) * 3, 0, 6.28); ctx.stroke();
+        } else {
+            // couronne dorée du Gardien (l'originale)
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.moveTo(cx - 16, y - 2); ctx.lineTo(cx - 16, y - 12); ctx.lineTo(cx - 8, y - 5);
+            ctx.lineTo(cx, y - 14); ctx.lineTo(cx + 8, y - 5); ctx.lineTo(cx + 16, y - 12);
+            ctx.lineTo(cx + 16, y - 2); ctx.closePath(); ctx.fill();
+        }
         // yeux féroces (suivent la direction)
         const ox = this.direction > 0 ? 6 : -6;
         ctx.fillStyle = '#FFF';
@@ -266,6 +405,30 @@ export class Boss {
         ctx.fillStyle = 'rgba(0,0,0,.5)'; this._rr(ctx, bx, by, bw, 6, 3); ctx.fill();
         ctx.fillStyle = '#E74C3C';
         if (this.pv > 0) { this._rr(ctx, bx, by, bw * (this.pv / this.pvMax), 6, 3); ctx.fill(); }
+        ctx.globalAlpha = 1;
+        // Projectiles : boules magiques avec halo
+        for (const pr of this.projectiles) {
+            ctx.fillStyle = this.type === 4 ? 'rgba(140,120,255,.35)' : 'rgba(120,170,255,.35)';
+            ctx.beginPath(); ctx.arc(pr.x, pr.y, pr.r + 4, 0, 6.28); ctx.fill();
+            ctx.fillStyle = this.type === 4 ? '#8C78FF' : '#5DADE2';
+            ctx.beginPath(); ctx.arc(pr.x, pr.y, pr.r, 0, 6.28); ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,.7)';
+            ctx.beginPath(); ctx.arc(pr.x - 2.5, pr.y - 2.5, 2.4, 0, 6.28); ctx.fill();
+        }
+        // Ondes de choc : arcs de feu qui courent au sol
+        for (const o of this.ondes) {
+            const h = 16 - (o.parcouru / o.portee) * 8;
+            ctx.fillStyle = `rgba(230,126,34,${0.9 - (o.parcouru / o.portee) * 0.6})`;
+            ctx.beginPath();
+            ctx.moveTo(o.x - 9 * o.dir, o.y);
+            ctx.quadraticCurveTo(o.x, o.y - h * 1.8, o.x + 9 * o.dir, o.y);
+            ctx.closePath(); ctx.fill();
+            ctx.fillStyle = `rgba(244,208,63,${0.8 - (o.parcouru / o.portee) * 0.6})`;
+            ctx.beginPath();
+            ctx.moveTo(o.x - 5 * o.dir, o.y);
+            ctx.quadraticCurveTo(o.x, o.y - h, o.x + 5 * o.dir, o.y);
+            ctx.closePath(); ctx.fill();
+        }
     }
     _rr(ctx, x, y, w, h, r) {
         r = Math.min(r, w / 2, h / 2);
