@@ -88,6 +88,7 @@ export class Game {
         this.modeTest = true;
         this.definirFond(fond);
         this._initNiveau(data, largeurMonde, hauteurMonde, spawn);
+        this._lancerBoucle();
     }
     // 🎨 Fond personnalisé (éditeur / niveaux persos) — id de FONDS ou null
     definirFond(fond) {
@@ -107,6 +108,7 @@ export class Game {
         this._persoSource = { modele, data: null }; // data reconstruit à chaque REJOUER
         this.definirFond(modele.fond);
         this._initNiveau(data, modele.largeurMonde, modele.hauteurMonde, modele.spawn);
+        this._lancerBoucle(); // 🔧 sans elle, rien n'est dessiné si c'est le premier lancement (écran noir)
     }
     static tempsPerso() {
         try { return JSON.parse(localStorage.getItem('supercarre_temps_perso')) || {}; } catch (e) { return {}; }
@@ -911,10 +913,14 @@ export class Game {
     // Rejouer depuis le début SANS effacer la progression (Réessayer / Rejouer)
     redemarrer() { this._resetPartie(0); }
     // Reprendre à un niveau débloqué (bouton Continuer)
+    _lancerBoucle() {
+        this._lastTime = undefined; this._accumulateur = 0;
+        if (!this._boucleLancee) { this._boucleLancee = true; requestAnimationFrame((t) => this.boucle(t)); }
+    }
     demarrerAuNiveau(idx) {
         this._lastTime = undefined; this._accumulateur = 0;
         this._resetPartie(idx);
-        if (!this._boucleLancee) { this._boucleLancee = true; requestAnimationFrame((t) => this.boucle(t)); }
+        this._lancerBoucle();
     }
     // ── MODE DÉMO (« attract mode ») ─────────────────────────
     // Le jeu se joue tout seul sur une playlist de niveaux, avec
