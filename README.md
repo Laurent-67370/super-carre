@@ -217,6 +217,7 @@ Le jeu utilise le stockage local du navigateur (`localStorage`) :
 | Records des niveaux persos 📝 | `supercarre_temps_perso` |
 | Portefeuille 🪙 de la boutique | `supercarre_portefeuille` |
 | Skins possédés et équipés | `supercarre_skins` |
+| Difficulté choisie 🎚️ | `supercarre_difficulte` |
 | Musique coupée ou non | `supercarre_muet` |
 | Ambiance musicale choisie | `supercarre_piste` |
 | Meilleurs temps par niveau (contre-la-montre) | `supercarre_temps` |
@@ -275,7 +276,9 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 - Contrôles tactiles multi-points et clavier (jeu ET saisie du nom).
 - **Mode démo** « attract mode » : pilote automatique planifié (graphe des plateformes + BFS, sauts dosés, ressorts), invincible, sortie au moindre toucher.
 - **Éditeur de niveaux complet** : palette de 16 outils (dont 🏁 checkpoint posable), annuler/rétablir, niveau aléatoire, **🤖 vérification par le bot** (simulation accélérée garantissant que toutes les pièces sont atteignables), duplication d'objet — et les créations sauvegardées sont **jouables depuis le sélecteur** (📝 Mes niveaux : chrono, médailles, records).
-- **Partage de niveaux** de l'éditeur par code compact `PIXOU1.…` (deflate + base64) via le partage natif du téléphone.
+- **Partage de niveaux par lien cliquable** : le niveau (compressé deflate + base64, `PIXOU1.…`) voyage dans l'URL (`?n=…`) — le destinataire clique et choisit ▶ JOUER ou ✏️ ÉDITEUR ; import de secours universel (lien, message entier, code nu).
+- **Trois difficultés** (😊/😐/😈) mémorisées : vies, vitesse des ennemis, invincibilité, checkpoints et crédit 🪙 modulés — étoiles et médailles identiques partout.
+- **10 fonds de niveau** sélectionnables dans l'éditeur, transportés par le partage.
 - **Audit de jouabilité outillé** : `analyse-pieces.mjs` (analyse statique pièce/pics/vide + simulation bot) a validé les 24 niveaux officiels — aucune pièce ne coûte une vie d'office.
 - **Boutique** alimentée par un portefeuille 🪙 persistant (1 pièce ramassée = 1 pièce créditée, hors démo/test).
 
@@ -283,7 +286,11 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
-### 🔧 Correctif v65 — écran noir au lancement d un niveau par lien
+### 📖 v66 — README consolidé
+
+Les Caractéristiques techniques rattrapent les v58-65 : partage **par lien cliquable** (le pilier « code compact » est réécrit), pilier **trois difficultés**, et **fonds de niveau** de l'éditeur ; le tableau des clés de sauvegarde gagne `supercarre_difficulte`. Les sections descriptives (Difficulté, Éditeur, Démo & Intro, héros 3D) étaient déjà à jour au fil des versions.
+
+### 🔧 Correctif v65 — écran noir au lancement d'un niveau par lien
 
 La boucle de rendu n était démarrée que par le chemin des niveaux officiels (demarrerAuNiveau) : lancer un **niveau reçu par lien** ou un niveau de **📝 Mes niveaux** comme premier geste de la session laissait un écran noir (tout était prêt, mais rien ne dessinait). Le démarrage de la boucle est extrait en _lancerBoucle(), appelé aussi par demarrerPerso et par le mode ▶ Test de l éditeur (même risque), avec garde d idempotence. Vérifié en headless : 0 → 1 appel rAF au lancement à froid, pas de double boucle au REJOUER.
 
