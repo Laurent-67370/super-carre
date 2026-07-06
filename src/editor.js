@@ -40,11 +40,11 @@ export class LevelEditor {
     // Construit un parcours de plateformes toujours atteignables (physique réelle :
     // saut ~95px de haut, ~120px de portée), puis décore avec pièces, dangers
     // évitables et power-ups. Valide le résultat ; régénère si besoin.
-    genererAleatoire(diff) {
+    genererAleatoire(diff, alea = Math.random) {
         const SAUT_H = 95, SAUT_W = 120, JL = 30;
-        const rnd = (a, b) => a + Math.random() * (b - a);
+        const rnd = (a, b) => a + alea() * (b - a);
         const ri = (a, b) => Math.floor(rnd(a, b + 1));
-        const ch = (arr) => arr[Math.floor(Math.random() * arr.length)];
+        const ch = (arr) => arr[Math.floor(alea() * arr.length)];
         const D = {
             doux:      { dangers: 0.10, ennemis: 0.15, mobiles: 0.10, powerups: 2 },
             equilibre: { dangers: 0.22, ennemis: 0.30, mobiles: 0.20, powerups: 2 },
@@ -52,7 +52,7 @@ export class LevelEditor {
         }[diff] || { dangers: 0.22, ennemis: 0.30, mobiles: 0.20, powerups: 2 };
 
         const construire = () => {
-            const vertical = Math.random() < 0.5;
+            const vertical = alea() < 0.5;
             const objets = [];
             let mondeW, mondeH, spawn;
             const chemin = [];
@@ -96,7 +96,7 @@ export class LevelEditor {
             for (let k = 0; k < nbMob; k++) mobIdx.add(ri(1, Math.max(1, chemin.length - 2)));
             chemin.forEach((p, i) => {
                 if (mobIdx.has(i) && i > 0 && i < chemin.length - 1) {
-                    const axe = Math.random() < 0.5 ? 'mobileH' : 'mobileV';
+                    const axe = alea() < 0.5 ? 'mobileH' : 'mobileV';
                     objets.push({ type: axe, x: p.x, y: p.y, w: Math.min(p.w, 90), h: 16, dist: ri(45, 80), vit: +rnd(2, 3).toFixed(1) });
                 } else {
                     objets.push({ type: 'herbe', x: p.x, y: p.y, w: p.w, h: 18 });
@@ -109,7 +109,7 @@ export class LevelEditor {
             // dangers (pics) évitables
             if (!vertical) {
                 for (let i = 0; i < chemin.length - 1; i++) {
-                    if (Math.random() < D.dangers) {
+                    if (alea() < D.dangers) {
                         const a = chemin[i], b = chemin[i + 1];
                         const gx = a.x + a.w + 5, gw = Math.max(0, b.x - gx - 5);
                         if (gw >= 30) objets.push({ type: 'spike', x: Math.round(gx), y: 540, w: Math.min(gw, 100) });
@@ -126,7 +126,7 @@ export class LevelEditor {
 
             // ennemis sur plateformes (esquivables/écrasables)
             chemin.forEach((p, i) => {
-                if (i > 0 && i < chemin.length - 1 && Math.random() < D.ennemis && p.w >= 90 && !mobIdx.has(i)) {
+                if (i > 0 && i < chemin.length - 1 && alea() < D.ennemis && p.w >= 90 && !mobIdx.has(i)) {
                     const dist = Math.max(20, Math.min(Math.round(p.w / 2) - 10, 60));
                     objets.push({ type: 'ennemi', x: Math.round(p.x + p.w / 2), y: Math.round(p.y - 28), dist, vit: +rnd(0.7, 1.2).toFixed(1) });
                 }

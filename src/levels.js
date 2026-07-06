@@ -89,6 +89,29 @@ export const NIVEAUX=[
 // ============================================================
 const _seuilsCache = {};
 // Seuils depuis des caractéristiques brutes (réutilisable pour les niveaux persos)
+// 📅 DÉFI DU JOUR — PRNG déterministe (mulberry32) : la date du jour sert
+// de graine, tout le monde joue exactement le même niveau le même jour.
+export function mulberry32(graine) {
+    let a = graine >>> 0;
+    return function () {
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+}
+// Graine et libellés du jour (fuseau local du joueur)
+export function infosDefiDuJour(date = new Date()) {
+    const y = date.getFullYear(), m = date.getMonth() + 1, d = date.getDate();
+    const iso = `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    return {
+        graine: y * 10000 + m * 100 + d,
+        iso,
+        nom: `📅 Défi du ${String(d).padStart(2, '0')}/${String(m).padStart(2, '0')}`,
+        difficulte: ['equilibre', 'intense', 'doux'][(y * 10000 + m * 100 + d) % 3]
+    };
+}
+
 // 🎨 Fonds de niveau sélectionnables dans l'éditeur (haut → bas du ciel)
 export const FONDS = {
     jour:    { nom: '☀️ Jour',       haut: '#5DADE2', bas: '#D6EAF8' },

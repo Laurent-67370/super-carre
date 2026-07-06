@@ -133,6 +133,10 @@ Un boss garde chaque palier — et chacun a **sa personnalité** :
 
 Dans tous les cas : **saute sur la tête** pour infliger un coup, la barre de vie est affichée au-dessus, et la colère monte avec les dégâts (teinte rougissante, attaques accélérées).
 
+## 📅 Défi du jour
+
+En tête du sélecteur « 🎯 NIVEAUX » : **un niveau généré avec la date comme graine** (PRNG mulberry32) — le monde entier joue exactement le même niveau le même jour. La difficulté de génération tourne sur trois jours (équilibré → intense → doux), le fond d'ambiance est tiré de la date, et le générateur **auto-valide** chaque niveau (sauts faisables, pièces à portée). Chrono, médailles à seuils automatiques et **record du jour** mémorisé (la tuile affiche ton temps et t'invite à revenir demain). Analyse statique vérifiée sur une semaine de défis : zéro pièce à dégât garanti, tout à portée de saut.
+
 ## 🗺️ Les 24 niveaux
 
 La difficulté monte progressivement. À partir du niveau 9, les mondes deviennent **plus grands que l'écran** : la caméra suit le joueur (scrolling horizontal et/ou vertical). Tous les 6 niveaux (6, 12, 18, 24), un **combat de boss** 👑 t'attend.
@@ -301,6 +305,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 📅 v72 — le défi du jour
+
+Un niveau quotidien **identique pour tous** : le générateur aléatoire de l'éditeur accepte désormais une source d'aléa injectable (`genererAleatoire(diff, alea)`), alimentée par un **PRNG mulberry32 semé par la date** (`infosDefiDuJour()` dans levels.js : graine AAAAMMJJ, difficulté en rotation sur 3 jours, fond dérivé de la graine). Tuile dédiée dorée en tête du sélecteur avec record du jour, lancement via le mode perso (chrono, médailles, clé de record datée — un record par jour, naturellement archivé). Validations : même graine → niveau identique, jours différents → niveaux différents, déterminisme préservé malgré la boucle de retry interne, 60 frames de jeu, et **analyse statique d'une semaine de défis** (0 pièce à dégât garanti, 0 hors de portée de saut — le générateur auto-valide déjà chemins et pièces).
 
 ### 📖 v71 — README à jour
 

@@ -1,4 +1,5 @@
 import { Game } from './game.js';
+import { mulberry32, infosDefiDuJour, FONDS } from './levels.js';
 import { LevelEditor } from './editor.js';
 import { NameEntry } from './nameentry.js';
 import { AudioManager } from './audio.js';
@@ -579,6 +580,26 @@ function init() {
             }
             grid.appendChild(tile);
         });
+        // --- 📅 DÉFI DU JOUR : même niveau pour tout le monde, record quotidien ---
+        {
+            const info = infosDefiDuJour();
+            const records = Game.tempsPerso();
+            const best = records[info.nom];
+            const tuile = document.createElement('button');
+            tuile.className = 'level-tile unlocked tile-defi';
+            tuile.innerHTML = `<span class="ico">📅</span><span class="num defi-titre">DÉFI DU JOUR</span>` +
+                `<span class="tile-stars">${best !== undefined ? '⏱ ' + best.toFixed(1) + 's — reviens demain !' : info.nom.replace('📅 Défi du ', '') + ' · à toi de jouer !'}</span>`;
+            tuile.addEventListener('click', () => {
+                document.getElementById('levels-screen').classList.remove('show');
+                const alea = mulberry32(info.graine);
+                const modele = editor.genererAleatoire(info.difficulte, alea);
+                modele.nom = info.nom;
+                const fonds = Object.keys(FONDS);
+                modele.fond = fonds[info.graine % fonds.length];
+                entrerEnJeu(() => game.demarrerPerso(modele, editor.construireData(modele)));
+            });
+            grid.appendChild(tuile);
+        }
         // --- 📝 MES NIVEAUX (créés dans l'éditeur) ---
         const persos = editor.chargerSauvegardes();
         if (persos.length) {
