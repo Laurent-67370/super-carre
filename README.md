@@ -278,7 +278,7 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 ## 🛠️ Caractéristiques techniques
 
-- **Source modulaire** (`src/` : entités, joueur, niveaux, audio, jeu, éditeur, bot de démo, skins, stockage, contrôles, UI) assemblée par **Vite** ; build = **`index.html` unique** (JS + CSS inlinés et minifiés, ~65 ko gzip).
+- **Source modulaire** (`src/` : jeu, **rendu** (`rendujeu`), **combat de boss** (`combat`), entités, joueur, niveaux, audio, éditeur, bot de démo, skins, stockage, contrôles, UI) assemblée par **Vite** ; build = **`index.html` unique** (JS + CSS inlinés et minifiés, ~71 ko gzip).
 - **PWA** installable et jouable hors-ligne (manifest + Service Worker réseau-d'abord + `updateViaCache:'none'`).
 - Boucle de jeu à **pas de temps fixe (60 Hz)** : vitesse identique quel que soit le taux de rafraîchissement de l'écran.
 - Rendu adapté à la **densité de pixels** (`devicePixelRatio`) : net sur écrans Retina / haute résolution.
@@ -301,6 +301,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 📖 v71 — README à jour
+
+Le pilier « Source modulaire » des Caractéristiques techniques intègre les modules `rendujeu` et `combat` issus du refactoring v70, et le poids du build est actualisé (~71 ko gzip).
 
 ### 🧱 v70 — refactoring : game.js dégraissé d'un tiers
 
