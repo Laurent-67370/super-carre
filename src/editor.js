@@ -763,12 +763,46 @@ export class LevelEditor {
         const flux = new Blob([bytes]).stream().pipeThrough(new Stream(mode));
         return new Uint8Array(await new Response(flux).arrayBuffer());
     }
+    // ⚠️ Ordre FIGÉ à jamais (les liens PIXOU2 en dépendent) — ajouter
+    // les futurs types uniquement EN FIN de tableau.
+    static TYPES_COMPACTS = ['sol','herbe','mur','mobileH','mobileV','coin','ennemi','ennemiVol','ennemiSaut','spike','ressort','puDouble','puShield','puSpeed','checkpoint'];
+
+    // PIXOU2 : modèle → tuples compacts → deflate → base64url (sûr dans une
+    // URL sans aucun encodage %XX). ~47 % plus court que PIXOU1.
+    _compacter() {
+        const m = this._modeleJSON();
+        return [2, m.nom, m.fond || 'jour', m.largeurMonde, m.hauteurMonde, m.spawn.x, m.spawn.y,
+            m.objets.map(o => {
+                const t = [LevelEditor.TYPES_COMPACTS.indexOf(o.type), o.x, o.y];
+                if (o.w != null || o.h != null || o.dist != null || o.vit != null) t.push(o.w != null ? o.w : null);
+                if (o.h != null || o.dist != null || o.vit != null) t.push(o.h != null ? o.h : null);
+                if (o.dist != null || o.vit != null) t.push(o.dist != null ? o.dist : null);
+                if (o.vit != null) t.push(o.vit);
+                return t;
+            })];
+    }
+    static _decompacter(arr) {
+        if (!Array.isArray(arr) || arr[0] !== 2 || !Array.isArray(arr[7])) return null;
+        const [, nom, fond, largeurMonde, hauteurMonde, sx, sy, objets] = arr;
+        return {
+            format: 'super-carre-niveau', version: 1,
+            nom, fond, largeurMonde, hauteurMonde,
+            spawn: { x: sx, y: sy },
+            objets: objets.map(t => {
+                const o = { type: LevelEditor.TYPES_COMPACTS[t[0]], x: t[1], y: t[2] };
+                if (t[3] != null) o.w = t[3];
+                if (t[4] != null) o.h = t[4];
+                if (t[5] != null) o.dist = t[5];
+                if (t[6] != null) o.vit = t[6];
+                return o;
+            })
+        };
+    }
     async codePartage() {
-        const json = JSON.stringify(this._modeleJSON());
-        const octets = new TextEncoder().encode(json);
+        const octets = new TextEncoder().encode(JSON.stringify(this._compacter()));
         if (typeof CompressionStream !== 'undefined') {
             const comp = await this._viaStream(octets, CompressionStream, 'deflate-raw');
-            return 'PIXOU1.' + this._b64DepuisOctets(comp);
+            return 'PIXOU2.' + this._b64DepuisOctets(comp).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
         }
         return 'PIXOU0.' + this._b64DepuisOctets(octets);
     }
@@ -778,15 +812,23 @@ export class LevelEditor {
         // Lien de partage ?n=… : décoder le code encodé dans l'URL
         const mUrl = String(texte).match(/[?&]n=([A-Za-z0-9%._~-]+)/);
         if (mUrl) { try { texte = decodeURIComponent(mUrl[1]) + ' ' + texte; } catch (e) {} }
-        const m = String(texte).match(/PIXOU([01])\.([A-Za-z0-9+/=]+)/);
+        const m = String(texte).match(/PIXOU([012])\.([A-Za-z0-9+/=_-]+)/);
         if (!m) return false;
         try {
-            let octets = this._octetsDepuisB64(m[2]);
-            if (m[1] === '1') {
+            // base64url → base64 classique (PIXOU2)
+            let b64 = m[2].replace(/-/g, '+').replace(/_/g, '/');
+            while (b64.length % 4) b64 += '=';
+            let octets = this._octetsDepuisB64(b64);
+            if (m[1] !== '0') {
                 if (typeof DecompressionStream === 'undefined') return false;
                 octets = await this._viaStream(octets, DecompressionStream, 'deflate-raw');
             }
             const json = new TextDecoder().decode(octets);
+            if (m[1] === '2') {
+                const modele = LevelEditor._decompacter(JSON.parse(json));
+                if (!modele) return false;
+                return this.chargerJSON(JSON.stringify(modele)); // même validation que tout import
+            }
             return this.chargerJSON(json);
         } catch (e) { return false; }
     }
@@ -888,7 +930,7 @@ export class LevelEditor {
                 // Lien cliquable : le code voyage dans l'URL (?n=…), le jeu
                 // l'ouvre automatiquement à l'arrivée. Le collage manuel du
                 // lien dans \uD83D\uDCE5 reste possible en secours.
-                const lien = 'https://laurent-67370.github.io/super-carre/?n=' + encodeURIComponent(code);
+                const lien = 'https://laurent-67370.github.io/super-carre/?n=' + code; // base64url : déjà sûr dans une URL
                 const message = `\u{1F7E5} Super Pixou \u2014 je t'envoie mon niveau \u00AB ${nom} \u00BB !\n\n\uD83D\uDC49 Clique pour y jouer :\n${lien}`;
                 if (navigator.share) {
                     await navigator.share({ title: 'Super Pixou \u2014 ' + nom, text: message });
@@ -978,7 +1020,7 @@ export class LevelEditor {
         document.getElementById('ed-import-ok').addEventListener('click', async () => {
             const txt = document.getElementById('ed-import-text').value;
             // Code de partage 🔗 (PIXOU1.… même noyé dans un message) ou ancien format
-            const ok = /PIXOU[01]\./.test(txt) ? await this.chargerCode(txt) : this.importer(txt);
+            const ok = /PIXOU[012]\./.test(txt) ? await this.chargerCode(txt) : this.importer(txt);
             if (ok) {
                 document.getElementById('ed-world-w').value = this.modele.largeurMonde;
                 document.getElementById('ed-world-h').value = this.modele.hauteurMonde;
