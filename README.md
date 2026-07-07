@@ -301,10 +301,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 - Audio entièrement généré par la **Web Audio API** (bruitages, **4 ambiances musicales** au choix et **fanfare orchestrale d'intro**, aucun fichier son).
 - **Checkpoints** à mi-parcours dans les grands niveaux (ou posés à la main dans l'éditeur), **système d'étoiles** (1 à 3 par niveau) et **contre-la-montre** (meilleurs temps + médailles 🥇🥈🥉 à seuils automatiques), progression sauvegardée, **exportable/importable** (fichier JSON) et **transférable entre appareils par lien** (`PIXSAVE1.…` compressé dans l'URL) — avec **stockage persistant** demandé au navigateur contre l'éviction automatique.
 - **Combats de boss** tous les 6 niveaux (boss à 3 points de vie, écrasable sur la tête).
-- Contrôles tactiles multi-points et clavier (jeu ET saisie du nom).
+- Contrôles tactiles multi-points et clavier (jeu ET saisie du nom). Touches clavier **personnalisables** depuis l'aide (overlay dédié, réglage persistant `supercarre_touches`).
 - **Mode démo** « attract mode » : pilote automatique planifié (graphe des plateformes + BFS, sauts dosés, ressorts), invincible, sortie au moindre toucher.
 - **Éditeur de niveaux complet** : palette de 16 outils (dont 🏁 checkpoint posable), annuler/rétablir, niveau aléatoire, **🤖 vérification par le bot** (simulation accélérée garantissant que toutes les pièces sont atteignables), duplication d'objet — et les créations sauvegardées sont **jouables depuis le sélecteur** (📝 Mes niveaux : chrono, médailles, records).
-- **📱 QR codes de partage** : chaque partage (niveau, sauvegarde, lien du jeu depuis l'aide) affiche un **QR stylé** — points arrondis, correction d'erreur élevée, **mini-Pixou aux couleurs du skin équipé** sur pastille centrale. Scanner remplace l'envoi du lien entre appareils proches. Le bouton d'envoi tente aussi de partager **l'image du QR** (PNG) via `navigator.share({ files })` quand l'appareil le permet, avec repli sur le texte seul sinon.
+- **📱 QR codes de partage** : chaque partage (niveau, sauvegarde, lien du jeu depuis l'aide) affiche un **QR stylé** — points arrondis, correction d'erreur élevée, **mini-Pixou aux couleurs du skin équipé** sur pastille centrale. Scanner remplace l'envoi du lien entre appareils proches. Le bouton d'envoi tente aussi de partager **l'image du QR** (PNG) via `navigator.share({ files })` quand l'appareil le permet, avec repli sur le texte seul sinon, et un bouton 💾 IMAGE télécharge le PNG directement (pratique sur ordinateur).
 - **Partage de niveaux par lien cliquable** : le niveau (tuples compacts + deflate + **base64url**, format `PIXOU2.…` — **~45 % plus court** que l'ancien, zéro caractère encodé dans l'URL) voyage dans l'URL (`?n=…`) — le destinataire clique et choisit ▶ JOUER ou ✏️ ÉDITEUR ; import de secours universel (lien, message entier, code nu).
 - **📅 Défi du jour** : niveau quotidien identique pour tous (PRNG mulberry32 semé par la date, difficulté en rotation, générateur auto-validé), record quotidien — de la rétention sans serveur.
 - **Trois difficultés** (😊/😐/😈) mémorisées : vies, vitesse des ennemis, invincibilité, checkpoints et crédit 🪙 modulés — étoiles et médailles identiques partout.
@@ -550,7 +550,7 @@ Le boss a bien **3 points de vie**, mais il donnait l'impression d'en demander p
 
 ## 🚀 Déploiement
 
-**Production (GitHub Pages via CI)** : à chaque `push` sur `main`, le workflow `.github/workflows/deploy.yml` fait `npm ci && npm run build` puis déploie `dist/` sur GitHub Pages (Source : « GitHub Actions » dans Settings → Pages). Le build produit un **`dist/index.html` unique** (JS + CSS inlinés/minifiés) + `sw.js` + `manifest.json` + `icons/`.
+**Production (GitHub Pages via CI)** : à chaque `push` sur `main`, le workflow `.github/workflows/deploy.yml` fait `npm ci`, exécute le **contrôle croisé des ids DOM** (`node controle-ids.mjs` — le déploiement est bloqué si un id référencé en JS manque dans le HTML), puis `npm run build` et déploie `dist/` sur GitHub Pages (Source : « GitHub Actions » dans Settings → Pages). Le build produit un **`dist/index.html` unique** (JS + CSS inlinés/minifiés) + `sw.js` + `manifest.json` + `icons/`.
 
 **Dev / test local** :
 
