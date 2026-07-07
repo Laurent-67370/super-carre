@@ -247,7 +247,7 @@
     </div>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v80</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v81</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -329,8 +329,26 @@
         <canvas id="qr-canvas"></canvas>
         <p id="qr-legende"></p>
         <div class="perso-btns">
-            <button id="qr-envoyer">📤 ENVOYER LE LIEN</button>
-            <button id="qr-fermer">✕ Fermer</button>
+            <button id="qr-envoyer">📤 ENVOYER</button>
+            <button id="qr-telecharger">💾 IMAGE</button>
+            <button id="qr-fermer">✕</button>
+        </div>
+    </div>
+</div>
+
+<!-- PERSONNALISATION DES TOUCHES ⌨️ -->
+<div id="remap-overlay">
+    <div class="perso-box">
+        <h2>⌨️ Touches du clavier</h2>
+        <p id="remap-hint">Tape « Changer » puis appuie sur la nouvelle touche</p>
+        <div class="remap-rows">
+            <div class="remap-row"><span class="remap-nom">◀ Gauche</span><span class="remap-keys" id="remap-keys-left"></span><button class="remap-btn" data-action="left">Changer</button></div>
+            <div class="remap-row"><span class="remap-nom">▶ Droite</span><span class="remap-keys" id="remap-keys-right"></span><button class="remap-btn" data-action="right">Changer</button></div>
+            <div class="remap-row"><span class="remap-nom">🦘 Saut</span><span class="remap-keys" id="remap-keys-jump"></span><button class="remap-btn" data-action="jump">Changer</button></div>
+        </div>
+        <div class="perso-btns">
+            <button id="remap-defaut">↺ Défauts</button>
+            <button id="remap-fermer">✕ Fermer</button>
         </div>
     </div>
 </div>
@@ -380,6 +398,7 @@
             <div class="help-row"><span class="emoji">🔇</span><span class="desc">Couper le son</span><span class="desc" style="opacity:.6;font-size:.85em">bouton en haut</span></div>
             <div class="help-row"><span class="emoji">🎵</span><span class="desc"><strong>4 ambiances musicales</strong> au choix (Aventure, Calme, Rétro, Mystère)</span><span class="desc" style="opacity:.6;font-size:.85em">menu d'accueil</span></div>
             <div class="help-tip">💡 Le saut est <strong>dynamique</strong> : tape court = petit bond, maintenu = grand saut. Une tolérance de saut pardonne les appuis trop tôt !</div>
+            <button id="btn-remap">⌨️ PERSONNALISER LES TOUCHES</button>
         </div>
 
         <div class="help-card">
