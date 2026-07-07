@@ -643,6 +643,17 @@ function init() {
         document.getElementById('qr-overlay').classList.add('show');
         document.getElementById('qr-envoyer').onclick = async () => {
             try {
+                const canvas = document.getElementById('qr-canvas');
+                // Tente d'inclure l'image du QR dans le partage (si le navigateur le permet)
+                const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+                if (blob) {
+                    const fichier = new File([blob], 'super-pixou-qr.png', { type: 'image/png' });
+                    if (navigator.canShare && navigator.canShare({ files: [fichier] })) {
+                        await navigator.share({ title: titre, text: message, files: [fichier] });
+                        return;
+                    }
+                }
+                // Repli : partage du texte seul, ou copie du lien
                 if (navigator.share) await navigator.share({ title: titre, text: message });
                 else { await navigator.clipboard.writeText(message); afficherToast('📋 Lien copié !'); }
             } catch (e) {}
