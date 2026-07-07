@@ -506,7 +506,7 @@ function init() {
             const niv = game.progress.niveauDebloque + 1;
             btnContinue.innerHTML = `▶ CONTINUER <span class="lvl">niv. ${niv}</span>`;
             btnContinue.style.display = 'inline-block';
-            btnStart.textContent = '🔄 RECOMMENCER';
+            btnStart.textContent = '🔄 À ZÉRO';
             btnStart.classList.add('secondaire');
         } else {
             btnContinue.style.display = 'none';
@@ -530,6 +530,11 @@ function init() {
 
     // JOUER / NOUVELLE PARTIE → repart de zéro (et efface la progression)
     btnStart.addEventListener('click', () => {
+        // Avec une progression en cours, tout repart de zéro : confirmation obligatoire
+        if (game.progress.aProgression()) {
+            const ok = confirm('🔄 Recommencer depuis le début ?\n\nTa progression (niveaux débloqués, ⭐ étoiles, ⏱ temps) sera effacée.\n🪙 Pièces, skins et Hall of Fame sont conservés.');
+            if (!ok) return;
+        }
         entrerEnJeu(() => game.nouvellePartie());
     });
     // CONTINUER → reprend au niveau débloqué
