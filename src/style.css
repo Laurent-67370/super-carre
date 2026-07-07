@@ -6,14 +6,9 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 #start-screen .logo{cursor:grab;-webkit-tap-highlight-color:transparent;perspective:520px;touch-action:none;user-select:none}
 #start-screen .logo:active{cursor:grabbing}
 .pixou3d{position:relative;width:100%;height:100%;transform-style:preserve-3d;will-change:transform}
-.pixou3d svg{position:relative;z-index:2}
-.p3d-left,.p3d-right{position:absolute;top:28%;height:60%;width:var(--p3d-prof,24px);transform-origin:left center;transform:rotateY(90deg);background:linear-gradient(180deg,#a83226,#7c2018);border-radius:5px}
-.p3d-left{left:22%}
-.p3d-right{left:78%}
-.p3d-back{position:absolute;top:28%;left:22%;width:56%;height:60%;transform:translateZ(calc(var(--p3d-prof,24px) * -1));background:linear-gradient(180deg,#e2604f,#c0392b);border:3px solid #7c2018;border-radius:14px;box-sizing:border-box}
-.p3d-top,.p3d-bottom{position:absolute;left:22%;width:56%;height:var(--p3d-prof,24px);transform-origin:center top;transform:rotateX(-90deg);border-radius:5px}
-.p3d-top{top:28%;background:linear-gradient(180deg,#c0392b,#a83226)}
-.p3d-bottom{top:88%;background:linear-gradient(180deg,#7c2018,#5c150f)}
+.pixou3d svg{position:relative;z-index:2;backface-visibility:hidden}
+/* 🧊 Volume extrudé : couches clonées du SVG en profondeur (silhouette complète) */
+.pixou3d .p3d-couche{position:absolute;inset:0;pointer-events:none}
 @keyframes pixouHop{0%{transform:translateY(0) scale(1,1)}18%{transform:translateY(3px) scale(1.12,.84)}55%{transform:translateY(-30px) scale(.92,1.12)}80%{transform:translateY(2px) scale(1.06,.92)}100%{transform:translateY(0) scale(1,1)}}
 #start-screen .logo.hop .pixou3d{animation:pixouHop .55s cubic-bezier(.36,.07,.19,.97)}
 #start-screen .logo{width:clamp(90px,26vw,130px);height:clamp(90px,26vw,130px);margin-bottom:10px;animation:b 1.5s ease-in-out infinite;filter:drop-shadow(0 8px 20px rgba(231,76,60,.4))}
