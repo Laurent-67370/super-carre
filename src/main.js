@@ -658,6 +658,15 @@ function init() {
                 else { await navigator.clipboard.writeText(message); afficherToast('📋 Lien copié !'); }
             } catch (e) {}
         };
+        document.getElementById('qr-telecharger').onclick = () => {
+            try {
+                const a = document.createElement('a');
+                a.href = document.getElementById('qr-canvas').toDataURL('image/png');
+                a.download = 'super-pixou-qr.png';
+                a.click();
+                afficherToast('💾 QR téléchargé !');
+            } catch (e) { console.warn('QR dl:', e); }
+        };
         document.getElementById('qr-fermer').onclick = () => {
             document.getElementById('qr-overlay').classList.remove('show');
         };
@@ -838,24 +847,92 @@ function init() {
         document.getElementById('scores-screen').classList.add('show');
     });
 
-    // Clavier
-    window.addEventListener('keydown',(e)=>{
-        switch(e.code){
-            case 'ArrowLeft':case 'KeyQ':game.touches.left=true;break;
-            case 'ArrowRight':case 'KeyD':game.touches.right=true;break;
-            case 'Space':case 'ArrowUp':case 'KeyZ':game.touches.jump=true;e.preventDefault();break;
-            case 'Escape':case 'KeyP':
-                if(game.etat==='playing')game.pause();
-                else if(game.etat==='paused')game.reprendre();
-                e.preventDefault();break;
+    // --- ⌨️ Clavier — touches personnalisables (v81) ---
+    const TOUCHES_DEFAUT = { left: ['ArrowLeft', 'KeyQ'], right: ['ArrowRight', 'KeyD'], jump: ['Space', 'ArrowUp', 'KeyZ'] };
+    const CLE_TOUCHES = 'supercarre_touches';
+    let touchesConfig;
+    try {
+        const brut = JSON.parse(localStorage.getItem(CLE_TOUCHES) || 'null');
+        touchesConfig = (brut && Array.isArray(brut.left) && Array.isArray(brut.right) && Array.isArray(brut.jump))
+            ? brut : JSON.parse(JSON.stringify(TOUCHES_DEFAUT));
+    } catch (e) { touchesConfig = JSON.parse(JSON.stringify(TOUCHES_DEFAUT)); }
+
+    function actionPourTouche(code) {
+        for (const a of ['left', 'right', 'jump']) if (touchesConfig[a].includes(code)) return a;
+        return null;
+    }
+    function labelTouche(code) {
+        if (code.startsWith('Key')) return code.slice(3);
+        if (code.startsWith('Digit')) return code.slice(5);
+        if (code.startsWith('Numpad')) return 'Pavé ' + code.slice(6);
+        const noms = { ArrowLeft: '←', ArrowRight: '→', ArrowUp: '↑', ArrowDown: '↓', Space: 'Espace',
+            ShiftLeft: 'Maj g.', ShiftRight: 'Maj d.', ControlLeft: 'Ctrl g.', ControlRight: 'Ctrl d.',
+            AltLeft: 'Alt', AltRight: 'Alt Gr', Enter: 'Entrée', Tab: 'Tab', Backspace: 'Retour',
+            Semicolon: ';', Comma: ',', Period: '.', Slash: '/', Quote: "'", BracketLeft: '[', BracketRight: ']' };
+        return noms[code] || code;
+    }
+    function rafraichirRemap() {
+        for (const a of ['left', 'right', 'jump'])
+            document.getElementById('remap-keys-' + a).textContent = touchesConfig[a].map(labelTouche).join('  /  ');
+    }
+    let remapEnAttente = null;   // action en cours de redéfinition, ou null
+    function finirEcoute() {
+        remapEnAttente = null;
+        document.querySelectorAll('.remap-btn').forEach(b => b.classList.remove('ecoute'));
+        document.getElementById('remap-hint').textContent = 'Tape « Changer » puis appuie sur la nouvelle touche';
+    }
+    document.querySelectorAll('.remap-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            finirEcoute();
+            remapEnAttente = btn.dataset.action;
+            btn.classList.add('ecoute');
+            document.getElementById('remap-hint').textContent = '⌨️ Appuie sur une touche… (Échap pour annuler)';
+        });
+    });
+    document.getElementById('btn-remap').addEventListener('click', () => {
+        rafraichirRemap();
+        document.getElementById('remap-overlay').classList.add('show');
+    });
+    document.getElementById('remap-fermer').addEventListener('click', () => {
+        finirEcoute();
+        document.getElementById('remap-overlay').classList.remove('show');
+    });
+    document.getElementById('remap-defaut').addEventListener('click', () => {
+        touchesConfig = JSON.parse(JSON.stringify(TOUCHES_DEFAUT));
+        localStorage.removeItem(CLE_TOUCHES);
+        finirEcoute(); rafraichirRemap();
+        afficherToast('↺ Touches par défaut restaurées');
+    });
+
+    window.addEventListener('keydown', (e) => {
+        // Capture d'une nouvelle touche pour la personnalisation
+        if (remapEnAttente) {
+            e.preventDefault();
+            if (e.code === 'Escape') { finirEcoute(); return; }
+            if (e.code === 'KeyP') { document.getElementById('remap-hint').textContent = '⚠️ P est réservée à la pause — choisis-en une autre'; return; }
+            const deja = actionPourTouche(e.code);
+            if (deja && deja !== remapEnAttente) { document.getElementById('remap-hint').textContent = '⚠️ Touche déjà utilisée par une autre action'; return; }
+            touchesConfig[remapEnAttente] = [e.code];
+            localStorage.setItem(CLE_TOUCHES, JSON.stringify(touchesConfig));
+            finirEcoute(); rafraichirRemap();
+            afficherToast('⌨️ Touche enregistrée !');
+            return;
+        }
+        const action = actionPourTouche(e.code);
+        if (action) {
+            game.touches[action] = true;
+            if (action === 'jump' || e.code.startsWith('Arrow') || e.code === 'Space') e.preventDefault();
+            return;
+        }
+        if (e.code === 'Escape' || e.code === 'KeyP') {
+            if (game.etat === 'playing') game.pause();
+            else if (game.etat === 'paused') game.reprendre();
+            e.preventDefault();
         }
     });
-    window.addEventListener('keyup',(e)=>{
-        switch(e.code){
-            case 'ArrowLeft':case 'KeyQ':game.touches.left=false;break;
-            case 'ArrowRight':case 'KeyD':game.touches.right=false;break;
-            case 'Space':case 'ArrowUp':case 'KeyZ':game.touches.jump=false;break;
-        }
+    window.addEventListener('keyup', (e) => {
+        const action = actionPourTouche(e.code);
+        if (action) game.touches[action] = false;
     });
 }
 if (document.readyState === 'loading') window.addEventListener('DOMContentLoaded', init);
