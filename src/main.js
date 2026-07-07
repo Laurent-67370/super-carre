@@ -246,6 +246,9 @@ function init() {
         for (let i = 1; i <= n; i++) {
             const c = svg.cloneNode(true);
             c.classList.add('p3d-couche');
+            // Optimisation : les accessoires non équipés (display:none) n'ont
+            // aucune raison d'être clonés — ~60% de nœuds DOM en moins.
+            c.querySelectorAll('[style*="display: none"], [style*="display:none"]').forEach(el => el.remove());
             const z = -prof * i / n;
             const dos = (i === n);
             c.style.transform = dos ? `translateZ(${z}px) rotateY(180deg)` : `translateZ(${z}px)`;
