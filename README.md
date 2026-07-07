@@ -21,6 +21,8 @@ Jeu de plateforme HTML5 autonome, jouable au clavier comme au tactile. La **sour
 | Couper / remettre la musique | — | bouton 🔊 / 🔇 |
 | Ouvrir l'aide intégrée | — | bouton **❓** (haut à droite) |
 
+> ⌨️ Les touches gauche/droite/saut sont **personnalisables** : aide ❓ → carte Contrôles → « PERSONNALISER LES TOUCHES » (mémorisé, ↺ pour revenir aux défauts).
+
 💡 Un bouton **❓ doré** flottant en haut à droite ouvre une **aide intégrée** (« Comment jouer »), consultable à tout moment sans quitter la partie : contrôles, ennemis, power-ups, éléments et score.
 
 Le saut est **dynamique** : maintenir la touche saute plus haut, relâcher tôt fait un petit saut. Une tolérance de saut (*coyote time*) et une mémorisation de l'appui (*jump buffer*) rendent les sauts plus pardonnants, surtout sur mobile.
@@ -245,6 +247,7 @@ Le jeu utilise le stockage local du navigateur (`localStorage`) :
 | Défis du jour terminés 📅 | `supercarre_defis_faits` |
 | Musique coupée ou non | `supercarre_muet` |
 | Ambiance musicale choisie | `supercarre_piste` |
+| Touches clavier personnalisées ⌨️ | `supercarre_touches` |
 | Meilleurs temps par niveau (contre-la-montre) | `supercarre_temps` |
 
 ### 📤 Sauvegarde exportable (v30)
@@ -313,6 +316,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### ⌨️🛡️ v81 — touches personnalisables, garde CI des ids, téléchargement du QR
+
+Trois améliorations d'un coup. **⌨️ Touches personnalisables** : depuis l'aide ❓ (carte Contrôles), le bouton « PERSONNALISER LES TOUCHES » ouvre un overlay où chaque action (◀ gauche, ▶ droite, 🦘 saut) se redéfinit en appuyant simplement sur la nouvelle touche — conflits refusés avec message, P réservée à la pause, Échap annule, bouton ↺ Défauts, réglage persistant (`supercarre_touches`, retombée automatique sur les défauts si la config est corrompue). **🛡️ Garde CI** : nouveau script `controle-ids.mjs` (contrôle croisé de tous les `getElementById`/`querySelector('#…')` du JS contre les ids du HTML et ceux créés dynamiquement) exécuté à chaque push par le workflow — la famille de bugs historique v29/v59/v65/v79 **bloque désormais le déploiement** au lieu d'atteindre la production (148 ids audités au moment de l'intégration). **💾 QR téléchargeable** : l'overlay QR gagne un bouton IMAGE qui télécharge le PNG du QR code — le complément desktop du partage natif v80. Tests : 8/8 sur la logique de remap (défauts, remplacement, conflit, labels, restauration, config corrompue), simulation du bug v79 attrapée par le script CI (exit 1).
 
 ### 📤 v80 — partage du QR code en image
 
