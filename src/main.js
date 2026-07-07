@@ -120,11 +120,15 @@ function init() {
         logo.classList.add('hop');
     }
     if (logo && logoSvg) {
-        let rotY = 0, spinVel = 0, spinRAF = null, dragM = null, dernierQuart = 0;
-        const appliquerRot = () => { logoSvg.style.transform = rotY ? `rotateY(${rotY}deg)` : ''; };
+        // Trackball libre : glisser horizontalement (rotY) ET verticalement (rotX),
+        // inertie sur les deux axes, retour face au joueur au repos.
+        let rotY = 0, rotX = 0, spinVelY = 0, spinVelX = 0, spinRAF = null, dragM = null, dernierQuart = 0;
+        const appliquerRot = () => {
+            logoSvg.style.transform = (rotX || rotY) ? `rotateX(${rotX}deg) rotateY(${rotY}deg)` : '';
+        };
         const clicQuart = () => {
-            // petit clic sonore + vibration à chaque quart de tour
-            const q = Math.floor(Math.abs(rotY) / 90);
+            // petit clic sonore + vibration à chaque quart de tour (tous axes confondus)
+            const q = Math.floor((Math.abs(rotY) + Math.abs(rotX)) / 90);
             if (q !== dernierQuart) {
                 dernierQuart = q;
                 game.audio.beep(480 + (q % 4) * 70, 480 + (q % 4) * 70, 0.03, 'square', 0.05);
@@ -132,35 +136,41 @@ function init() {
             }
         };
         const inertie = () => {
-            spinVel *= 0.955; // frottement
-            rotY += spinVel;
+            spinVelY *= 0.955; spinVelX *= 0.955; // frottement
+            rotY += spinVelY; rotX += spinVelX;
             clicQuart(); appliquerRot();
-            if (Math.abs(spinVel) > 0.45) { spinRAF = requestAnimationFrame(inertie); return; }
-            // Se stabiliser face au joueur : multiple de 360° le plus proche
+            if (Math.abs(spinVelY) > 0.45 || Math.abs(spinVelX) > 0.45) { spinRAF = requestAnimationFrame(inertie); return; }
+            // Se stabiliser face au joueur : multiple de 360° le plus proche sur chaque axe
             spinRAF = null;
             logoSvg.style.transition = 'transform .55s cubic-bezier(.2,.8,.3,1.18)';
             rotY = Math.round(rotY / 360) * 360;
+            rotX = Math.round(rotX / 360) * 360;
             appliquerRot();
             setTimeout(() => {
                 logoSvg.style.transition = '';
-                rotY = 0; dernierQuart = 0; appliquerRot();
+                rotY = 0; rotX = 0; dernierQuart = 0; appliquerRot();
             }, 570);
         };
         logo.addEventListener('pointerdown', (e) => {
             if (spinRAF) { cancelAnimationFrame(spinRAF); spinRAF = null; }
             logoSvg.style.transition = '';
-            dragM = { x0: e.clientX, rot0: rotY, lastX: e.clientX, lastT: performance.now(), moved: false };
+            dragM = { x0: e.clientX, y0: e.clientY, rotY0: rotY, rotX0: rotX,
+                lastX: e.clientX, lastY: e.clientY, lastT: performance.now(), moved: false };
             try { logo.setPointerCapture(e.pointerId); } catch (err) {}
         });
         logo.addEventListener('pointermove', (e) => {
             if (!dragM) return;
             const dx = e.clientX - dragM.x0;
-            if (Math.abs(dx) > 7) dragM.moved = true;
+            const dy = e.clientY - dragM.y0;
+            if (Math.abs(dx) > 7 || Math.abs(dy) > 7) dragM.moved = true;
             if (!dragM.moved) return;
             const t = performance.now();
-            spinVel = (e.clientX - dragM.lastX) / Math.max(1, t - dragM.lastT) * 14;
-            dragM.lastX = e.clientX; dragM.lastT = t;
-            rotY = dragM.rot0 + dx * 0.9; // le doigt entraîne la rotation
+            const dt = Math.max(1, t - dragM.lastT);
+            spinVelY = (e.clientX - dragM.lastX) / dt * 14;
+            spinVelX = -(e.clientY - dragM.lastY) / dt * 14;
+            dragM.lastX = e.clientX; dragM.lastY = e.clientY; dragM.lastT = t;
+            rotY = dragM.rotY0 + dx * 0.9;  // le doigt entraîne la rotation
+            rotX = dragM.rotX0 - dy * 0.9;  // glisser vers le haut = basculer en arrière
             game.audio.init();
             clicQuart(); appliquerRot();
         });
