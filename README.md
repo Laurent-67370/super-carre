@@ -317,6 +317,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 🔄 v83 — bouton « À ZÉRO » : libellé lisible et confirmation
+
+Deux corrections sur le bouton de redémarrage du menu. **Libellé** : « 🔄 RECOMMENCER » était tronqué (« RECOMM… ») dans la grille 2 colonnes sur mobile — remplacé par « 🔄 À ZÉRO », plus court et plus explicite sur la conséquence. **Sécurité** : un seul tap effaçait niveaux débloqués, ⭐ étoiles et ⏱ temps **sans aucune confirmation** — une boîte de confirmation précise désormais ce qui sera effacé et ce qui est conservé (🪙 pièces, skins, Hall of Fame) avant d'agir.
+
 ### 🧱 v82 — impossible de partager un niveau vide
 
 Un lien de niveau partagé pouvait arriver « invalide » chez le destinataire alors que le QR et le décodage fonctionnaient parfaitement : le niveau partagé était simplement **vide** (aucun élément placé), et la validation d'import (`objets.length === 0` → refus) le rejetait à juste titre. La faille était en amont : le bouton Partager de l'éditeur générait le lien **sans aucune vérification**. Corrigé : le partage d'un niveau vide est désormais bloqué avec un message clair (« Ton niveau est vide ! Place au moins un élément avant de le partager »), la même règle que l'import.
