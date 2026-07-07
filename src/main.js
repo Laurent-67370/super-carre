@@ -1,5 +1,6 @@
 import { Game } from './game.js';
 import { mulberry32, infosDefiDuJour, FONDS } from './levels.js';
+import { configurerSucces, SUCCES, succesDebloques } from './succes.js';
 import { LevelEditor } from './editor.js';
 import { NameEntry } from './nameentry.js';
 import { AudioManager } from './audio.js';
@@ -341,6 +342,7 @@ function init() {
         });
     }
     majDiff();
+    configurerSucces((n) => { game.skins.crediter(n); });
 
     // --- 🔒 STOCKAGE PERSISTANT : demander au navigateur de ne jamais
     // évincer les données du jeu sous pression de stockage ---
@@ -538,6 +540,7 @@ function init() {
     document.getElementById('btn-scores').addEventListener('click', () => {
         game.audio.init(); game.audio.resume();
         afficherHallOfFame(game.hs);
+        remplirSucces();
         document.getElementById('btn-scores-back').style.display = 'inline-block';
         document.getElementById('btn-scores-replay').style.display = 'none';
         document.getElementById('scores-screen').classList.add('show');
@@ -565,10 +568,14 @@ function init() {
                 ? `<span class="tile-stars">${'★'.repeat(nbEtoiles)}${'☆'.repeat(3 - nbEtoiles)}</span>`
                 : '';
             // Médaille contre-la-montre (🥇🥈🥉) selon le meilleur temps
-            const medaille = debloque ? medaillePour(i, game.progress.tempsDe(i)) : null;
+            const tous = debloque ? game.progress.tempsTous(i) : {};
+            const medaille = debloque ? medaillePour(i, game.progress.tempsDe(i, null)) : null;
             const medailleHTML = medaille ? `<span class="tile-medal">${MEDAILLE_EMOJI[medaille]}</span>` : '';
-            const bestT = debloque ? game.progress.tempsDe(i) : null;
-            if (bestT !== null) tile.title = `Meilleur temps : ${bestT.toFixed(1)}s`;
+            const bestT = debloque ? game.progress.tempsDe(i, null) : null;
+            if (bestT !== null) {
+                const badges = { f: '😊', n: '😐', d: '😈' };
+                tile.title = 'Records — ' + Object.entries(tous).map(([k, v]) => `${badges[k]} ${v.toFixed(1)}s`).join(' · ');
+            }
             tile.innerHTML = debloque
                 ? `${medailleHTML}<span class="ico">${niv.icon}</span><span class="num">${i + 1}</span>${etoilesHTML}`
                 : `<span class="ico">🔒</span><span class="num">${i + 1}</span>`;
@@ -584,7 +591,7 @@ function init() {
         {
             const info = infosDefiDuJour();
             const records = Game.tempsPerso();
-            const best = records[info.nom];
+            const best = lireRecordPerso(records[info.nom], lettreDiff());
             const tuile = document.createElement('button');
             tuile.className = 'level-tile unlocked tile-defi';
             tuile.innerHTML = `<span class="ico">📅</span><span class="num defi-titre">DÉFI DU JOUR</span>` +
@@ -611,8 +618,8 @@ function init() {
             for (const m of persos) {
                 const tile = document.createElement('button');
                 tile.className = 'level-tile unlocked perso';
-                const best = records[m.nom];
-                if (best !== undefined) tile.title = `Meilleur temps : ${best.toFixed(1)}s`;
+                const best = lireRecordPerso(records[m.nom], lettreDiff());
+                if (best !== undefined) tile.title = `Meilleur temps (${Game.difficulteActuelle()}) : ${best.toFixed(1)}s`;
                 const bestHTML = best !== undefined ? `<span class="tile-stars">⏱ ${best.toFixed(1)}s</span>` : '<span class="tile-stars">·</span>';
                 tile.innerHTML = `<span class="ico">📝</span><span class="num perso-nom">${(m.nom || '?').slice(0, 12)}</span>${bestHTML}`;
                 tile.addEventListener('click', () => {
@@ -623,6 +630,28 @@ function init() {
             }
         }
     }
+    // Lecture d'un record perso : valeur legacy (nombre = Normal) ou {f,n,d}
+    function lireRecordPerso(val, lettre) {
+        if (typeof val === 'number') return lettre === 'n' ? val : undefined;
+        return val ? val[lettre] : undefined;
+    }
+    function lettreDiff() { return { facile: 'f', normal: 'n', difficile: 'd' }[Game.difficulteActuelle()]; }
+
+    // 🏅 Galerie des succès (écran Hall of Fame)
+    function remplirSucces() {
+        const grid = document.getElementById('succes-grid');
+        if (!grid) return;
+        const faits = succesDebloques();
+        const n = Object.keys(faits).length, total = Object.keys(SUCCES).length;
+        document.getElementById('succes-titre').textContent = `🏅 SUCCÈS (${n}/${total})`;
+        grid.innerHTML = Object.entries(SUCCES).map(([id, su]) => `
+            <div class="succes-item ${faits[id] ? 'ok' : 'verrou'}">
+                <span class="s-emoji">${faits[id] ? su.emoji : '🔒'}</span>
+                <span class="s-nom">${su.nom}</span>
+                <span class="s-desc">${su.desc}</span>
+            </div>`).join('');
+    }
+
     // Overlay de fin de niveau perso : REJOUER / MENU
     document.getElementById('perso-rejouer').addEventListener('click', () => {
         document.getElementById('perso-win').classList.remove('show');
@@ -754,6 +783,7 @@ function init() {
         game.audio.resume();
         document.getElementById('gameover-screen').classList.remove('show');
         afficherHallOfFame(game.hs);
+        remplirSucces();
         document.getElementById('btn-scores-back').style.display = 'none';
         document.getElementById('btn-scores-replay').style.display = 'inline-block';
         document.getElementById('scores-screen').classList.add('show');

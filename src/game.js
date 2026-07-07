@@ -3,6 +3,7 @@ import { Boss } from './entities.js';
 import { AudioManager } from './audio.js';
 import { dessinerJeu, roundRect } from './rendujeu.js';
 import { gererBoss } from './combat.js';
+import { signaler } from './succes.js';
 import { NIVEAUX, seuilsDepuis, FONDS, medaillePour, seuilsMedailles, MEDAILLE_EMOJI } from './levels.js';
 import { HighScoreManager, ProgressManager } from './storage.js';
 import { DemoBot } from './demo.js';
@@ -24,6 +25,7 @@ export class Game {
         try { const d = localStorage.getItem('supercarre_difficulte'); return DIFFICULTES[d] ? d : 'normal'; } catch (e) { return 'normal'; }
     }
     get _diff() { return DIFFICULTES[Game.difficulteActuelle()]; }
+    get _diffLettre() { return { facile: 'f', normal: 'n', difficile: 'd' }[Game.difficulteActuelle()]; }
     constructor(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d', { alpha: false });
@@ -463,9 +465,21 @@ export class Game {
             if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
             const t = this.tempsNiveau;
             const tous = Game.tempsPerso();
-            const ancien = tous[this.modePerso.nom];
+            let entree = tous[this.modePerso.nom];
+            if (typeof entree === 'number') entree = { n: entree }; // migration
+            if (!entree) entree = {};
+            if (this.modePerso.nom.startsWith('📅 Défi du ')) {
+                const d = new Date();
+                signaler('defi_fini', { iso: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` });
+            }
+            const lettre = this._diffLettre;
+            const ancien = entree[lettre];
             const record = ancien === undefined || t < ancien;
-            if (record) { tous[this.modePerso.nom] = Math.round(t * 10) / 10; try { localStorage.setItem('supercarre_temps_perso', JSON.stringify(tous)); } catch (e) {} }
+            if (record) {
+                entree[lettre] = Math.round(t * 10) / 10;
+                tous[this.modePerso.nom] = entree;
+                try { localStorage.setItem('supercarre_temps_perso', JSON.stringify(tous)); } catch (e) {}
+            }
             const s = this.modePerso.seuils;
             const med = t <= s.or ? '🥇' : t <= s.argent ? '🥈' : t <= s.bronze ? '🥉' : '';
             document.getElementById('perso-win-titre').textContent = '🎉 « ' + this.modePerso.nom + ' » réussi !';
@@ -490,8 +504,11 @@ export class Game {
         this.progress.enregistrerEtoiles(this.niveauActuel, etoiles);
         this._dernieresEtoiles = etoiles;
         // --- CONTRE-LA-MONTRE : meilleur temps + médaille 🥇🥈🥉 ---
-        const nouveauRecord = this.progress.enregistrerTemps(this.niveauActuel, this.tempsNiveau);
-        const medaille = medaillePour(this.niveauActuel, this.progress.tempsDe(this.niveauActuel));
+        const nouveauRecord = this.progress.enregistrerTemps(this.niveauActuel, this.tempsNiveau, this._diffLettre);
+        const medaille = medaillePour(this.niveauActuel, this.progress.tempsDe(this.niveauActuel, this._diffLettre));
+        signaler('medaille', { medaille });
+        signaler('niveau_fini', { difficulte: Game.difficulteActuelle(), idx: this.niveauActuel });
+        signaler('solde', { valeur: this.skins.solde() });
         this._chronoInfo = { temps: this.tempsNiveau, record: nouveauRecord, medaille };
         // Bonus : +1 vie tous les 4 niveaux atteints (4, 8, 12, 16, 20, 24)
         const niveauAtteint = this.niveauActuel + 1;
@@ -517,7 +534,7 @@ export class Game {
                 if (ci.medaille) txt += `  ${MEDAILLE_EMOJI[ci.medaille]}`;
                 if (ci.record) txt += `  🔥 RECORD !`;
                 // Prochain objectif de médaille
-                const best = this.progress.tempsDe(this.niveauActuel);
+                const best = this.progress.tempsDe(this.niveauActuel, this._diffLettre);
                 if (ci.medaille !== 'or' && s) {
                     const cible = ci.medaille === 'argent' ? s.or : (ci.medaille === 'bronze' ? s.argent : s.bronze);
                     const emoji = ci.medaille === 'argent' ? '🥇' : (ci.medaille === 'bronze' ? '🥈' : '🥉');

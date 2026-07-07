@@ -133,6 +133,10 @@ Un boss garde chaque palier — et chacun a **sa personnalité** :
 
 Dans tous les cas : **saute sur la tête** pour infliger un coup, la barre de vie est affichée au-dessus, et la colère monte avec les dégâts (teinte rougissante, attaques accélérées).
 
+## 🏅 Les 12 succès
+
+Des accomplissements à débloquer au fil du jeu, chacun rapportant **+10 🪙** : vaincre chacun des 4 boss (👑🔮🌋🌀), terminer les 24 niveaux 🏆, décrocher une médaille d'or 🥇, finir un niveau en Difficile 😈, relever un défi du jour 📅, enchaîner **3 défis sur 3 jours consécutifs** 🔥, sauvegarder un niveau ✏️, le faire certifier par le bot 🤖, et détenir 200 🪙 💰. La **galerie** (débloqués dorés, verrouillés grisés avec leur indice) vit dans l'écran 🏆 Hall of Fame. Détection événementielle (`succes.js` : le moteur, l'éditeur et la boutique signalent), déblocage idempotent avec toast et vibration.
+
 ## 📅 Défi du jour
 
 En tête du sélecteur « 🎯 NIVEAUX » : **un niveau généré avec la date comme graine** (PRNG mulberry32) — le monde entier joue exactement le même niveau le même jour. La difficulté de génération tourne sur trois jours (équilibré → intense → doux), le fond d'ambiance est tiré de la date, et le générateur **auto-valide** chaque niveau (sauts faisables, pièces à portée). Chrono, médailles à seuils automatiques et **record du jour** mémorisé (la tuile affiche ton temps et t'invite à revenir demain). Analyse statique vérifiée sur une semaine de défis : zéro pièce à dégât garanti, tout à portée de saut.
@@ -307,6 +311,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 🏅 v74 — succès et records équitables
+
+Deux points faibles corrigés d'un coup. **Records par difficulté** : `supercarre_temps` passe de `{niveau: temps}` à `{niveau: {f, n, d}}` avec **migration automatique** des anciens records vers Normal (idem pour les records persos et du défi du jour) ; l'enregistrement, la médaille et l'affichage suivent le mode en cours, l'infobulle des tuiles liste les trois chronos avec badges. **Système de succès** : nouveau module `succes.js` — 12 accomplissements événementiels (4 boss, 24 niveaux, or, Difficile, défi, série de 3 jours consécutifs, éditeur, certification bot, fortune à 200 🪙), **+10 🪙 par déblocage**, toast + vibration, galerie dans le Hall of Fame (compteur x/12, verrouillés grisés avec indice). Tests : 6/6 records (migration, indépendance des modes, meilleur global), 10/10 succès (idempotence, série dans le désordre, seuils), intégration boss vaincu → succès en conditions moteur.
+
 ### 📖 v73 — README à jour
 
 Le pilier **📅 Défi du jour** rejoint les Caractéristiques techniques (la section descriptive et l'entrée v72 étaient déjà en place).
@@ -479,6 +487,7 @@ Le bouton **🎬 DÉMO** du menu lance le jeu en pilote automatique sur une play
 
 ### ⏱️ v30 — contre-la-montre + sauvegarde exportable
 
+- **Records séparés par difficulté** (v74) : chaque niveau mémorise jusqu'à trois chronos (😊/😐/😈) — les anciens records migrent automatiquement vers Normal ; la médaille reflète le meilleur temps du mode en cours, l'infobulle des tuiles liste les trois.
 - **Contre-la-montre** : le meilleur temps de chaque niveau est mémorisé (`supercarre_temps`, ne régresse jamais). Des médailles 🥇🥈🥉 récompensent les temps rapides — les seuils sont calculés automatiquement selon la taille du monde, le nombre de pièces et la présence d'un boss (argent = or×1,6, bronze = or×2,4). L'écran de fin de niveau affiche le chrono, la médaille, la mention **🔥 RECORD !** et le prochain objectif à battre ; le sélecteur de niveaux affiche la médaille en haut à droite de chaque tuile.
 - **Sauvegarde exportable** : bouton 💾 SAUVEGARDE au menu (export JSON téléchargé / import avec validation) — voir la section Sauvegarde ci-dessus.
 - Le **coyote time** (6 frames) et le **jump buffer** (6 frames) étaient déjà en place dans `player.js` depuis la refonte — vérifiés, aucun changement nécessaire.

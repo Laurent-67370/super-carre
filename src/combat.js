@@ -1,3 +1,4 @@
+import { signaler } from './succes.js';
 /* COMBAT DE BOSS — extrait de game.js (v70) : gestion des 4 boss côté
    moteur (écrasement, contact, projectiles, ondes de choc, secousses).
    gererBoss(g) renvoie true si l'update du jeu doit s'interrompre
@@ -27,6 +28,7 @@ export function gererBoss(g) {
                 if (navigator.vibrate) navigator.vibrate(60);
                 if (vaincu) {
                     g.bossVaincu = true;
+                    signaler('boss', { type: b.type });
                     g.scoreCumul += 1000;
                     g.scorePopups.push({ x: b.x, y: b.y, vie: 80, text: 'BOSS VAINCU ! +1000' });
                     g.player.setExpression('win', 60);

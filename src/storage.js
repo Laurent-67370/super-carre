@@ -87,18 +87,37 @@ export class ProgressManager {
     chargerTemps() {
         try { return JSON.parse(localStorage.getItem(this.tempsKey)) || {}; } catch(e) { return {}; }
     }
-    // Enregistre le temps d'un niveau (garde le MEILLEUR = plus petit).
-    // Retourne true si c'est un nouveau record.
-    enregistrerTemps(idx, t) {
-        const actuel = this.temps[idx];
+    // v74 : records séparés par difficulté — {idx: {f: t, n: t, d: t}}.
+    // Migration : les anciens records (nombre nu) sont attribués au mode Normal.
+    _migrerTemps(idx) {
+        if (typeof this.temps[idx] === 'number') this.temps[idx] = { n: this.temps[idx] };
+    }
+    _sauverTemps() {
+        try { localStorage.setItem(this.tempsKey, JSON.stringify(this.temps)); } catch(e) {}
+    }
+    // Enregistre le temps d'un niveau POUR une difficulté (garde le MEILLEUR).
+    // Retourne true si c'est un nouveau record de cette difficulté.
+    enregistrerTemps(idx, t, diff = 'n') {
+        this._migrerTemps(idx);
+        if (!this.temps[idx]) this.temps[idx] = {};
+        const actuel = this.temps[idx][diff];
         if (actuel === undefined || t < actuel) {
-            this.temps[idx] = Math.round(t * 10) / 10;
-            try { localStorage.setItem(this.tempsKey, JSON.stringify(this.temps)); } catch(e) {}
+            this.temps[idx][diff] = Math.round(t * 10) / 10;
+            this._sauverTemps();
             return true;
         }
         return false;
     }
-    tempsDe(idx) { return this.temps[idx] !== undefined ? this.temps[idx] : null; }
+    // Meilleur temps pour une difficulté (défaut Normal) ; diff=null → meilleur tous modes.
+    tempsDe(idx, diff = 'n') {
+        this._migrerTemps(idx);
+        const e = this.temps[idx];
+        if (!e) return null;
+        if (diff === null) { const v = Object.values(e); return v.length ? Math.min(...v) : null; }
+        return e[diff] !== undefined ? e[diff] : null;
+    }
+    // Toutes les entrées {f,n,d} d'un niveau (affichage avec badges 😊😐😈)
+    tempsTous(idx) { this._migrerTemps(idx); return this.temps[idx] || {}; }
     charger() {
         try {
             const v = parseInt(localStorage.getItem(this.key), 10);

@@ -83,6 +83,14 @@ html,body{width:100%;height:100%;height:100dvh;overflow:hidden;overscroll-behavi
 .level-tile.perso{border-color:rgba(244,208,63,.5)}
 #perso-win{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:150;padding:20px}
 #perso-win.show{display:flex}
+#succes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;width:min(560px,94vw);margin:8px auto 14px}
+.succes-item{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:9px 8px;text-align:center}
+.succes-item .s-emoji{font-size:24px;display:block}
+.succes-item .s-nom{color:#fff;font-weight:700;font-size:clamp(11px,3.2vw,13px);display:block;margin:3px 0 2px}
+.succes-item .s-desc{color:rgba(255,255,255,.65);font-size:clamp(9px,2.8vw,11px);line-height:1.3;display:block}
+.succes-item.verrou{opacity:.42;filter:grayscale(1)}
+.succes-item.ok{border-color:rgba(244,208,63,.7);box-shadow:0 0 8px rgba(244,208,63,.18)}
+#succes-titre{font-size:clamp(16px,5vw,22px)}
 #save-recu{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:160;padding:20px}
 #save-recu.show{display:flex}
 #btn-save-transfert{grid-column:1/-1}

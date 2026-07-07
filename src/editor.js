@@ -2,6 +2,7 @@ import { Game } from './game.js';
 import { Platform, MovingPlatform, Spike, Ennemi, EnnemiVolant, EnnemiSaut, Coin, Ressort, PowerUp } from './entities.js';
 import { Player } from './player.js';
 import { FONDS } from './levels.js';
+import { signaler } from './succes.js';
 import { DemoBot } from './demo.js';
 import { setupControls } from './controls.js';
 /* LevelEditor — éditeur de niveaux */
@@ -548,6 +549,7 @@ export class LevelEditor {
         const r = this._simulerBot(data, m.largeurMonde, m.hauteurMonde, m.spawn);
         if (r.collectees === r.total) {
             this._piecesRatees = null;
+            signaler('bot_valide');
             alert(`🤖 Niveau validé !\n\n✅ ${r.total}/${r.total} pièces ramassées en ${r.temps.toFixed(1)} s` +
                   (r.degats ? `\n💥 ${r.degats} dégât(s) en route — un joueur prudent fera mieux` : '\n✨ Sans le moindre dégât'));
         } else {
@@ -841,6 +843,7 @@ export class LevelEditor {
         try { return JSON.parse(localStorage.getItem(this.STORE_KEY)) || []; } catch(e) { return []; }
     }
     sauvegarder() {
+        signaler('niveau_sauve');
         this.modele.nom = document.getElementById('ed-name').value.trim() || 'Sans nom';
         const list = this.chargerSauvegardes();
         const copie = JSON.parse(JSON.stringify(this.modele));

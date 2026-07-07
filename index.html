@@ -247,7 +247,7 @@
     </div>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v73</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v74</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -255,6 +255,8 @@
     <h2>🏆 HALL OF FAME</h2>
     <p class="sub-scores">Les meilleures légendes</p>
     <div class="score-table" id="score-table"></div>
+    <h2 id="succes-titre" style="margin-top:18px">🏅 SUCCÈS</h2>
+    <div id="succes-grid"></div>
     <button id="btn-scores-back">◀ RETOUR</button>
     <button id="btn-scores-replay" style="display:none;background:linear-gradient(135deg,#FFD700,#FFA500);color:#1a1a2e;border:none;padding:12px 36px;font-size:clamp(14px,4.5vw,17px);font-weight:700;border-radius:50px;cursor:pointer;margin-top:8px;box-shadow:0 6px 25px rgba(255,165,0,.4)">🔄 NOUVELLE PARTIE</button>
     <button id="btn-scores-share" style="display:none">📤 PARTAGER</button>
@@ -374,8 +376,9 @@
             <div class="help-row"><span class="emoji">🎁</span><span class="desc">Bonus <strong>+1 vie</strong> tous les 4 niveaux (4, 8, 12, 16, 20, 24)</span></div>
             <div class="help-row"><span class="emoji">⭐</span><span class="desc">Bonus <strong>+1 vie</strong> à chaque palier de <strong>5 000 points</strong> (cumulé sur toute la partie)</span></div>
             <div class="help-row"><span class="emoji">🌟</span><span class="desc">Chaque niveau te rapporte <strong>1 à 3 étoiles</strong> : 3 si tu finis sans perdre de vie, 2 avec une seule perte, 1 sinon</span></div>
+            <div class="help-row"><span class="emoji">🏅</span><span class="desc"><strong>12 succès</strong> à débloquer (boss, défis, éditeur, fortune…) — chacun rapporte <strong>+10 🪙</strong> ! La galerie est dans 🏆 HALL OF FAME</span></div>
             <div class="help-row"><span class="emoji">📅</span><span class="desc"><strong>Défi du jour</strong> (en tête de 🎯 NIVEAUX) : un niveau <strong>identique pour tout le monde</strong>, généré avec la date du jour — chrono, médailles, record quotidien. Compare tes temps en famille et reviens demain !</span></div>
-            <div class="help-row"><span class="emoji">🎚️</span><span class="desc"><strong>Trois difficultés</strong> (sous le menu) : 😊 Facile (6 vies, ennemis ralentis, checkpoint partout), 😐 Normal, 😈 Difficile (3 vies, ennemis rapides, <strong>pièces ×2</strong> !). Étoiles et médailles identiques dans tous les modes</span></div>
+            <div class="help-row"><span class="emoji">🎚️</span><span class="desc"><strong>Trois difficultés</strong> (sous le menu) : 😊 Facile (6 vies, ennemis ralentis, checkpoint partout), 😐 Normal, 😈 Difficile (3 vies, ennemis rapides, <strong>pièces ×2</strong> !). Étoiles et médailles identiques dans tous les modes — et les <strong>records chrono sont désormais séparés par difficulté</strong> (badges 😊😐😈)</span></div>
             <div class="help-row"><span class="emoji">🎨</span><span class="desc">Chaque pièce ramassée remplit ton <strong>portefeuille 🪙</strong> — dépense-le dans la <strong>BOUTIQUE</strong> : couleurs, chapeaux et lunettes pour Pixou !</span></div>
             <div class="help-tip">💡 Tes étoiles s'affichent dans <strong>« 🎯 Choisir un niveau »</strong>. Rejoue les niveaux pour décrocher les 3 étoiles partout !</div>
         </div>
