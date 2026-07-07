@@ -74,7 +74,7 @@ function init() {
     game.audio.pisteIndex = pisteCourante;
     function majLibelleMusique() {
         const p = PISTES[pisteCourante];
-        btnMusic.textContent = `🎵 ${p.nom}`;
+        btnMusic.textContent = `${p.emoji} ${p.nom}`;
     }
     majLibelleMusique();
     btnMusic.addEventListener('click', () => {
