@@ -317,6 +317,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 🧊 v87 — mascotte d'accueil entièrement modelée en 3D
+
+L'ancienne « boîte » 3D (tranches plates gauche/droite/dos) est remplacée par une **extrusion de la silhouette complète** : 6 couches du SVG clonées en profondeur, la dernière en miroir formant le dos. Résultat : le béret, les lunettes, le costume et les chaussures du skin équipé ont désormais du volume sous tous les angles du trackball 360° (v86) — et le dos de Pixou montre sa vraie silhouette, plus un simple rectangle. Zéro dépendance ajoutée (pas de WebGL/Three.js), fonctionne hors-ligne, et la boutique de skins reste pleinement compatible : le volume se reconstruit à chaque changement de skin.
+
 ### 🌀 v86 — la mascotte tourne à 360° dans tous les sens
 
 La mascotte 3D de l'accueil ne tournait qu'horizontalement (rotY). Elle se manipule désormais comme un **trackball libre** : glisser dans n'importe quelle direction la fait tourner sur les deux axes (horizontal ET vertical), avec inertie sur chaque axe, clics sonores aux quarts de tour et retour en douceur face au joueur au repos. Deux faces 3D manquantes (dessus/dessous) ont été ajoutées à la boîte pour que le basculement vertical ne révèle aucun « trou ». Un simple tap déclenche toujours le bond.
