@@ -317,6 +317,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
 
+### 🌀 v86 — la mascotte tourne à 360° dans tous les sens
+
+La mascotte 3D de l'accueil ne tournait qu'horizontalement (rotY). Elle se manipule désormais comme un **trackball libre** : glisser dans n'importe quelle direction la fait tourner sur les deux axes (horizontal ET vertical), avec inertie sur chaque axe, clics sonores aux quarts de tour et retour en douceur face au joueur au repos. Deux faces 3D manquantes (dessus/dessous) ont été ajoutées à la boîte pour que le basculement vertical ne révèle aucun « trou ». Un simple tap déclenche toujours le bond.
+
 ### 🔮 v85 — le bouton musique affiche l'emoji de sa piste
 
 Le sélecteur d'ambiance utilisait la note 🎵 générique, fine et peu lisible à côté des icônes colorées du menu (🏆 ✏️ 🎬 🍿 💾). Chaque piste possédait pourtant déjà son emoji dans les données : le bouton l'affiche désormais — 🗺️ AVENTURE, 🌙 CALME, 👾 RÉTRO, 🔮 MYSTÈRE — plus lisible et plus parlant sur le caractère de chaque ambiance.
