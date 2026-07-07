@@ -241,6 +241,8 @@ Le jeu utilise le stockage local du navigateur (`localStorage`) :
 | Portefeuille 🪙 de la boutique | `supercarre_portefeuille` |
 | Skins possédés et équipés | `supercarre_skins` |
 | Difficulté choisie 🎚️ | `supercarre_difficulte` |
+| Succès débloqués 🏅 | `supercarre_succes` |
+| Défis du jour terminés 📅 | `supercarre_defis_faits` |
 | Musique coupée ou non | `supercarre_muet` |
 | Ambiance musicale choisie | `supercarre_piste` |
 | Meilleurs temps par niveau (contre-la-montre) | `supercarre_temps` |
@@ -310,6 +312,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 📖 v75 — README à jour
+
+Le tableau des clés de sauvegarde gagne `supercarre_succes` et `supercarre_defis_faits` (11 clés couvertes par l'export, le transfert 📲 et le fichier). Les sections Succès, records par difficulté et l'historique v74 étaient déjà en place.
 
 ### 🏅 v74 — succès et records équitables
 
