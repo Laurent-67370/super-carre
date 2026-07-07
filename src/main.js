@@ -232,14 +232,25 @@ function init() {
         for (const pied of svg.querySelectorAll('.pixou-feet rect')) {
             pied.setAttribute('fill', cfg.pieds || '#F1C40F');
         }
-        // 🧊 Volume 3D : tranches et dos aux couleurs du corps équipé
-        for (const face of document.querySelectorAll('.p3d-left, .p3d-right')) {
-            face.style.background = `linear-gradient(180deg, ${nuancer(cfg.bord, 0.15)}, ${nuancer(cfg.bord, -0.25)})`;
-        }
-        const dos = document.querySelector('.p3d-back');
-        if (dos) {
-            dos.style.background = `linear-gradient(180deg, ${nuancer(cfg.bas, 0.12)}, ${cfg.bas})`;
-            dos.style.borderColor = nuancer(cfg.bord, -0.15);
+        // 🧊 Volume 3D : reconstruire l'extrusion avec le skin à jour
+        construireVolume();
+    }
+    // La silhouette ENTIÈRE (béret, lunettes, costume…) est extrudée en
+    // profondeur : couches clonées du SVG, la dernière en miroir fait le dos.
+    function construireVolume() {
+        const boite = document.querySelector('#start-screen .logo .pixou3d');
+        const svg = boite ? boite.querySelector('svg') : null;
+        if (!boite || !svg) return;
+        boite.querySelectorAll('.p3d-couche').forEach(el => el.remove());
+        const prof = 24, n = 6; // n couches réparties sur prof px
+        for (let i = 1; i <= n; i++) {
+            const c = svg.cloneNode(true);
+            c.classList.add('p3d-couche');
+            const z = -prof * i / n;
+            const dos = (i === n);
+            c.style.transform = dos ? `translateZ(${z}px) rotateY(180deg)` : `translateZ(${z}px)`;
+            c.style.filter = dos ? 'brightness(.85)' : 'brightness(.72)';
+            boite.appendChild(c);
         }
     }
     function dessinerBoutique() {
