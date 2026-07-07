@@ -301,7 +301,7 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 - Contrôles tactiles multi-points et clavier (jeu ET saisie du nom).
 - **Mode démo** « attract mode » : pilote automatique planifié (graphe des plateformes + BFS, sauts dosés, ressorts), invincible, sortie au moindre toucher.
 - **Éditeur de niveaux complet** : palette de 16 outils (dont 🏁 checkpoint posable), annuler/rétablir, niveau aléatoire, **🤖 vérification par le bot** (simulation accélérée garantissant que toutes les pièces sont atteignables), duplication d'objet — et les créations sauvegardées sont **jouables depuis le sélecteur** (📝 Mes niveaux : chrono, médailles, records).
-- **📱 QR codes de partage** : chaque partage (niveau, sauvegarde, lien du jeu depuis l'aide) affiche un **QR stylé** — points arrondis, correction d'erreur élevée, **mini-Pixou aux couleurs du skin équipé** sur pastille centrale. Scanner remplace l'envoi du lien entre appareils proches.
+- **📱 QR codes de partage** : chaque partage (niveau, sauvegarde, lien du jeu depuis l'aide) affiche un **QR stylé** — points arrondis, correction d'erreur élevée, **mini-Pixou aux couleurs du skin équipé** sur pastille centrale. Scanner remplace l'envoi du lien entre appareils proches. Le bouton d'envoi tente aussi de partager **l'image du QR** (PNG) via `navigator.share({ files })` quand l'appareil le permet, avec repli sur le texte seul sinon.
 - **Partage de niveaux par lien cliquable** : le niveau (tuples compacts + deflate + **base64url**, format `PIXOU2.…` — **~45 % plus court** que l'ancien, zéro caractère encodé dans l'URL) voyage dans l'URL (`?n=…`) — le destinataire clique et choisit ▶ JOUER ou ✏️ ÉDITEUR ; import de secours universel (lien, message entier, code nu).
 - **📅 Défi du jour** : niveau quotidien identique pour tous (PRNG mulberry32 semé par la date, difficulté en rotation, générateur auto-validé), record quotidien — de la rétention sans serveur.
 - **Trois difficultés** (😊/😐/😈) mémorisées : vies, vitesse des ennemis, invincibilité, checkpoints et crédit 🪙 modulés — étoiles et médailles identiques partout.
@@ -313,6 +313,14 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 📤 v80 — partage du QR code en image
+
+Le bouton **📤 ENVOYER LE LIEN** de l'overlay QR (jeu, niveau, sauvegarde) tente désormais d'inclure **l'image du QR code** dans le partage natif, en plus du texte/lien : le canvas est converti en PNG (`canvas.toBlob`) et transmis via `navigator.share({ files })` quand l'appareil le permet (`navigator.canShare({ files })`). Sur les navigateurs sans partage de fichiers (courant sur ordinateur), repli automatique et transparent sur le partage texte seul, comme avant.
+
+### 🔧 Correctif v79 — bouton QR du jeu manquant dans l'aide
+
+Le module `main.js` reliait déjà un clic sur `#btn-qr-jeu` à l'affichage du QR code du jeu (`document.getElementById('btn-qr-jeu').addEventListener(...)`), mais ce bouton n'existait pas dans `index.html` : `getElementById` renvoyait `null`, provoquant une `TypeError` au chargement. Corrigé en ajoutant une carte **📱 Partager le jeu** en fin de l'aide (`#help-content`), avec le bouton `btn-qr-jeu` manquant.
 
 ### 📱 v78 — QR codes de partage avec Pixou au centre
 
