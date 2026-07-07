@@ -1,6 +1,7 @@
 import { Game } from './game.js';
 import { mulberry32, infosDefiDuJour, FONDS } from './levels.js';
 import { configurerSucces, SUCCES, succesDebloques } from './succes.js';
+import { dessinerQRPixou } from './qrpixou.js';
 import { LevelEditor } from './editor.js';
 import { NameEntry } from './nameentry.js';
 import { AudioManager } from './audio.js';
@@ -630,6 +631,41 @@ function init() {
             }
         }
     }
+    // --- 📱 QR CODE DE PARTAGE (niveau, sauvegarde, lien du jeu) ---
+    function afficherQR(titre, lien, message, legende) {
+        try {
+            const cfg = game.skins.config();
+            dessinerQRPixou(document.getElementById('qr-canvas'), lien,
+                { corps: cfg.haut || cfg.corps, bord: cfg.bord, casquette: cfg.casq });
+        } catch (e) { console.warn('QR:', e); return false; }
+        document.getElementById('qr-titre').textContent = titre;
+        document.getElementById('qr-legende').textContent = legende || 'Scanne avec l\'appareil photo — ou envoie le lien 👇';
+        document.getElementById('qr-overlay').classList.add('show');
+        document.getElementById('qr-envoyer').onclick = async () => {
+            try {
+                if (navigator.share) await navigator.share({ title: titre, text: message });
+                else { await navigator.clipboard.writeText(message); afficherToast('📋 Lien copié !'); }
+            } catch (e) {}
+        };
+        document.getElementById('qr-fermer').onclick = () => {
+            document.getElementById('qr-overlay').classList.remove('show');
+        };
+        return true;
+    }
+    // Partage de niveau depuis l'éditeur → overlay QR
+    editor.onPartage = (nom, lien, message) => {
+        if (!afficherQR(`📱 « ${nom} »`, lien, message, 'Scanne pour jouer — ou envoie le lien 👇')) {
+            if (navigator.share) navigator.share({ title: nom, text: message }).catch(() => {});
+        }
+    };
+    // QR du jeu depuis l'aide
+    document.getElementById('btn-qr-jeu').addEventListener('click', () => {
+        const lienJeu = 'https://laurent-67370.github.io/super-carre/';
+        afficherQR('📱 Super Pixou', lienJeu,
+            '🟥 Super Pixou — 24 niveaux, boss, éditeur et défi du jour !\n🎮 ' + lienJeu,
+            'Fais scanner tes amis : le jeu s\'installe en un instant !');
+    });
+
     // Lecture d'un record perso : valeur legacy (nombre = Normal) ou {f,n,d}
     function lireRecordPerso(val, lettre) {
         if (typeof val === 'number') return lettre === 'n' ? val : undefined;
@@ -703,7 +739,9 @@ function init() {
                 return;
             }
             const message = `📲 Ma sauvegarde Super Pixou — ouvre ce lien sur l'autre appareil pour tout restaurer (progression, skins, niveaux…) :\n${lien}`;
-            if (navigator.share) await navigator.share({ title: 'Sauvegarde Super Pixou', text: message });
+            if (lien.length <= 1200 && afficherQR('📲 Ta sauvegarde', lien, message, 'Scanne avec l\'autre appareil — ou envoie le lien 👇')) {
+                // le QR est affiché, l'envoi passe par son bouton
+            } else if (navigator.share) { await navigator.share({ title: 'Sauvegarde Super Pixou', text: message }); }
             else { await navigator.clipboard.writeText(message); afficherToast('📋 Lien copié ! Envoie-le à ton autre appareil.'); }
         } catch (e) {
             if (e && e.name === 'AbortError') return;

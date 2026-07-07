@@ -932,6 +932,7 @@ export class LevelEditor {
                 // lien dans \uD83D\uDCE5 reste possible en secours.
                 const lien = 'https://laurent-67370.github.io/super-carre/?n=' + code; // base64url : déjà sûr dans une URL
                 const message = `\u{1F7E5} Super Pixou \u2014 je t'envoie mon niveau \u00AB ${nom} \u00BB !\n\n\uD83D\uDC49 Clique pour y jouer :\n${lien}`;
+                if (this.onPartage) { this.onPartage(nom, lien, message); return; }
                 if (navigator.share) {
                     await navigator.share({ title: 'Super Pixou \u2014 ' + nom, text: message });
                 } else {

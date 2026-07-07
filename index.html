@@ -247,7 +247,7 @@
     </div>
     <button id="btn-install" style="display:none">📥 INSTALLER L'APPLI</button>
     <div class="hint">📱 ◀ ▶ pour bouger • 🦘 pour sauter<br>⭐ Saute sur les ennemis pour les écraser<br>🔴 Ressorts = rebond puissant !<br>🔵 Power-ups : double saut, bouclier, vitesse<br>🪙 Ramasse toutes les pièces pour gagner !</div>
-    <div style="margin-top:10px;font-size:11px;opacity:.45">v77</div>
+    <div style="margin-top:10px;font-size:11px;opacity:.45">v78</div>
 </div>
 
 <!-- HALL OF FAME -->
@@ -320,6 +320,19 @@
     <p class="save-warning">⚠️ Importer remplace la progression actuelle</p>
     <input type="file" id="save-file" accept=".json,application/json" style="display:none">
     <button id="btn-save-back">◀ RETOUR</button>
+</div>
+
+<!-- QR CODE DE PARTAGE 📱 -->
+<div id="qr-overlay">
+    <div class="perso-box qr-box">
+        <h2 id="qr-titre">📱 Scanne-moi !</h2>
+        <canvas id="qr-canvas"></canvas>
+        <p id="qr-legende"></p>
+        <div class="perso-btns">
+            <button id="qr-envoyer">📤 ENVOYER LE LIEN</button>
+            <button id="qr-fermer">✕ Fermer</button>
+        </div>
+    </div>
 </div>
 
 <!-- SAUVEGARDE REÇUE PAR LIEN 📲 -->
@@ -455,7 +468,7 @@
             <div class="help-row"><span class="emoji">🏁</span><span class="desc"><strong>Checkpoint</strong> : pose un drapeau (un seul) — une fois touché, Pixou y réapparaît au lieu de repartir du début</span></div>
             <div class="help-row"><span class="emoji">🌇</span><span class="desc"><strong>🎨 Fond</strong> : choisis l'ambiance du niveau parmi 10 ciels (jour, coucher de soleil, nuit, espace, lave…) — visible dans l'éditeur, en test et dans 📝 Mes niveaux</span></div>
             <div class="help-row"><span class="emoji">📋</span><span class="desc"><strong>Dupliquer</strong> : clone l'objet sélectionné — parfait pour les escaliers de plateformes</span></div>
-            <div class="help-row"><span class="emoji">🔗</span><span class="desc"><strong>Partager</strong> : ton niveau devient un <strong>lien cliquable</strong> envoyé par WhatsApp, SMS ou mail — le destinataire clique et le jeu lui propose direct <strong>▶ JOUER ou ✏️ ÉDITEUR</strong> !</span></div>
+            <div class="help-row"><span class="emoji">🔗</span><span class="desc"><strong>Partager</strong> : ton niveau devient un <strong>lien cliquable</strong> ET un <strong>QR code à scanner</strong> (avec Pixou au centre, aux couleurs de ton skin !) — le destinataire clique ou scanne, et le jeu lui propose <strong>▶ JOUER ou ✏️ ÉDITEUR</strong></span></div>
             <div class="help-row"><span class="emoji">📥</span><span class="desc"><strong>Coller un code</strong> : en secours, colle le message reçu <strong>en entier</strong> (lien ou ancien code PIXOU) — le niveau est détecté tout seul</span></div>
             <div class="help-row"><span class="emoji">🎯</span><span class="desc">Tes niveaux <strong>sauvegardés</strong> apparaissent dans « 🎯 NIVEAUX », section <strong>📝 Mes niveaux</strong> : joue-les avec chrono, médailles et record — comme de vrais niveaux ! (sans gain de 🪙 ni Hall of Fame)</span></div>
             <div class="help-tip">💡 Échangez vos créations en famille : chacun construit un niveau, l'envoie, et on compare les chronos !</div>
@@ -471,7 +484,7 @@
 
         <div class="help-card">
             <h3><span class="ico">💾</span> Sauvegarde</h3>
-            <div class="help-row"><span class="emoji">📲</span><span class="desc"><strong>Vers un autre appareil</strong> : envoie un lien (WhatsApp, mail…) — l'autre appareil clique et TOUT est restauré : progression, skins, niveaux créés, records</span></div>
+            <div class="help-row"><span class="emoji">📲</span><span class="desc"><strong>Vers un autre appareil</strong> : un <strong>QR code à scanner</strong> directement avec l'autre appareil (ou un lien à envoyer) — et TOUT est restauré : progression, skins, niveaux créés, records</span></div>
             <div class="help-row"><span class="emoji">🔒</span><span class="desc">Le jeu demande au navigateur un <strong>stockage protégé</strong> pour que tes données ne soient jamais supprimées automatiquement</span></div>
             <div class="help-row"><span class="emoji">📤</span><span class="desc"><strong>EXPORTER</strong> (menu → 💾 SAUVEGARDE) télécharge un fichier contenant TOUTE ta progression : niveaux, étoiles, chronos, Hall of Fame, niveaux créés dans l'éditeur, préférences</span></div>
             <div class="help-row"><span class="emoji">📥</span><span class="desc"><strong>IMPORTER</strong> restaure ce fichier — après un nettoyage du navigateur, ou sur un autre appareil pour emporter ta progression</span></div>

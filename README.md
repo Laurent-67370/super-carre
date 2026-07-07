@@ -301,6 +301,7 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 - Contrôles tactiles multi-points et clavier (jeu ET saisie du nom).
 - **Mode démo** « attract mode » : pilote automatique planifié (graphe des plateformes + BFS, sauts dosés, ressorts), invincible, sortie au moindre toucher.
 - **Éditeur de niveaux complet** : palette de 16 outils (dont 🏁 checkpoint posable), annuler/rétablir, niveau aléatoire, **🤖 vérification par le bot** (simulation accélérée garantissant que toutes les pièces sont atteignables), duplication d'objet — et les créations sauvegardées sont **jouables depuis le sélecteur** (📝 Mes niveaux : chrono, médailles, records).
+- **📱 QR codes de partage** : chaque partage (niveau, sauvegarde, lien du jeu depuis l'aide) affiche un **QR stylé** — points arrondis, correction d'erreur élevée, **mini-Pixou aux couleurs du skin équipé** sur pastille centrale. Scanner remplace l'envoi du lien entre appareils proches.
 - **Partage de niveaux par lien cliquable** : le niveau (tuples compacts + deflate + **base64url**, format `PIXOU2.…` — **~45 % plus court** que l'ancien, zéro caractère encodé dans l'URL) voyage dans l'URL (`?n=…`) — le destinataire clique et choisit ▶ JOUER ou ✏️ ÉDITEUR ; import de secours universel (lien, message entier, code nu).
 - **📅 Défi du jour** : niveau quotidien identique pour tous (PRNG mulberry32 semé par la date, difficulté en rotation, générateur auto-validé), record quotidien — de la rétention sans serveur.
 - **Trois difficultés** (😊/😐/😈) mémorisées : vies, vitesse des ennemis, invincibilité, checkpoints et crédit 🪙 modulés — étoiles et médailles identiques partout.
@@ -312,6 +313,10 @@ Après une première ouverture (qui met le jeu en cache), l'application reste jo
 ### ✨ v28 — migration modulaire + build Vite
 
 Le projet passe d'un `index.html` monolithe (4124 lignes, JS inline) à une **source modulaire ES modules** assemblée par **Vite**. Le moteur canvas reste impératif (pas de React — anti-pattern pour un jeu canvas). Le build (`vite-plugin-singlefile`) produit un **`index.html` unique** (JS + CSS inlinés et minifiés, **182 ko / 46 ko gzip** vs 272 ko avant, −33 %), déployé via **GitHub Actions CI** (`.github/workflows/deploy.yml` : `npm ci && npm run build` → deploy-pages). La source est découpée en 12 modules (`src/` : `entities`, `player`, `levels`, `game`, `audio`, `storage`, `nameentry`, `editor`, `controls`, `ui`, `main`, `style.css`). Comportement strictement identique (vérifié runtime via smoke test Playwright : démarrage, boucle, éditeur, tous les menus, 0 erreur). `sw.js` v36, manifest corrigé (« 24 niveaux »).
+
+### 📱 v78 — QR codes de partage avec Pixou au centre
+
+Chaque partage gagne un **QR code stylé** (module `qrpixou.js`, bibliothèque `qrcode-generator` inlinée au build — la philosophie fichier-unique hors-ligne est préservée) : points arrondis, yeux de détection aux coins adoucis, et **mini-Pixou dessiné au centre aux couleurs du skin équipé** (casquette comprise) sur pastille blanche. La sur-impression reste ≤ 8 % des modules, très sous la tolérance de la correction d'erreur (ECC H à 30 %, bascule M au-delà de 520 caractères). Branché sur les trois partages : **🔗 niveau** (overlay « Scanne pour jouer » + bouton d'envoi du lien), **📲 sauvegarde** (scan direct entre appareils, garde-fou > 1 200 caractères → envoi classique), et **lien du jeu** (nouveau bouton 📱 dans l'aide ❓ — fais scanner tes amis !). Trois tests : QR de niveau (ECC H), texte long (bascule M), couleurs par défaut.
 
 ### 🔗 v77 — liens de partage 45 % plus courts
 
