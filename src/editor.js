@@ -924,6 +924,12 @@ export class LevelEditor {
             setTimeout(() => this.verifierBot(), 60); // laisser le menu se fermer
         });
         document.getElementById('ed-share').addEventListener('click', async () => {
+            // Un niveau vide serait refusé à l'import (objets.length === 0) :
+            // inutile de générer un lien que le destinataire ne pourra pas ouvrir.
+            if (!this.modele.objets || this.modele.objets.length === 0) {
+                alert('\u{1F9F1} Ton niveau est vide ! Place au moins un \u00E9l\u00E9ment (sol, ennemi, pi\u00E8ce\u2026) avant de le partager.');
+                return;
+            }
             try {
                 const code = await this.codePartage();
                 const nom = this.modele.nom || 'Mon niveau';
